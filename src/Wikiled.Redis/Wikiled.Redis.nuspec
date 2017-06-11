@@ -4,6 +4,7 @@
     <version>1.0.0</version>
     <authors>Wikiled</authors>
     <description>Wikiled Redis library</description>
+    <projectUrl>https://github.com/AndMu/Wikiled.Redis</projectUrl>
     <dependencies>
       <dependency id="Wikiled.Core.Utility" version="2.1.7" />
     </dependencies>
