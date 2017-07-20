@@ -11,18 +11,18 @@ namespace Wikiled.Redis.Config
     {
         private readonly Logger logger = LogManager.GetCurrentClassLogger();
 
-        public RedisConfiguration(string name)
+        public RedisConfiguration()
         {
             KeepAlive = 60;
             ConnectTimeout = 5000;
             SyncTimeout = 5000;
             ResponseTimeout = 10000;
-            ServiceName = name;
+            ServiceName = "Wikiled";
             AllowAdmin = true;
         }
 
-        public RedisConfiguration(string name, string host, int? port = null)
-            : this(name)
+        public RedisConfiguration(string host, int? port = null)
+            : this()
         {
             Guard.NotNullOrEmpty(() => host, host);
             Endpoints = new[] {new RedisEndpoint {Host = host}};

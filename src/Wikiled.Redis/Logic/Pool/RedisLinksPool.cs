@@ -1,5 +1,7 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using Wikiled.Core.Utility.Arguments;
+using Wikiled.Core.Utility.Extensions;
 using Wikiled.Redis.Channels;
 using Wikiled.Redis.Config;
 
@@ -9,7 +11,7 @@ namespace Wikiled.Redis.Logic.Pool
     {
         private readonly RedisConfiguration[] configurations;
 
-        private RedisLink[] links;
+        private Dictionary<string, RedisLink> links;
 
         private bool isDispossed;
 
@@ -31,7 +33,7 @@ namespace Wikiled.Redis.Logic.Pool
             {
                 foreach (var redisLink in links)
                 {
-                    redisLink.Open();
+                    redisLink.Value.Open();
                 }
             }
 
@@ -50,7 +52,7 @@ namespace Wikiled.Redis.Logic.Pool
             {
                 foreach (var redisLink in links)
                 {
-                    redisLink.Dispose();
+                    redisLink.Value.Dispose();
                 }
             }
         }
@@ -58,13 +60,18 @@ namespace Wikiled.Redis.Logic.Pool
         public void Open()
         {
             State = ChannelState.Opening;
-            links = configurations.Select(item => new RedisLink(item.ServiceName, new RedisMultiplexer(item))).ToArray();
+            links = configurations.Select(item => new RedisLink(item.ServiceName, new RedisMultiplexer(item))).ToDictionary(item => item.Multiplexer.Configuration.ServiceName, link => link);
             foreach (var redisLink in links)
             {
-                redisLink.Open();
+                redisLink.Value.Open();
             }
 
             State = ChannelState.Open;
+        }
+
+        public IRedisLink GetKey(string key)
+        {
+            return links?.GetSafe(key);
         }
     }
 }

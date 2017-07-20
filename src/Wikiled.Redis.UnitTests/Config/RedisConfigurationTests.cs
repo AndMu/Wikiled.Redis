@@ -16,7 +16,7 @@ namespace Wikiled.Redis.UnitTests.Config
         [SetUp]
         public void Setup()
         {
-            configuration = new RedisConfiguration("Wikiled");
+            configuration = new RedisConfiguration();
         }
 
         [Test]
@@ -33,7 +33,7 @@ namespace Wikiled.Redis.UnitTests.Config
         public void Construct()
         {
             Assert.Throws<ArgumentNullException>(() => new RedisConfiguration(null));
-            var instance = new RedisConfiguration("Wikiled", "localhost", 100);
+            var instance = new RedisConfiguration("localhost", 100);
             Assert.AreEqual("localhost", instance.Endpoints[0].Host);
 
             instance = new RedisConfiguration("localhost");
