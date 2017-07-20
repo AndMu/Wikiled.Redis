@@ -115,6 +115,7 @@
     <Compile Include="Keys\SimpleKeyTests.cs" />
     <Compile Include="Logic\HandlingDefinitionTests.cs" />
     <Compile Include="Logic\PooledRedisMultiplexerTests.cs" />
+    <Compile Include="Logic\Pool\RedisLinksPoolTests.cs" />
     <Compile Include="Logic\RedisClientTests.cs" />
     <Compile Include="Logic\RedisExtensionsTests.cs" />
     <Compile Include="Logic\RedisFactoryTests.cs" />

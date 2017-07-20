@@ -146,7 +146,9 @@
     <Compile Include="Logic\IRedisLink.cs" />
     <Compile Include="Logic\IRedisTransaction.cs" />
     <Compile Include="Logic\PooledRedisMultiplexer.cs" />
+    <Compile Include="Logic\Pool\IRedisLinksPool.cs" />
     <Compile Include="Logic\RedisFactory.cs" />
+    <Compile Include="Logic\Pool\RedisLinksPool.cs" />
     <Compile Include="Logic\RedisProcessManager.cs" />
     <Compile Include="Logic\RetryHandler.cs" />
     <Compile Include="Logic\SimpleRedisFactory.cs" />

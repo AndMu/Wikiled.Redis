@@ -272,5 +272,10 @@ namespace Wikiled.Redis.Logic
 
             typeHandler[type] = definition;
         }
+
+        public object ToArray()
+        {
+            throw new NotImplementedException();
+        }
     }
 }
