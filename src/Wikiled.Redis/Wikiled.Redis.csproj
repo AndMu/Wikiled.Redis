@@ -39,6 +39,7 @@
     <Reference Include="ICSharpCode.SharpZipLib, Version=0.86.0.518, Culture=neutral, PublicKeyToken=1b03e6acf1164f73, processorArchitecture=MSIL">
       <HintPath>..\packages\SharpZipLib.0.86.0\lib\20\ICSharpCode.SharpZipLib.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.CSharp" />
     <Reference Include="NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
       <HintPath>..\packages\NLog.4.4.5\lib\net45\NLog.dll</HintPath>
     </Reference>
@@ -101,6 +102,9 @@
     <Compile Include="Data\BinaryDataSerializer.cs" />
     <Compile Include="Data\FlatProtoDataSerializer.cs" />
     <Compile Include="Data\IDataSerializer.cs" />
+    <Compile Include="Data\INamedType.cs" />
+    <Compile Include="Data\PrimitiveSerializer.cs" />
+    <Compile Include="Data\PrimitiveSet.cs" />
     <Compile Include="Data\RedisData.cs" />
     <Compile Include="Data\RedisValueExtractor.cs" />
     <Compile Include="Data\XmlDataSerializer.cs" />
@@ -122,6 +126,7 @@
     <Compile Include="Keys\HashIndexKey.cs" />
     <Compile Include="Keys\IIndexKey.cs" />
     <Compile Include="Keys\IndexKey.cs" />
+    <Compile Include="Logic\IHandlingDefinition.cs" />
     <Compile Include="Logic\IRedisFactory.cs" />
     <Compile Include="Logic\IRedisMultiplexer.cs" />
     <Compile Include="Keys\BaseKey.cs" />

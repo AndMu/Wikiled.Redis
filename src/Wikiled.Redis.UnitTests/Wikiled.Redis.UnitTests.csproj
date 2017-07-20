@@ -91,10 +91,6 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <Reference Include="System.Xml.ReaderWriter, Version=4.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Xml.ReaderWriter.4.3.0\lib\net46\System.Xml.ReaderWriter.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="Wikiled.Core.Utility, Version=2.1.7.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Wikiled.Core.Utility.2.1.7\lib\net462\Wikiled.Core.Utility.dll</HintPath>
     </Reference>
@@ -104,6 +100,7 @@
     <Compile Include="Config\RedisConfigurationTests.cs" />
     <Compile Include="Data\BinaryDataSerializerTests.cs" />
     <Compile Include="Data\FlatProtoDataSerializerTests.cs" />
+    <Compile Include="Data\PrimitiveSerializerTests.cs" />
     <Compile Include="Data\RedisValueExtractorTests.cs" />
     <Compile Include="Data\XmlDataSerializerTests.cs" />
     <Compile Include="Data\ZipBinaryDataSerializerTests.cs" />

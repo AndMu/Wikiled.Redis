@@ -13,7 +13,7 @@ namespace Wikiled.Redis.UnitTests.Data
             var order = new MainDataOne();
             order.Name = "Test";
             FlatProtoDataSerializer serializerTests = new FlatProtoDataSerializer(false);
-            var data = serializerTests.Serialize<IMainData>(order);
+            var data = (byte[])serializerTests.Serialize<IMainData>(order);
             var orderResult = serializerTests.Deserialize<IMainData>(data);
             Assert.AreNotSame(order, orderResult);
             Assert.AreEqual(116, data.Length);
@@ -26,7 +26,7 @@ namespace Wikiled.Redis.UnitTests.Data
             var order = new MainDataOne();
             order.Name = "Test";
             FlatProtoDataSerializer serializerTests = new FlatProtoDataSerializer(false);
-            var data = serializerTests.Serialize<IMainData>(order);
+            var data = (byte[])serializerTests.Serialize<IMainData>(order);
             var orderResult = (IMainData)serializerTests.Deserialize(typeof(IMainData), data);
             Assert.AreNotSame(order, orderResult);
             Assert.AreEqual(116, data.Length);
@@ -40,7 +40,7 @@ namespace Wikiled.Redis.UnitTests.Data
             var order = new MainDataOne();
             order.Name = "Test";
             FlatProtoDataSerializer serializer = new FlatProtoDataSerializer(true);
-            var data = serializer.Serialize(order);
+            var data = (byte[])serializer.Serialize(order);
             var orderResult = serializer.Deserialize<MainDataOne>(data);
             Assert.AreNotSame(order, orderResult);
             Assert.AreEqual(36, data.Length);

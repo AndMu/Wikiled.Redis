@@ -1,4 +1,5 @@
 ﻿using System;
+using StackExchange.Redis;
 using Wikiled.Core.Utility.Arguments;
 using Wikiled.Core.Utility.IO;
 using Wikiled.Core.Utility.Serialization;
@@ -7,15 +8,16 @@ namespace Wikiled.Redis.Data
 {
     public class ZipBinaryDataSerializer : IDataSerializer
     {
-        public byte[] Serialize<T>(T instance)
+        public RedisValue Serialize<T>(T instance)
         {
             Guard.NotNull(() => instance, instance);
             return instance.GetArrayBin().Zip();
         }
 
-        public T Deserialize<T>(byte[] data)
+        public T Deserialize<T>(RedisValue value)
         {
-            Guard.NotNull(() => data, data);
+            Guard.NotNull(() => value, value);
+            byte[] data = value;
             return data.UnZip().GetObjectBin<T>();
         }
 

@@ -1,12 +1,13 @@
 ﻿using System;
+using StackExchange.Redis;
 
 namespace Wikiled.Redis.Data
 {
     public interface IDataSerializer
     {
-        byte[] Serialize<T>(T instance);
+        RedisValue Serialize<T>(T instance);
 
-        T Deserialize<T>(byte[] data);
+        T Deserialize<T>(RedisValue data);
 
         object Deserialize(Type type, byte[] data);
     }

@@ -8,7 +8,7 @@ using Wikiled.Redis.Serialization;
 
 namespace Wikiled.Redis.Logic
 {
-    public class HandlingDefinition<T>
+    public class HandlingDefinition<T> : IHandlingDefinition
     {
         private static readonly Logger log = LogManager.GetLogger($"HandlingDefinition<{typeof(T)}>");
 
@@ -94,6 +94,12 @@ namespace Wikiled.Redis.Logic
             instance.IsWellKnown = false;
             instance.linkId = redis.LinkId;
             instance.DataSerializer = serializer;
+            if (typeof(T) == typeof(PrimitiveSet))
+            {
+                instance.IsSet = true;
+                instance.DataSerializer = new PrimitiveSerializer();
+            }
+
             return instance;
         }
 
