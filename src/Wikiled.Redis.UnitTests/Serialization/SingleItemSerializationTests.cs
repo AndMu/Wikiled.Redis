@@ -30,7 +30,7 @@ namespace Wikiled.Redis.UnitTests.Serialization
         [SetUp]
         public void Setup()
         {
-            RedisConfiguration configuration = new RedisConfiguration();
+            RedisConfiguration configuration = new RedisConfiguration("Test");
             link = new Mock<IRedisLink>();
             var multiplexer = new Mock<IRedisMultiplexer>();
             multiplexer.Setup(item => item.Configuration).Returns(configuration);

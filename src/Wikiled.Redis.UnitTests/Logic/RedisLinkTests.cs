@@ -23,7 +23,7 @@ namespace Wikiled.Redis.UnitTests.Logic
         [SetUp]
         public void Setup()
         {
-            RedisConfiguration configuration = new RedisConfiguration();
+            RedisConfiguration configuration = new RedisConfiguration("Test");
             database = new Mock<IDatabase>();
             multiplexer = new Mock<IRedisMultiplexer>();
             multiplexer.Setup(item => item.Database).Returns(database.Object);

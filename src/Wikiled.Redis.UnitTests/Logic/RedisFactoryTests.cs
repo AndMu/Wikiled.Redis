@@ -17,7 +17,7 @@ namespace Wikiled.Redis.UnitTests.Logic
         public void Setup()
         {
             internalFactory = new Mock<IRedisFactory>();
-            configuration = new RedisConfiguration();
+            configuration = new RedisConfiguration("Test");
             configuration.Endpoints = new[] { new RedisEndpoint { Host = "localhost", Port = 6000 } };
         }
 

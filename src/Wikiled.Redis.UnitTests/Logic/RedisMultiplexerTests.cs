@@ -15,7 +15,7 @@ namespace Wikiled.Redis.UnitTests.Logic
         [SetUp]
         public void Setup()
         {
-            option = new RedisConfiguration();
+            option = new RedisConfiguration("Test");
             option.Endpoints = new[] { new RedisEndpoint { Host = "localhost", Port = 7000 } };
             multiplexer = new RedisMultiplexer(option);
         }
