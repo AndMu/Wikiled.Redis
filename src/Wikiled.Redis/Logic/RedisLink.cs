@@ -71,8 +71,6 @@ namespace Wikiled.Redis.Logic
             return (HandlingDefinition<T>)definition;
         }
 
-        private Dictionary<string, dynamic> dynamicTypes = new Dictionary<string, dynamic>();
-
         public ISpecificPersistency GetSpecific<T>()
         {
             Type type = typeof(T);

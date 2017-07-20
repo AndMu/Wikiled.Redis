@@ -14,7 +14,7 @@ namespace Wikiled.Redis.UnitTests.Data
             var order = new MainDataOne();
             order.Name = "Test";
             XmlDataSerializer serializerTests = new XmlDataSerializer(serialize);
-            var data = (byte[])serializerTests.Serialize(order);
+            var data = serializerTests.Serialize(order);
             var orderResult = serializerTests.Deserialize<MainDataOne>(data);
             Assert.AreNotSame(order, orderResult);
             Assert.AreEqual(size, data.Length);
@@ -28,7 +28,7 @@ namespace Wikiled.Redis.UnitTests.Data
             var order = new MainDataOne();
             order.Name = "Test";
             var serializerTests = new XmlDataSerializer(serialize);
-            var data = (byte[])serializerTests.Serialize(order);
+            var data = serializerTests.Serialize(order);
             var orderResult = (IMainData)serializerTests.Deserialize(typeof(MainDataOne), data);
             Assert.AreNotSame(order, orderResult);
             Assert.AreEqual(size, data.Length);
