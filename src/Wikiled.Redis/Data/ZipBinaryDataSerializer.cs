@@ -1,6 +1,6 @@
 ﻿using System;
 using Wikiled.Core.Utility.Arguments;
-using Wikiled.Core.Utility.IO;
+using Wikiled.Core.Utility.Helpers;
 using Wikiled.Core.Utility.Serialization;
 
 namespace Wikiled.Redis.Data
