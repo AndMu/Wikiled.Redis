@@ -254,11 +254,20 @@ namespace Wikiled.Redis.Logic
 
         protected override ChannelState OpenInternal()
         {
-            log.Debug("OpenInternal");
-            Multiplexer.Open();
-            var key = this.GetKey(new SimpleKey("Connection", "Counter"));
-            LinkId = Multiplexer.Database.StringIncrement(key);
-            log.Debug("Link initialized with ID:{0}", LinkId);
+            log.Debug("OpenInternal: {0}", Multiplexer.Configuration);
+            try
+            {
+                Multiplexer.Open();
+                var key = this.GetKey(new SimpleKey("Connection", "Counter"));
+                LinkId = Multiplexer.Database.StringIncrement(key);
+                log.Debug("Link initialized with ID:{0}", LinkId);
+            }
+            catch (Exception e)
+            {
+                log.Error(e);
+                throw;
+            }
+
             return base.OpenInternal();
         }
 

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using NLog;
 using Wikiled.Core.Utility.Arguments;
 using Wikiled.Core.Utility.Extensions;
 using Wikiled.Redis.Channels;
@@ -9,6 +10,8 @@ namespace Wikiled.Redis.Logic.Pool
 {
     public class RedisLinksPool : IRedisLinksPool
     {
+        private readonly Logger logger = LogManager.GetCurrentClassLogger();
+
         private readonly RedisConfiguration[] configurations;
 
         private Dictionary<string, RedisLink> links;
@@ -20,6 +23,7 @@ namespace Wikiled.Redis.Logic.Pool
             Guard.NotNull(() => configurations, configurations);
             this.configurations = configurations;
             State = ChannelState.New;
+            logger.Debug("Adding {0} services", configurations.Length);
         }
 
         public string Name { get; } = "Pool";
@@ -63,6 +67,7 @@ namespace Wikiled.Redis.Logic.Pool
             links = configurations.Select(item => new RedisLink(item.ServiceName, new RedisMultiplexer(item))).ToDictionary(item => item.Multiplexer.Configuration.ServiceName, link => link);
             foreach (var redisLink in links)
             {
+                logger.Debug("Opening {0}", redisLink.Value.Multiplexer.Configuration);
                 redisLink.Value.Open();
             }
 

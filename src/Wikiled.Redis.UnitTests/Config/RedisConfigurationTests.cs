@@ -53,7 +53,17 @@ namespace Wikiled.Redis.UnitTests.Config
             Assert.AreEqual(5000, options.SyncTimeout);
             Assert.AreEqual("Wikiled", options.ServiceName);
         }
-        
+
+        [Test]
+        public void String()
+        {
+            configuration.Endpoints = new[] { new RedisEndpoint() };
+            configuration.Endpoints[0].Host = "localhost";
+            configuration.Endpoints[0].Port = 1000;
+            configuration.ServiceName = "Test";
+            Assert.AreEqual("[Test] [localhost:1000]", configuration.ToString());
+        }
+
         [Test]
         public void DeserializeFromString()
         {

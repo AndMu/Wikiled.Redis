@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Text;
 using System.Xml.Serialization;
 using NLog;
 using StackExchange.Redis;
@@ -80,6 +81,18 @@ namespace Wikiled.Redis.Config
         public int SyncTimeout { get; set; }
 
         public int WriteBuffer { get; set; }
+
+        public override string ToString()
+        {
+            StringBuilder builder = new StringBuilder();
+            builder.Append($"[{ServiceName}] ");
+            foreach(var redisEndpoint in Endpoints)
+            {
+                builder.Append($"[{redisEndpoint.Host}:{redisEndpoint.Port}]");
+            }
+
+            return builder.ToString();
+        }
 
         public ConfigurationOptions GetOptions()
         {
