@@ -16,7 +16,7 @@ namespace Wikiled.Redis.Information
                 LastSync = GetType<long>("master_last_io_seconds_ago");
                 MasterLinkStatus = GetType<MasterLinkStatus>("master_link_status");
                 SlaveReplOffset = GetType<long>("slave_repl_offset");
-                IsMasterSyncInProgress = GetType<bool>("master_sync_in_progress");
+                IsMasterSyncInProgress = GetType<byte>("master_sync_in_progress");
             }
             else if (Role == ReplicationRole.Master)
             {
@@ -39,7 +39,7 @@ namespace Wikiled.Redis.Information
 
         public int? ConnectedSlaves { get; }
 
-        public bool? IsMasterSyncInProgress { get; }
+        public byte? IsMasterSyncInProgress { get; }
 
         public long? LastSync { get; }
 

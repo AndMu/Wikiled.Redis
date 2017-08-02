@@ -74,7 +74,7 @@ namespace Wikiled.Redis.IntegrationTests.Replication
         {
             using (var replication = linkTwo.SetupReplicationFrom(new IPEndPoint(IPAddress.Parse("127.0.0.1"), 6017)))
             {
-                var result = await replication.Perform(new CancellationTokenSource(10000).Token);
+                var result = await replication.Perform(new CancellationTokenSource(20000).Token);
                 ValidateResultOn(result);
                 ValidateOff(1);
             }
@@ -83,7 +83,7 @@ namespace Wikiled.Redis.IntegrationTests.Replication
         [Test]
         public void TestReplication()
         {
-            int replicationWait = 10000;
+            int replicationWait = 20000;
             using (var replication = linkTwo.SetupReplicationFrom(new IPEndPoint(IPAddress.Parse("127.0.0.1"), 6017)))
             {
                 ManualResetEvent syncEvent = new ManualResetEvent(false);

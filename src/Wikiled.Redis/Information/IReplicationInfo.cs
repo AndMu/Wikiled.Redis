@@ -12,7 +12,7 @@
 
         long? LastSync { get; }
 
-        bool? IsMasterSyncInProgress { get; }
+        byte? IsMasterSyncInProgress { get; }
 
         long? SlaveReplOffset { get;  }
     }
