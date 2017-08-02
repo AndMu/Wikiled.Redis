@@ -2,6 +2,7 @@
 using System.IO;
 using System.Net;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 using NUnit.Framework;
 using Wikiled.Core.Utility.Serialization;
@@ -23,6 +24,8 @@ namespace Wikiled.Redis.IntegrationTests.Replication
 
         private RedisLink linkTwo;
 
+        private string key = "TestData";
+
         [SetUp]
         public void Setup()
         {
@@ -43,6 +46,18 @@ namespace Wikiled.Redis.IntegrationTests.Replication
             linkOne.Multiplexer.Flush();
             linkTwo.Open();
             linkTwo.Multiplexer.Flush();
+
+            var data = linkOne.Database.ListRange(key);
+            Assert.AreEqual(0, data.Length);
+
+            // adding new recorrd
+            linkOne.Database.ListLeftPush(key, "Test");
+            data = linkOne.Database.ListRange(key);
+            Assert.AreEqual(1, data.Length);
+
+            // checking nothing in another database
+            data = linkTwo.Database.ListRange(key);
+            Assert.AreEqual(0, data.Length);
         }
 
         [TearDown]
@@ -55,21 +70,20 @@ namespace Wikiled.Redis.IntegrationTests.Replication
         }
 
         [Test]
+        public async Task TestReplicationAsync()
+        {
+            using (var replication = linkTwo.SetupReplication(new IPEndPoint(IPAddress.Parse("127.0.0.1"), 6017)))
+            {
+                var result = await replication.Perform(new CancellationTokenSource(10000).Token);
+                ValidateResultOn(result);
+                ValidateOff(1);
+            }
+        }
+
+        [Test]
         public void TestReplication()
         {
             int replicationWait = 10000;
-            var data = linkOne.Database.ListRange("TestData");
-            Assert.AreEqual(0, data.Length);
-
-            // adding new recorrd
-            linkOne.Database.ListLeftPush("TestData", "Test");
-            data = linkOne.Database.ListRange("TestData");
-            Assert.AreEqual(1, data.Length);
-
-            // checking nothing in another database
-            data = linkTwo.Database.ListRange("TestData");
-            Assert.AreEqual(0, data.Length);
-
             using (var replication = linkTwo.SetupReplication(new IPEndPoint(IPAddress.Parse("127.0.0.1"), 6017)))
             {
                 ManualResetEvent syncEvent = new ManualResetEvent(false);
@@ -85,37 +99,46 @@ namespace Wikiled.Redis.IntegrationTests.Replication
                     throw new TimeoutException("Replication timeout");
                 }
 
-                data = linkTwo.Database.ListRange("TestData");
-                Assert.AreEqual(1, data.Length);
-
-                Assert.IsNotNull(argument);
-                Assert.AreEqual(ReplicationRole.Slave, argument.Status.Role);
-                Assert.AreEqual(MasterLinkStatus.Up, argument.Status.MasterLinkStatus);
-                Assert.GreaterOrEqual(argument.Status.LastSync, 0);
-                Assert.Greater(argument.Status.SlaveReplOffset, 0);
-
+                ValidateResultOn(argument.Status);
                 syncEvent.Reset();
 
                 // add data while in replication mode
-                linkOne.Database.ListLeftPush("TestData", "Test2");
+                linkOne.Database.ListLeftPush(key, "Test2");
                 if (!syncEvent.WaitOne(replicationWait))
                 {
                     throw new TimeoutException("Replication timeout");
                 }
 
-                data = linkTwo.Database.ListRange("TestData");
-                Assert.AreEqual(2, data.Length);
+                var result = linkTwo.Database.ListRange(key);
+                Assert.AreEqual(2, result.Length);
                 replication.Close();
             }
 
-            // add data out of replication mode
-            linkOne.Database.ListLeftPush("TestData", "Test3");
-            Thread.Sleep(1000);
-            data = linkTwo.Database.ListRange("TestData");
-            Assert.AreEqual(2, data.Length);
+            ValidateOff(2);
+        }
 
-            data = linkOne.Database.ListRange("TestData");
-            Assert.AreEqual(3, data.Length);
+        private void ValidateOff(int total)
+        {
+            // add data out of replication mode
+            linkOne.Database.ListLeftPush(key, "Test3");
+            Thread.Sleep(1000);
+            var data = linkTwo.Database.ListRange(key);
+            Assert.AreEqual(total, data.Length);
+
+            data = linkOne.Database.ListRange(key);
+            Assert.AreEqual(total + 1, data.Length);
+        }
+
+        private void ValidateResultOn(IReplicationInfo result)
+        {
+            var data = linkTwo.Database.ListRange(key);
+            Assert.AreEqual(1, data.Length);
+
+            Assert.IsNotNull(result);
+            Assert.AreEqual(ReplicationRole.Slave, result.Role);
+            Assert.AreEqual(MasterLinkStatus.Up, result.MasterLinkStatus);
+            Assert.GreaterOrEqual(result.LastSync, 0);
+            Assert.Greater(result.SlaveReplOffset, 0);
         }
     }
 }

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Threading;
+using System.Threading.Tasks;
 using NLog;
 using Wikiled.Core.Utility.Arguments;
 using Wikiled.Redis.Information;
@@ -30,16 +32,42 @@ namespace Wikiled.Redis.Replication
 
         public EndPoint Master { get; }
 
+        public async Task<IReplicationInfo> Perform(CancellationToken token)
+        {
+            if (State != ChannelState.New)
+            {
+                throw new InvalidOperationException("Manager is already activated");
+            }
+
+            TaskCompletionSource<IReplicationInfo> task = new TaskCompletionSource<IReplicationInfo>();
+
+            StepCompleted += (sender, args) =>
+            {
+                task.SetResult(args.Status);
+            };
+
+            Open();
+            await Task.WhenAny(task.Task, Task.Delay(Timeout.Infinite, token));
+            Close();
+            if (token.IsCancellationRequested)
+            {
+                throw new TaskCanceledException();
+            }
+
+            return await task.Task;
+        }
+
         protected override void TimerEvent()
         {
             var info = multiplexer.GetInfo(ReplicationInfo.Name);
             foreach (var information in info)
             {
-                if (information.Replication.IsMasterSyncInProgress == 1)
+                if (information.Replication.IsMasterSyncInProgress == 1 ||
+                    information.Replication.LastSync < 1)
                 {
                     continue;
                 }
-
+                
                 if (information.Replication.SlaveReplOffset == null)
                 {
                     log.Error("No offset information found");
