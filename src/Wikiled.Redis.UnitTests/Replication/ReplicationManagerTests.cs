@@ -81,7 +81,7 @@ namespace Wikiled.Redis.UnitTests.Replication
         public void VerifyReplicationProcess()
         {
             List<ReplicationEventArgs> arguments = new List<ReplicationEventArgs>();
-            manager.OnCompleted += (sender, args) => arguments.Add(args);
+            manager.OnSynchronized += (sender, args) => arguments.Add(args);
 
             var replicationInfo = SetupReplication();
             manager.Open();
@@ -116,7 +116,7 @@ namespace Wikiled.Redis.UnitTests.Replication
             bool isError = false;
             bool isCompleted = false;
             manager.OnError += (sender, args) => { isError = true; };
-            manager.OnCompleted += (sender, args) => { isCompleted = true; };
+            manager.OnSynchronized += (sender, args) => { isCompleted = true; };
 
             manager.Open();
             Thread.Sleep(300);

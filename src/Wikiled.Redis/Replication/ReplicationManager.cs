@@ -39,7 +39,7 @@ namespace Wikiled.Redis.Replication
 
         public event EventHandler<EventArgs> OnError;
 
-        public event EventHandler<ReplicationEventArgs> OnCompleted;
+        public event EventHandler<ReplicationEventArgs> OnSynchronized;
 
         public IPEndPoint Master { get; }
 
@@ -52,7 +52,7 @@ namespace Wikiled.Redis.Replication
 
             TaskCompletionSource<IReplicationInfo> task = new TaskCompletionSource<IReplicationInfo>();
 
-            OnCompleted += (sender, args) =>
+            OnSynchronized += (sender, args) =>
             {
                 task.SetResult(args.Status);
             };
@@ -113,8 +113,7 @@ namespace Wikiled.Redis.Replication
 
             if (lastSyncTable.All(item => item.Value == masterOffset.Value))
             {
-                OnCompleted?.Invoke(this, new ReplicationEventArgs(information.Server, information.Replication));
-                Close();
+                OnSynchronized?.Invoke(this, new ReplicationEventArgs(information.Server, information.Replication));
             }
         }
 

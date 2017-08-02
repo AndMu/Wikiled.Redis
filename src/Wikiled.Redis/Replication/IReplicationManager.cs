@@ -9,7 +9,7 @@ namespace Wikiled.Redis.Replication
 {
     public interface IReplicationManager : IChannel
     {
-        event EventHandler<ReplicationEventArgs> OnCompleted;
+        event EventHandler<ReplicationEventArgs> OnSynchronized;
 
         IPEndPoint Master { get; }
 
