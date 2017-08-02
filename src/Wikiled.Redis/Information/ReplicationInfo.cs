@@ -11,13 +11,35 @@ namespace Wikiled.Redis.Information
         {
             Guard.NotNull(() => main, main);
             Role = GetType<ReplicationRole>("role");
-            LastSync = GetType<long>("master_last_io_seconds_ago");
-            MasterLinkStatus = GetType<MasterLinkStatus>("master_link_status");
-            SlaveReplOffset = GetType<long>("slave_repl_offset");
-            IsMasterSyncInProgress = GetType<byte>("master_sync_in_progress");
+            if (Role == ReplicationRole.Slave)
+            {
+                LastSync = GetType<long>("master_last_io_seconds_ago");
+                MasterLinkStatus = GetType<MasterLinkStatus>("master_link_status");
+                SlaveReplOffset = GetType<long>("slave_repl_offset");
+                IsMasterSyncInProgress = GetType<bool>("master_sync_in_progress");
+            }
+            else if (Role == ReplicationRole.Master)
+            {
+                MasterReplOffset = GetType<long>("master_repl_offset");
+                ConnectedSlaves = GetType<int>("connected_slaves");
+                if (ConnectedSlaves != null)
+                {
+                    Slaves = new SlaveInformation[ConnectedSlaves.Value];
+                    for (int i = 0; i < ConnectedSlaves.Value; i++)
+                    {
+                        Slaves[i] = SlaveInformation.Parse(GetType($"slave{i}"));
+                    }
+                }
+            }
         }
 
-        public byte? IsMasterSyncInProgress { get; }
+        public SlaveInformation[] Slaves { get; }
+
+        public long? MasterReplOffset { get; }
+
+        public int? ConnectedSlaves { get; }
+
+        public bool? IsMasterSyncInProgress { get; }
 
         public long? LastSync { get; }
 

@@ -93,7 +93,7 @@ namespace Wikiled.Redis.Logic
         /// </summary>
         /// <param name="master"></param>
         /// <returns></returns>
-        IReplicationManager SetupReplication(EndPoint master);
+        IReplicationManager SetupReplicationFrom(IPEndPoint master);
 
         /// <summary>
         ///     Get client which performs actions in transaction

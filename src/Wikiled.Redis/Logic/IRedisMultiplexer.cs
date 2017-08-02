@@ -18,9 +18,20 @@ namespace Wikiled.Redis.Logic
         IRedisConfiguration Configuration { get; }
 
         /// <summary>
+        /// Is Active
+        /// </summary>
+        bool IsActive { get; }
+
+        /// <summary>
         ///     Underlying DB
         /// </summary>
         IDatabase Database { get; }
+
+        /// <summary>
+        /// Get Servers
+        /// </summary>
+        /// <returns></returns>
+        IEnumerable<IServer> GetServers();
 
         /// <summary>
         ///     Verify connection
@@ -71,7 +82,7 @@ namespace Wikiled.Redis.Logic
         ///     Setup slave/master
         /// </summary>
         /// <param name="master">If master null - revert to master</param>
-        void SetupSlave(EndPoint master);
+        void SetupSlave(IPEndPoint master);
 
         /// <summary>
         ///     Subscribe to key events

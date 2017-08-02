@@ -105,6 +105,7 @@
     <Compile Include="Data\XmlDataSerializer.cs" />
     <Compile Include="Data\ZipBinaryDataSerializer.cs" />
     <Compile Include="Data\ZipXmlDataSerializer.cs" />
+    <Compile Include="Helpers\NetworkHelper.cs" />
     <Compile Include="Helpers\ObserverHelpers.cs" />
     <Compile Include="Indexing\HashIndexManager.cs" />
     <Compile Include="Indexing\IIndexManager.cs" />
@@ -114,6 +115,8 @@
     <Compile Include="Indexing\IndexManagerFactory.cs" />
     <Compile Include="Indexing\ListIndexManager.cs" />
     <Compile Include="Indexing\SetIndexManager.cs" />
+    <Compile Include="Information\ISlaveInformation.cs" />
+    <Compile Include="Information\SlaveInformation.cs" />
     <Compile Include="Keys\IDataKey.cs" />
     <Compile Include="Config\IRedisConfiguration.cs" />
     <Compile Include="Config\RedisConfiguration.cs" />

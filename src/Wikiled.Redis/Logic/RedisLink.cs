@@ -201,10 +201,10 @@ namespace Wikiled.Redis.Logic
             return definition;
         }
 
-        public IReplicationManager SetupReplication(EndPoint master)
+        public IReplicationManager SetupReplicationFrom(IPEndPoint master)
         {
             Guard.NotNull(() => master, master);
-            return new ReplicationManager(Multiplexer, master, TimeSpan.FromSeconds(1));
+            return new ReplicationManager(new SimpleRedisFactory(), master, Multiplexer, TimeSpan.FromSeconds(1));
         }
 
         public IRedisTransaction StartTransaction()

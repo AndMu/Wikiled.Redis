@@ -72,7 +72,7 @@ namespace Wikiled.Redis.IntegrationTests.Replication
         [Test]
         public async Task TestReplicationAsync()
         {
-            using (var replication = linkTwo.SetupReplication(new IPEndPoint(IPAddress.Parse("127.0.0.1"), 6017)))
+            using (var replication = linkTwo.SetupReplicationFrom(new IPEndPoint(IPAddress.Parse("127.0.0.1"), 6017)))
             {
                 var result = await replication.Perform(new CancellationTokenSource(10000).Token);
                 ValidateResultOn(result);
@@ -84,11 +84,11 @@ namespace Wikiled.Redis.IntegrationTests.Replication
         public void TestReplication()
         {
             int replicationWait = 10000;
-            using (var replication = linkTwo.SetupReplication(new IPEndPoint(IPAddress.Parse("127.0.0.1"), 6017)))
+            using (var replication = linkTwo.SetupReplicationFrom(new IPEndPoint(IPAddress.Parse("127.0.0.1"), 6017)))
             {
                 ManualResetEvent syncEvent = new ManualResetEvent(false);
                 ReplicationEventArgs argument = null;
-                replication.StepCompleted += (sender, args) =>
+                replication.OnCompleted += (sender, args) =>
                     {
                         argument = args;
                         syncEvent.Set();
@@ -135,10 +135,7 @@ namespace Wikiled.Redis.IntegrationTests.Replication
             Assert.AreEqual(1, data.Length);
 
             Assert.IsNotNull(result);
-            Assert.AreEqual(ReplicationRole.Slave, result.Role);
-            Assert.AreEqual(MasterLinkStatus.Up, result.MasterLinkStatus);
-            Assert.GreaterOrEqual(result.LastSync, 0);
-            Assert.Greater(result.SlaveReplOffset, 0);
+            Assert.AreEqual(ReplicationRole.Master, result.Role);
         }
     }
 }

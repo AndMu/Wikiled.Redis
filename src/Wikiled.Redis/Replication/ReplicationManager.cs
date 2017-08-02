@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
@@ -7,6 +8,8 @@ using NLog;
 using Wikiled.Core.Utility.Arguments;
 using Wikiled.Redis.Information;
 using Wikiled.Redis.Channels;
+using Wikiled.Redis.Config;
+using Wikiled.Redis.Helpers;
 using Wikiled.Redis.Logic;
 
 namespace Wikiled.Redis.Replication
@@ -15,22 +18,30 @@ namespace Wikiled.Redis.Replication
     {
         private static readonly Logger log = LogManager.GetCurrentClassLogger();
 
-        private readonly IRedisMultiplexer multiplexer;
+        private readonly IRedisMultiplexer slave;
 
-        private readonly Dictionary<string, long> lastSyncTable = new Dictionary<string, long>();
+        private Dictionary<string, long> lastSyncTable;
 
-        public ReplicationManager(IRedisMultiplexer multiplexer, EndPoint master, TimeSpan scanStatus)
+        private IRedisMultiplexer master;
+
+        private readonly IRedisFactory factory;
+
+        public ReplicationManager(IRedisFactory factory, IPEndPoint master, IRedisMultiplexer slave, TimeSpan scanStatus)
             : base("Replication", scanStatus)
         {
-            Guard.NotNull(() => multiplexer, multiplexer);
+            Guard.NotNull(() => slave, slave);
             Guard.NotNull(() => master, master);
-            this.multiplexer = multiplexer;
+            Guard.NotNull(() => factory, factory);
+            this.slave = slave;
+            this.factory = factory;
             Master = master;
         }
 
-        public event EventHandler<ReplicationEventArgs> StepCompleted;
+        public event EventHandler<EventArgs> OnError;
 
-        public EndPoint Master { get; }
+        public event EventHandler<ReplicationEventArgs> OnCompleted;
+
+        public IPEndPoint Master { get; }
 
         public async Task<IReplicationInfo> Perform(CancellationToken token)
         {
@@ -41,15 +52,22 @@ namespace Wikiled.Redis.Replication
 
             TaskCompletionSource<IReplicationInfo> task = new TaskCompletionSource<IReplicationInfo>();
 
-            StepCompleted += (sender, args) =>
+            OnCompleted += (sender, args) =>
             {
                 task.SetResult(args.Status);
             };
 
+            CancellationTokenSource errorToken = new CancellationTokenSource();
+            OnError += (sender, args) =>
+            {
+                errorToken.Cancel();
+            };
+
             Open();
-            await Task.WhenAny(task.Task, Task.Delay(Timeout.Infinite, token));
+            await Task.WhenAny(task.Task, Task.Delay(Timeout.Infinite, token), Task.Delay(Timeout.Infinite, errorToken.Token));
             Close();
-            if (token.IsCancellationRequested)
+            if (token.IsCancellationRequested ||
+                errorToken.IsCancellationRequested)
             {
                 throw new TaskCanceledException();
             }
@@ -59,45 +77,65 @@ namespace Wikiled.Redis.Replication
 
         protected override void TimerEvent()
         {
-            var info = multiplexer.GetInfo(ReplicationInfo.Name);
-            foreach (var information in info)
+            if (master == null ||
+                !master.IsActive ||
+                lastSyncTable == null)
             {
-                if (information.Replication.IsMasterSyncInProgress == 1 ||
-                    information.Replication.LastSync < 1)
-                {
-                    continue;
-                }
-                
-                if (information.Replication.SlaveReplOffset == null)
-                {
-                    log.Error("No offset information found");
-                    continue;
-                }
+                return;
+            }
 
-                var server = information.Server.ToString();
-                long txOffset;
-                if (lastSyncTable.TryGetValue(server, out txOffset) &&
-                    txOffset == information.Replication.SlaveReplOffset)
-                {
-                    continue;
-                }
+            var info = master.GetInfo(ReplicationInfo.Name).ToArray();
+            if (info.Length != 1)
+            {
+                log.Error("Do not support zero or multiple masters replication: " + info.Length);
+                OnError?.Invoke(this, EventArgs.Empty);
+                Close();
+                return;
+            }
 
-                lastSyncTable[server] = information.Replication.SlaveReplOffset.Value;
-                StepCompleted?.Invoke(this, new ReplicationEventArgs(information.Server, information.Replication));
+            var information = info[0];
+            var masterOffset = information.Replication.MasterReplOffset;
+            if (information.Replication.Role != ReplicationRole.Master ||
+                masterOffset == null ||
+                information.Replication.Slaves == null)
+            {
+                return;
+            }
+
+            foreach (var slaveInformation in information.Replication.Slaves)
+            {
+                var key = slaveInformation.EndPoint.GetAddress();
+                if (lastSyncTable.ContainsKey(key))
+                {
+                    lastSyncTable[key] = slaveInformation.Offset;
+                }
+            }
+
+            if (lastSyncTable.All(item => item.Value == masterOffset.Value))
+            {
+                OnCompleted?.Invoke(this, new ReplicationEventArgs(information.Server, information.Replication));
+                Close();
             }
         }
 
         protected override ChannelState OpenInternal()
         {
             log.Debug("Making redis SLAVE OF {0}", Master);
-            multiplexer.SetupSlave(Master);
+            lastSyncTable = slave.GetServers()
+                                 .Select(item => item.EndPoint)
+                                 .ToDictionary(
+                                     item => item.GetAddress(),
+                                     item => 0L);
+            slave.SetupSlave(Master);
+            master = factory.Create(new RedisConfiguration(Master.Address.ToString(), Master.Port));
+            master.Open();
             return base.OpenInternal();
         }
 
         protected override void CloseInternal()
         {
             log.Debug("Stopping Replication process");
-            multiplexer.SetupSlave(null);
+            slave.SetupSlave(null);
             base.CloseInternal();
         }
     }

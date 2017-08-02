@@ -30,6 +30,8 @@ namespace Wikiled.Redis.Logic
 
         public IRedisConfiguration Configuration => configuration;
 
+        public bool IsActive => connection != null;
+
         public IDatabase Database { get; private set; }
 
         public void CheckConnection()
@@ -130,7 +132,7 @@ namespace Wikiled.Redis.Logic
             connection.InternalError += OnInternalError;
         }
 
-        public void SetupSlave(EndPoint master)
+        public void SetupSlave(IPEndPoint master)
         {
             foreach (var server in GetServers())
             {
@@ -154,7 +156,7 @@ namespace Wikiled.Redis.Logic
             return subscriber;
         }
 
-        private IEnumerable<IServer> GetServers()
+        public IEnumerable<IServer> GetServers()
         {
             foreach (var endpoint in configuration.Endpoints)
             {

@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using StackExchange.Redis;
 using Wikiled.Core.Utility.Arguments;
-using Wikiled.Core.Utility.Extensions;
 using Wikiled.Redis.Config;
 using Wikiled.Redis.Information;
 using Wikiled.Redis.Serialization.Subscription;
@@ -34,10 +32,17 @@ namespace Wikiled.Redis.Logic
         /// <returns></returns>
         public IRedisConfiguration Configuration => instance.Configuration;
 
+        public bool IsActive => instance.IsActive;
+
         /// <summary>
         ///     Underlying DB
         /// </summary>
         public IDatabase Database => instance.Database;
+
+        public IEnumerable<IServer> GetServers()
+        {
+            return instance.GetServers();
+        }
 
         /// <summary>
         ///     Verify connection
@@ -121,7 +126,7 @@ namespace Wikiled.Redis.Logic
         ///     Setup slave/master
         /// </summary>
         /// <param name="master">If master null - revert to master</param>
-        public void SetupSlave(EndPoint master)
+        public void SetupSlave(IPEndPoint master)
         {
             instance.SetupSlave(master);
         }

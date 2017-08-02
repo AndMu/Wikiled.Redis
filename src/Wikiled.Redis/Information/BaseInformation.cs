@@ -18,13 +18,24 @@ namespace Wikiled.Redis.Information
 
         public IServerInformation Main { get; }
 
-        protected T? GetType<T>(string type)
-            where T : struct 
+        protected string GetType(string type)
         {
             Dictionary<string, string> types;
             string value;
             if (!Main.RawData.TryGetValue(category, out types) ||
                 !types.TryGetValue(type, out value))
+            {
+                return null;
+            }
+
+            return value;
+        }
+
+        protected T? GetType<T>(string type)
+            where T : struct
+        {
+            var value = GetType(type);
+            if (value == null)
             {
                 return null;
             }

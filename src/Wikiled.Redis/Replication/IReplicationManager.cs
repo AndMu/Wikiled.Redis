@@ -9,9 +9,9 @@ namespace Wikiled.Redis.Replication
 {
     public interface IReplicationManager : IChannel
     {
-        event EventHandler<ReplicationEventArgs> StepCompleted;
+        event EventHandler<ReplicationEventArgs> OnCompleted;
 
-        EndPoint Master { get; }
+        IPEndPoint Master { get; }
 
         Task<IReplicationInfo> Perform(CancellationToken token);
     }

@@ -52,7 +52,7 @@ namespace Wikiled.Redis.UnitTests.Logic
             underlying.Verify(item => item.Open());
 
             instance.SetupSlave(new IPEndPoint(IPAddress.Any, 29));
-            underlying.Verify(item => item.SetupSlave(It.IsAny<EndPoint>()));
+            underlying.Verify(item => item.SetupSlave(It.IsAny<IPEndPoint>()));
 
             instance.SubscribeKeyEvents("Test", null);
             underlying.Verify(item => item.SubscribeKeyEvents("Test", null));
