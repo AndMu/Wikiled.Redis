@@ -32,7 +32,7 @@ namespace Wikiled.Redis.Serialization
             Guard.NotNull(() => database, database);
             Guard.NotNull(() => objectKey, objectKey);
             Guard.NotNull(() => instances, instances);
-            log.Debug("AddRecords");
+            log.Debug("AddRecords: {0}", instances.Length);
             if(instances.Length > 1)
             {
                 throw new ArgumentOutOfRangeException();

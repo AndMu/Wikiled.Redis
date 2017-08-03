@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Net;
 using NLog;
 using StackExchange.Redis;
 using Wikiled.Core.Utility.Arguments;
@@ -10,7 +9,6 @@ using Wikiled.Redis.Channels;
 using Wikiled.Redis.Data;
 using Wikiled.Redis.Keys;
 using Wikiled.Redis.Persistency;
-using Wikiled.Redis.Replication;
 using Wikiled.Redis.Scripts;
 using Wikiled.Redis.Serialization;
 using Wikiled.Redis.Serialization.Subscription;
@@ -199,12 +197,6 @@ namespace Wikiled.Redis.Logic
             var definition = HandlingDefinition<T>.ConstructWellKnown(this, serializer);
             RegisterDefinition(definition);
             return definition;
-        }
-
-        public IReplicationManager SetupReplicationFrom(IPEndPoint master)
-        {
-            Guard.NotNull(() => master, master);
-            return new ReplicationManager(new SimpleRedisFactory(), master, Multiplexer, TimeSpan.FromSeconds(1));
         }
 
         public IRedisTransaction StartTransaction()

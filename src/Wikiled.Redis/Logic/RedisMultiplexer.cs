@@ -132,7 +132,7 @@ namespace Wikiled.Redis.Logic
             connection.InternalError += OnInternalError;
         }
 
-        public void SetupSlave(IPEndPoint master)
+        public void SetupSlave(EndPoint master)
         {
             foreach (var server in GetServers())
             {

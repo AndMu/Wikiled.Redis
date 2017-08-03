@@ -1,13 +1,14 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Net;
+using System.Reactive.Concurrency;
+using System.Reactive.Linq;
+using System.Reactive.Threading.Tasks;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using NUnit.Framework;
 using Wikiled.Core.Utility.Serialization;
 using Wikiled.Redis.Config;
-using Wikiled.Redis.Information;
 using Wikiled.Redis.Logic;
 using Wikiled.Redis.Replication;
 
@@ -26,9 +27,12 @@ namespace Wikiled.Redis.IntegrationTests.Replication
 
         private string key = "TestData";
 
+        private ReplicationFactory factory;
+
         [SetUp]
         public void Setup()
         {
+            factory = new ReplicationFactory(new SimpleRedisFactory(), TaskPoolScheduler.Default);
             redisOne = new RedisProcessManager(6017);
             redisTwo = new RedisProcessManager(6027);
             redisOne.Start(TestContext.CurrentContext.TestDirectory);
@@ -72,42 +76,31 @@ namespace Wikiled.Redis.IntegrationTests.Replication
         [Test]
         public async Task TestReplicationAsync()
         {
-            using (var replication = linkTwo.SetupReplicationFrom(new IPEndPoint(IPAddress.Parse("127.0.0.1"), 6017)))
-            {
-                var result = await replication.Perform(new CancellationTokenSource(10000).Token);
-                ValidateResultOn(result);
-                ValidateOff(1);
-            }
+            var result = await factory.Replicate(new DnsEndPoint("localhost", 6017), new DnsEndPoint("localhost", 6027), new CancellationTokenSource(10000).Token);
+            ValidateResultOn(result);
+            ValidateOff(1);
         }
 
         [Test]
-        public void TestReplication()
+        public async Task TestReplication()
         {
-            int replicationWait = 1000000;
-            using (var replication = linkTwo.SetupReplicationFrom(new IPEndPoint(IPAddress.Parse("127.0.0.1"), 6017)))
+            int replicationWait = 10000;
+            using (var replication = factory.StartReplicationFrom(linkOne.Multiplexer, linkTwo.Multiplexer))
             {
-                ManualResetEvent syncEvent = new ManualResetEvent(false);
-                ReplicationEventArgs argument = null;
-                replication.OnSynchronized += (sender, args) =>
-                    {
-                        argument = args;
-                        syncEvent.Set();
-                    };
-                replication.Open();
-                if (!syncEvent.WaitOne(replicationWait))
-                {
-                    throw new TimeoutException("Replication timeout");
-                }
+                CancellationTokenSource tokenSource = new CancellationTokenSource(replicationWait);
+                var completed = await replication.Progress.Where(item => item.InSync)
+                                           .FirstAsync()
+                                           .ToTask(tokenSource.Token);
 
-                ValidateResultOn(argument.Status);
-                syncEvent.Reset();
+                ValidateResultOn(completed);
+
+                tokenSource = new CancellationTokenSource(replicationWait);
+                await replication.Progress.Where(item => item.InSync && item.Master.Offset != completed.Master.Offset)
+                                       .FirstAsync()
+                                       .ToTask(tokenSource.Token);
 
                 // add data while in replication mode
                 linkOne.Database.ListLeftPush(key, "Test2");
-                if (!syncEvent.WaitOne(replicationWait))
-                {
-                    throw new TimeoutException("Replication timeout");
-                }
 
                 var result = linkTwo.Database.ListRange(key);
                 Assert.AreEqual(2, result.Length);
@@ -129,13 +122,14 @@ namespace Wikiled.Redis.IntegrationTests.Replication
             Assert.AreEqual(total + 1, data.Length);
         }
 
-        private void ValidateResultOn(IReplicationInfo result)
+        private void ValidateResultOn(ReplicationProgress result)
         {
             var data = linkTwo.Database.ListRange(key);
             Assert.AreEqual(1, data.Length);
 
             Assert.IsNotNull(result);
-            Assert.AreEqual(ReplicationRole.Master, result.Role);
+            Assert.IsTrue(result.IsActive);
+            Assert.IsTrue(result.InSync);
         }
     }
 }

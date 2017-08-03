@@ -126,7 +126,7 @@ namespace Wikiled.Redis.Logic
         ///     Setup slave/master
         /// </summary>
         /// <param name="master">If master null - revert to master</param>
-        public void SetupSlave(IPEndPoint master)
+        public void SetupSlave(EndPoint master)
         {
             instance.SetupSlave(master);
         }

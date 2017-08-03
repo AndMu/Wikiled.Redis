@@ -89,13 +89,6 @@ namespace Wikiled.Redis.Logic
         HandlingDefinition<T> RegisterWellknown<T>(IDataSerializer serializer = null) where T : class;
 
         /// <summary>
-        ///     Start redis
-        /// </summary>
-        /// <param name="master"></param>
-        /// <returns></returns>
-        IReplicationManager SetupReplicationFrom(IPEndPoint master);
-
-        /// <summary>
         ///     Get client which performs actions in transaction
         /// </summary>
         /// <returns></returns>

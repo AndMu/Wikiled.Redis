@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Net;
 using System.Text;
 using System.Xml.Serialization;
 using NLog;
@@ -22,11 +23,17 @@ namespace Wikiled.Redis.Config
             AllowAdmin = true;
         }
 
+        public RedisConfiguration(DnsEndPoint endPoint)
+            : this()
+        {
+            Endpoints = new[] { new RedisEndpoint { Host = endPoint.Host, Port = endPoint.Port } };
+        }
+
         public RedisConfiguration(string host, int? port = null)
             : this()
         {
             Guard.NotNullOrEmpty(() => host, host);
-            Endpoints = new[] {new RedisEndpoint {Host = host}};
+            Endpoints = new[] { new RedisEndpoint { Host = host } };
             if (port.HasValue)
             {
                 Endpoints[0].Port = port.Value;
@@ -86,7 +93,7 @@ namespace Wikiled.Redis.Config
         {
             StringBuilder builder = new StringBuilder();
             builder.Append($"[{ServiceName}] ");
-            foreach(var redisEndpoint in Endpoints)
+            foreach (var redisEndpoint in Endpoints)
             {
                 builder.Append($"[{redisEndpoint.Host}:{redisEndpoint.Port}]");
             }
@@ -97,8 +104,8 @@ namespace Wikiled.Redis.Config
         public ConfigurationOptions GetOptions()
         {
             var config = new ConfigurationOptions
-                         {
-                             CommandMap = CommandMap.Create(
+            {
+                CommandMap = CommandMap.Create(
                                  new HashSet<string>
                                  {
                                      // EXCLUDE a few commands (to work with data-flow-related mode only)
@@ -108,13 +115,13 @@ namespace Wikiled.Redis.Config
                                      "CLIENT"
                                  },
                                  false),
-                             KeepAlive = KeepAlive, // 60 sec to ensure connection is alive
-                             ConnectTimeout = ConnectTimeout, // 5 sec
-                             SyncTimeout = SyncTimeout, // 5 sec
-                             ServiceName = ServiceName, // sentinel service name
-                             AllowAdmin = AllowAdmin,
-                             ResponseTimeout = ResponseTimeout
-                         };
+                KeepAlive = KeepAlive, // 60 sec to ensure connection is alive
+                ConnectTimeout = ConnectTimeout, // 5 sec
+                SyncTimeout = SyncTimeout, // 5 sec
+                ServiceName = ServiceName, // sentinel service name
+                AllowAdmin = AllowAdmin,
+                ResponseTimeout = ResponseTimeout
+            };
 
             foreach (var endpoint in Endpoints)
             {

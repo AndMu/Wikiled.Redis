@@ -2,132 +2,99 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Threading;
-using System.Threading.Tasks;
+using System.Reactive.Linq;
 using NLog;
 using Wikiled.Core.Utility.Arguments;
 using Wikiled.Redis.Information;
 using Wikiled.Redis.Channels;
-using Wikiled.Redis.Config;
-using Wikiled.Redis.Helpers;
 using Wikiled.Redis.Logic;
 
 namespace Wikiled.Redis.Replication
 {
-    public class ReplicationManager : TimerChannel, IReplicationManager
+    public class ReplicationManager : BaseChannel, IReplicationManager
     {
         private static readonly Logger log = LogManager.GetCurrentClassLogger();
 
         private readonly IRedisMultiplexer slave;
 
-        private Dictionary<string, long> lastSyncTable;
+        private readonly IRedisMultiplexer master;
 
-        private IRedisMultiplexer master;
+        private EndPoint masterEndPoint;
 
-        private readonly IRedisFactory factory;
-
-        public ReplicationManager(IRedisFactory factory, IPEndPoint master, IRedisMultiplexer slave, TimeSpan scanStatus)
-            : base("Replication", scanStatus)
+        public ReplicationManager(
+            IRedisMultiplexer master,
+            IRedisMultiplexer slave,
+            IObservable<long> timer)
+            : base("Replication")
         {
             Guard.NotNull(() => slave, slave);
             Guard.NotNull(() => master, master);
-            Guard.NotNull(() => factory, factory);
+            Guard.NotNull(() => timer, timer);
             this.slave = slave;
-            this.factory = factory;
-            Master = master;
+            this.master = master;
+            Progress = timer.Select(TimerEvent);
         }
 
-        public event EventHandler<EventArgs> OnError;
+        public IObservable<ReplicationProgress> Progress { get; }
 
-        public event EventHandler<ReplicationEventArgs> OnSynchronized;
-
-        public IPEndPoint Master { get; }
-
-        public async Task<IReplicationInfo> Perform(CancellationToken token)
-        {
-            if (State != ChannelState.New)
-            {
-                throw new InvalidOperationException("Manager is already activated");
-            }
-
-            TaskCompletionSource<IReplicationInfo> task = new TaskCompletionSource<IReplicationInfo>();
-
-            OnSynchronized += (sender, args) =>
-            {
-                task.SetResult(args.Status);
-            };
-
-            CancellationTokenSource errorToken = new CancellationTokenSource();
-            OnError += (sender, args) =>
-            {
-                errorToken.Cancel();
-            };
-
-            Open();
-            await Task.WhenAny(task.Task, Task.Delay(Timeout.Infinite, token), Task.Delay(Timeout.Infinite, errorToken.Token));
-            Close();
-            if (token.IsCancellationRequested ||
-                errorToken.IsCancellationRequested)
-            {
-                throw new TaskCanceledException();
-            }
-
-            return await task.Task;
-        }
-
-        protected override void TimerEvent()
+        private ReplicationProgress TimerEvent(long timer)
         {
             if (master == null ||
-                !master.IsActive ||
-                lastSyncTable == null)
+                !master.IsActive)
             {
-                return;
+                return ReplicationProgress.CreateInActive();
             }
 
             var info = master.GetInfo(ReplicationInfo.Name).ToArray();
             if (info.Length != 1)
             {
-                log.Error("Do not support zero or multiple masters replication: " + info.Length);
-                OnError?.Invoke(this, EventArgs.Empty);
-                Close();
-                return;
+                string message = "Do not support zero or multiple masters replication: " + info.Length;
+                log.Error(message);
+                throw new InvalidOperationException(message);
             }
 
             var information = info[0];
             var masterOffset = information.Replication.MasterReplOffset;
             if (information.Replication.Role != ReplicationRole.Master ||
                 masterOffset == null ||
-                information.Replication.Slaves == null)
+                information.Replication.Slaves == null ||
+                information.Replication.Slaves.Length < slave.GetServers().Count())
             {
-                return;
+                return ReplicationProgress.CreateInActive();
             }
 
+            List<HostStatus> slaves = new List<HostStatus>();
             foreach (var slaveInformation in information.Replication.Slaves)
             {
-                var key = slaveInformation.EndPoint.GetAddress();
-                if (lastSyncTable.ContainsKey(key))
-                {
-                    lastSyncTable[key] = slaveInformation.Offset;
-                }
+                slaves.Add(new HostStatus(slaveInformation.EndPoint, slaveInformation.Offset));
             }
 
-            if (lastSyncTable.All(item => item.Value == masterOffset.Value))
-            {
-                OnSynchronized?.Invoke(this, new ReplicationEventArgs(information.Server, information.Replication));
-            }
+            return ReplicationProgress.CreateActive(
+                new HostStatus(masterEndPoint, masterOffset.Value),
+                slaves.ToArray());
         }
 
         protected override ChannelState OpenInternal()
         {
-            log.Debug("Making redis SLAVE OF {0}", Master);
-            lastSyncTable = slave.GetServers()
-                                 .Select(item => item.EndPoint)
-                                 .ToDictionary(
-                                     item => item.GetAddress(),
-                                     item => 0L);
-            slave.SetupSlave(Master);
-            master = factory.Create(new RedisConfiguration(Master.Address.ToString(), Master.Port));
-            master.Open();
+            if (!slave.IsActive)
+            {
+                throw new InvalidOperationException("Slave is not on");
+            }
+
+            if (!master.IsActive)
+            {
+                throw new InvalidOperationException("Master is not on");
+            }
+
+            var servers = master.GetServers().ToArray();
+            if (servers.Length != 1)
+            {
+                throw new InvalidOperationException("Invalid Master server count");
+            }
+
+            masterEndPoint = servers[0].EndPoint;
+            log.Debug("Making redis SLAVE OF {0}", servers[0].EndPoint);
+            slave.SetupSlave(servers[0].EndPoint);
             return base.OpenInternal();
         }
 

@@ -96,7 +96,6 @@
     <Compile Include="Channels\ChannelState.cs" />
     <Compile Include="Channels\IChannel.cs" />
     <Compile Include="Channels\Identity.cs" />
-    <Compile Include="Channels\TimerChannel.cs" />
     <Compile Include="Data\BinaryDataSerializer.cs" />
     <Compile Include="Data\FlatProtoDataSerializer.cs" />
     <Compile Include="Data\IDataSerializer.cs" />
@@ -105,7 +104,6 @@
     <Compile Include="Data\XmlDataSerializer.cs" />
     <Compile Include="Data\ZipBinaryDataSerializer.cs" />
     <Compile Include="Data\ZipXmlDataSerializer.cs" />
-    <Compile Include="Helpers\NetworkHelper.cs" />
     <Compile Include="Helpers\ObserverHelpers.cs" />
     <Compile Include="Indexing\HashIndexManager.cs" />
     <Compile Include="Indexing\IIndexManager.cs" />
@@ -164,9 +162,13 @@
     <Compile Include="Logic\RedisLink.cs" />
     <Compile Include="Logic\RedisMultiplexer.cs" />
     <Compile Include="Logic\RedisTransaction.cs" />
+    <Compile Include="Replication\IReplicationFactory.cs" />
     <Compile Include="Replication\IReplicationManager.cs" />
-    <Compile Include="Replication\ReplicationEventArgs.cs" />
+    <Compile Include="Replication\ReplicationFactory.cs" />
     <Compile Include="Replication\ReplicationManager.cs" />
+    <Compile Include="Replication\ReplicationProgress.cs" />
+    <Compile Include="Replication\HostStatus.cs" />
+    <Compile Include="Replication\ReplicationProgressExtension.cs" />
     <Compile Include="Scripts\IScriptGenerator.cs" />
     <Compile Include="Scripts\ScriptGenerator.cs" />
     <Compile Include="Serialization\BasicOperations.cs" />

@@ -82,7 +82,7 @@ namespace Wikiled.Redis.Logic
         ///     Setup slave/master
         /// </summary>
         /// <param name="master">If master null - revert to master</param>
-        void SetupSlave(IPEndPoint master);
+        void SetupSlave(EndPoint master);
 
         /// <summary>
         ///     Subscribe to key events

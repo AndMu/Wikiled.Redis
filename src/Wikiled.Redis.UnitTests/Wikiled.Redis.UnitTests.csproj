@@ -100,7 +100,6 @@
     <Compile Include="Data\XmlDataSerializerTests.cs" />
     <Compile Include="Data\ZipBinaryDataSerializerTests.cs" />
     <Compile Include="Data\ZipXmlDataSerializerTests.cs" />
-    <Compile Include="Helpers\NetworkHelperTests.cs" />
     <Compile Include="Information\InfoTestsHelper.cs" />
     <Compile Include="Information\MemoryInfoTests.cs" />
     <Compile Include="Information\PersistenceInfoTests.cs" />
@@ -126,6 +125,8 @@
     <Compile Include="MockData\MainDataTwo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Replication\ReplicationManagerTests.cs" />
+    <Compile Include="Replication\ReplicationProgressExtensionTests.cs" />
+    <Compile Include="Replication\ReplicationProgressTests.cs" />
     <Compile Include="Scripts\ScriptGeneratorTests.cs" />
     <Compile Include="Serialization\DictionarySerializerTests.cs" />
     <Compile Include="Serialization\HashSetSerializationTests.cs" />
