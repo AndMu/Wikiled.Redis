@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net;
 using System.Reactive.Subjects;
@@ -8,7 +7,6 @@ using NUnit.Framework;
 using StackExchange.Redis;
 using Wikiled.Redis.Channels;
 using Wikiled.Redis.Information;
-using Wikiled.Redis.Logic;
 using Wikiled.Redis.Replication;
 
 namespace Wikiled.Redis.UnitTests.Replication
@@ -16,35 +14,18 @@ namespace Wikiled.Redis.UnitTests.Replication
     [TestFixture]
     public class ReplicationManagerTests
     {
-        private IPEndPoint clientAddress;
+        private ReplicationTestManager testManager;
 
         private ReplicationManager manager;
-
-        private Mock<IRedisMultiplexer> master;
-
-        private Mock<IRedisMultiplexer> slave;
-
-        private ConcurrentBag<IServerInformation> serverInformations;
 
         private Subject<long> timer;
 
         [SetUp]
         public void Setup()
         {
-            serverInformations = new ConcurrentBag<IServerInformation>();
-            clientAddress = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 6666);
-            master = new Mock<IRedisMultiplexer>();
-            master.Setup(item => item.IsActive).Returns(true);
-            slave = new Mock<IRedisMultiplexer>();
-            slave.Setup(item => item.IsActive).Returns(true);
-            var client = new Mock<IServer>();
-            client.Setup(item => item.EndPoint).Returns(clientAddress);
-            slave.Setup(item => item.GetServers()).Returns(new[] {client.Object});
-            master.Setup(item => item.GetServers()).Returns(new[] { client.Object });
             timer = new Subject<long>();
-
-            manager = new ReplicationManager(master.Object, slave.Object, timer);
-            master.Setup(item => item.GetInfo(ReplicationInfo.Name)).Returns(serverInformations);
+            testManager = new ReplicationTestManager();
+            manager = new ReplicationManager(testManager.Master.Object, testManager.Slave.Object, timer);
         }
 
         [Test]
@@ -53,15 +34,15 @@ namespace Wikiled.Redis.UnitTests.Replication
             manager.Open();
             manager.Close();
             Assert.AreEqual(ChannelState.Closed, manager.State);
-            slave.Verify(item => item.SetupSlave(null));
+            testManager.Slave.Verify(item => item.SetupSlave(null));
         }
 
         [Test]
         public void Construct()
         {
-            Assert.Throws<ArgumentNullException>(() => new ReplicationManager(null, slave.Object, timer));
-            Assert.Throws<ArgumentNullException>(() => new ReplicationManager(master.Object, null, timer));
-            Assert.Throws<ArgumentNullException>(() => new ReplicationManager(master.Object, slave.Object, null));
+            Assert.Throws<ArgumentNullException>(() => new ReplicationManager(null, testManager.Slave.Object, timer));
+            Assert.Throws<ArgumentNullException>(() => new ReplicationManager(testManager.Master.Object, null, timer));
+            Assert.Throws<ArgumentNullException>(() => new ReplicationManager(testManager.Master.Object, testManager.Slave.Object, null));
         }
 
         [Test]
@@ -69,13 +50,34 @@ namespace Wikiled.Redis.UnitTests.Replication
         {
             manager.Open();
             Assert.AreEqual(ChannelState.Open, manager.State);
-            slave.Verify(item => item.SetupSlave(It.IsAny<EndPoint>()));
+            testManager.Slave.Verify(item => item.SetupSlave(It.IsAny<EndPoint>()));
+        }
+
+        [Test]
+        public void OpenMasterDown()
+        {
+            testManager.Master.Setup(item => item.IsActive).Returns(false);
+            Assert.Throws<InvalidOperationException>(() => manager.Open());
+        }
+
+        [Test]
+        public void OpenSlaveDown()
+        {
+            testManager.Slave.Setup(item => item.IsActive).Returns(false);
+            Assert.Throws<InvalidOperationException>(() => manager.Open());
+        }
+
+        [Test]
+        public void OpenMasterZero()
+        {
+            testManager.Master.Setup(item => item.GetServers()).Returns(new IServer[] { });
+            Assert.Throws<InvalidOperationException>(() => manager.Open());
         }
 
         [Test]
         public void VerifyReplicationProcess()
         {
-            var replicationInfo = SetupReplication();
+            var replicationInfo = testManager.SetupReplication();
             List<ReplicationProgress> arguments = new List<ReplicationProgress>();
             manager.Progress.Subscribe(
                 item =>
@@ -83,7 +85,7 @@ namespace Wikiled.Redis.UnitTests.Replication
                     arguments.Add(item);
                 });
             manager.Open();
-            
+
             Assert.AreEqual(0, arguments.Count);
             timer.OnNext(1);
 
@@ -116,17 +118,6 @@ namespace Wikiled.Redis.UnitTests.Replication
 
             Assert.AreEqual(0, arguments.Count);
             Assert.Throws<InvalidOperationException>(() => timer.OnNext(1));
-        }
-
-        private Mock<IReplicationInfo> SetupReplication()
-        {
-            Mock<IServerInformation> information = new Mock<IServerInformation>();
-            Mock<IReplicationInfo> replicationInfo = new Mock<IReplicationInfo>();
-            information.Setup(item => item.Replication).Returns(replicationInfo.Object);
-            information.Setup(item => item.Server).Returns(new IPEndPoint(IPAddress.Any, 1717));
-            serverInformations.Add(information.Object);
-            replicationInfo.Setup(item => item.Role).Returns(ReplicationRole.Master);
-            return replicationInfo;
         }
     }
 }

@@ -28,6 +28,7 @@ namespace Wikiled.Redis.Replication
         public IReplicationManager StartReplicationFrom(IRedisMultiplexer master, IRedisMultiplexer slave)
         {
             Guard.NotNull(() => master, master);
+            Guard.NotNull(() => slave, slave);
             var timer = Observable.Interval(TimeSpan.FromSeconds(1), scheduler);
             var manager = new ReplicationManager(master, slave, timer);
             manager.Open();

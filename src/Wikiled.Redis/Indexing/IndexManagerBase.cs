@@ -56,7 +56,7 @@ namespace Wikiled.Redis.Indexing
 
         private IDataKey GetKey(string key)
         {
-            if(!string.IsNullOrEmpty(index.RepositoryKey))
+            if (!string.IsNullOrEmpty(index.RepositoryKey))
             {
                 return SimpleKey.GenerateKey(index.RepositoryKey, key);
             }

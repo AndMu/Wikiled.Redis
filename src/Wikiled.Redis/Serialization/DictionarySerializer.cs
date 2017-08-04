@@ -22,9 +22,9 @@ namespace Wikiled.Redis.Serialization
         public IEnumerable<Dictionary<string, string>> DeserializeStream(IEnumerable<KeyValuePair<string, string>> entries)
         {
             Dictionary<string, string> dictionary = new Dictionary<string, string>();
-            foreach(var entry in entries)
+            foreach (var entry in entries)
             {
-                if(dictionary.ContainsKey(entry.Key))
+                if (dictionary.ContainsKey(entry.Key))
                 {
                     yield return dictionary;
                     dictionary = new Dictionary<string, string>();
@@ -33,7 +33,7 @@ namespace Wikiled.Redis.Serialization
                 dictionary[entry.Key] = entry.Value;
             }
 
-            if(dictionary.Count > 0)
+            if (dictionary.Count > 0)
             {
                 yield return dictionary;
             }

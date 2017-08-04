@@ -26,6 +26,7 @@ namespace Wikiled.Redis.Config
         public RedisConfiguration(DnsEndPoint endPoint)
             : this()
         {
+            Guard.NotNull(() => endPoint, endPoint);
             Endpoints = new[] { new RedisEndpoint { Host = endPoint.Host, Port = endPoint.Port } };
         }
 

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics.Contracts;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using StackExchange.Redis;

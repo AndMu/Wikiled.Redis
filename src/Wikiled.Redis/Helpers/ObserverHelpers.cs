@@ -49,26 +49,30 @@ namespace Wikiled.Redis.Helpers
                 });
 
             return indexes.Buffer(batchSize)
-                          .Select(
-                              keys =>
-                              {
-                                  return Observable.Create<T>(
-                                      async observer =>
-                                      {
-                                          var itemKeys = await getKeys(keys[0], keys[keys.Count - 1]).ToArray();
-                                          foreach (var itemKey in itemKeys)
-                                          {
-                                              var result = await getData(itemKey).ToArray();
-                                              foreach (var record in result)
-                                              {
-                                                  observer.OnNext(record);
-                                              }
-                                          }
-
-                                          observer.OnCompleted();
-                                      });
-                              })
+                          .Select(keys => Create(keys, getKeys, getData))
                           .Concat();
+        }
+
+        private static IObservable<T> Create<T>(
+            IList<long> keys, 
+            Func<long, long, IObservable<IDataKey>> getKeys,
+            Func<IDataKey, IObservable<T>> getData)
+        {
+            return Observable.Create<T>(
+                async observer =>
+                {
+                    var itemKeys = await getKeys(keys[0], keys[keys.Count - 1]).ToArray();
+                    foreach (var itemKey in itemKeys)
+                    {
+                        var result = await getData(itemKey).ToArray();
+                        foreach (var record in result)
+                        {
+                            observer.OnNext(record);
+                        }
+                    }
+
+                    observer.OnCompleted();
+                });
         }
     }
 }

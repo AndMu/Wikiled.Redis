@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
@@ -85,23 +86,7 @@ namespace Wikiled.Redis.Serialization
                     }
 
                     var result = await database.HashGetAllAsync(key).ConfigureAwait(false);
-                    var table = result.ToDictionary(item => item.Name, item => item.Value);
-                    var columns = objectSerialization.GetColumns<T>();
-                    RedisValue[] values = new RedisValue[columns.Length];
-                    for (int i = 0; i < columns.Length; i++)
-                    {
-                        RedisValue value;
-                        if (table.TryGetValue(columns[i], out value))
-                        {
-                            values[i] = value;
-                        }
-                        else
-                        {
-                            values[i] = RedisValue.Null;
-                        }
-                    }
-
-                    var actualValues = objectSerialization.GetInstances<T>(values);
+                    var actualValues = ContructActualValues<T>(result);
                     foreach (var value in actualValues)
                     {
                         observer.OnNext(value);
@@ -109,6 +94,34 @@ namespace Wikiled.Redis.Serialization
 
                     observer.OnCompleted();
                 });
+        }
+
+        private IEnumerable<T> ContructActualValues<T>(HashEntry[] result)
+        {
+            var values = GetRedisValues<T>(result);
+            var actualValues = objectSerialization.GetInstances<T>(values);
+            return actualValues;
+        }
+
+        private RedisValue[] GetRedisValues<T>(HashEntry[] result)
+        {
+            var table = result.ToDictionary(item => item.Name, item => item.Value);
+            var columns = objectSerialization.GetColumns<T>();
+            RedisValue[] values = new RedisValue[columns.Length];
+            for (int i = 0; i < columns.Length; i++)
+            {
+                RedisValue value;
+                if (table.TryGetValue(columns[i], out value))
+                {
+                    values[i] = value;
+                }
+                else
+                {
+                    values[i] = RedisValue.Null;
+                }
+            }
+
+            return values;
         }
     }
 }

@@ -37,6 +37,7 @@ namespace Wikiled.Redis.UnitTests.Replication
             Assert.IsTrue(progress.IsActive);
             Assert.IsFalse(progress.InSync);
             slaves[0] = master;
+            progress = ReplicationProgress.CreateActive(master, slaves);
             Assert.IsTrue(progress.InSync);
         }
 
@@ -45,7 +46,7 @@ namespace Wikiled.Redis.UnitTests.Replication
         {
             Assert.Throws<ArgumentNullException>(() => ReplicationProgress.CreateActive(null, slaves));
             Assert.Throws<ArgumentNullException>(() => ReplicationProgress.CreateActive(master, null));
-            Assert.Throws<ArgumentNullException>(() => ReplicationProgress.CreateActive(master));
+            Assert.Throws<ArgumentException>(() => ReplicationProgress.CreateActive(master));
         }
     }
 }

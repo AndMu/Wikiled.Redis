@@ -32,8 +32,8 @@ namespace Wikiled.Redis.UnitTests.Replication
         public void Construct()
         {
             var result = instance.GenerateProgress().ToArray();
-            Assert.AreEqual(2, result.Length);
-            Assert.AreEqual(2, result[0]);
+            Assert.AreEqual(1, result.Length);
+            Assert.AreEqual("Replication progress from [Unspecified/Test:1000] to [Unspecified/Test:1000] Progress - 50.00%", result[0]);
         }
     }
 }

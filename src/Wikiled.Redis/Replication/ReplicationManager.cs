@@ -5,8 +5,8 @@ using System.Net;
 using System.Reactive.Linq;
 using NLog;
 using Wikiled.Core.Utility.Arguments;
-using Wikiled.Redis.Information;
 using Wikiled.Redis.Channels;
+using Wikiled.Redis.Information;
 using Wikiled.Redis.Logic;
 
 namespace Wikiled.Redis.Replication
@@ -15,9 +15,9 @@ namespace Wikiled.Redis.Replication
     {
         private static readonly Logger log = LogManager.GetCurrentClassLogger();
 
-        private readonly IRedisMultiplexer slave;
-
         private readonly IRedisMultiplexer master;
+
+        private readonly IRedisMultiplexer slave;
 
         private EndPoint masterEndPoint;
 
@@ -36,6 +36,48 @@ namespace Wikiled.Redis.Replication
         }
 
         public IObservable<ReplicationProgress> Progress { get; }
+
+        protected override void CloseInternal()
+        {
+            log.Debug("Stopping Replication process");
+            slave.SetupSlave(null);
+            base.CloseInternal();
+        }
+
+        protected override ChannelState OpenInternal()
+        {
+            if (!slave.IsActive)
+            {
+                throw new InvalidOperationException("Slave is not on");
+            }
+
+            if (!master.IsActive)
+            {
+                throw new InvalidOperationException("Master is not on");
+            }
+
+            var servers = master.GetServers().ToArray();
+            if (servers.Length != 1)
+            {
+                throw new InvalidOperationException("Invalid Master server count");
+            }
+
+            masterEndPoint = servers[0].EndPoint;
+            log.Debug("Making redis SLAVE OF {0}", servers[0].EndPoint);
+            slave.SetupSlave(servers[0].EndPoint);
+            return base.OpenInternal();
+        }
+
+        private static HostStatus[] GetSlaveInformation(IServerInformation information)
+        {
+            List<HostStatus> slaves = new List<HostStatus>(information.Replication.Slaves.Length);
+            foreach (var slaveInformation in information.Replication.Slaves)
+            {
+                slaves.Add(new HostStatus(slaveInformation.EndPoint, slaveInformation.Offset));
+            }
+
+            return slaves.ToArray();
+        }
 
         private ReplicationProgress TimerEvent(long timer)
         {
@@ -63,46 +105,11 @@ namespace Wikiled.Redis.Replication
                 return ReplicationProgress.CreateInActive();
             }
 
-            List<HostStatus> slaves = new List<HostStatus>();
-            foreach (var slaveInformation in information.Replication.Slaves)
-            {
-                slaves.Add(new HostStatus(slaveInformation.EndPoint, slaveInformation.Offset));
-            }
+            var slaves = GetSlaveInformation(information);
 
             return ReplicationProgress.CreateActive(
                 new HostStatus(masterEndPoint, masterOffset.Value),
                 slaves.ToArray());
-        }
-
-        protected override ChannelState OpenInternal()
-        {
-            if (!slave.IsActive)
-            {
-                throw new InvalidOperationException("Slave is not on");
-            }
-
-            if (!master.IsActive)
-            {
-                throw new InvalidOperationException("Master is not on");
-            }
-
-            var servers = master.GetServers().ToArray();
-            if (servers.Length != 1)
-            {
-                throw new InvalidOperationException("Invalid Master server count");
-            }
-
-            masterEndPoint = servers[0].EndPoint;
-            log.Debug("Making redis SLAVE OF {0}", servers[0].EndPoint);
-            slave.SetupSlave(servers[0].EndPoint);
-            return base.OpenInternal();
-        }
-
-        protected override void CloseInternal()
-        {
-            log.Debug("Stopping Replication process");
-            slave.SetupSlave(null);
-            base.CloseInternal();
         }
     }
 }

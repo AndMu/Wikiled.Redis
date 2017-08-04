@@ -10,7 +10,7 @@ namespace Wikiled.Redis.Replication
             {
                 foreach (var progressSlave in progress.Slaves)
                 {
-                    yield return $"Replication progress from [{progress.Master.EndPoint}] to [{progressSlave.EndPoint} - {progressSlave.Offset / progress.Master.Offset * 100:F2}";
+                    yield return $"Replication progress from [{progress.Master.EndPoint}] to [{progressSlave.EndPoint}] Progress - {progressSlave.Offset / (double)progress.Master.Offset * 100:F2}%";
                 }
             }
         }
