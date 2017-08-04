@@ -127,6 +127,7 @@
     <Compile Include="MockData\MainDataOne.cs" />
     <Compile Include="MockData\MainDataTwo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Replication\LogginProgressTrackerTests.cs" />
     <Compile Include="Replication\ReplicationFactoryTests.cs" />
     <Compile Include="Replication\ReplicationManagerTests.cs" />
     <Compile Include="Replication\ReplicationProgressExtensionTests.cs" />

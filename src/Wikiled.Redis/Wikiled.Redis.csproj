@@ -162,10 +162,13 @@
     <Compile Include="Logic\RedisLink.cs" />
     <Compile Include="Logic\RedisMultiplexer.cs" />
     <Compile Include="Logic\RedisTransaction.cs" />
+    <Compile Include="Replication\ILogginProgressTracker.cs" />
     <Compile Include="Replication\IReplicationFactory.cs" />
     <Compile Include="Replication\IReplicationManager.cs" />
+    <Compile Include="Replication\LogginProgressTracker.cs" />
     <Compile Include="Replication\ReplicationFactory.cs" />
     <Compile Include="Replication\ReplicationManager.cs" />
+    <Compile Include="Replication\ReplicationOnce.cs" />
     <Compile Include="Replication\ReplicationProgress.cs" />
     <Compile Include="Replication\HostStatus.cs" />
     <Compile Include="Replication\ReplicationProgressExtension.cs" />
