@@ -102,11 +102,12 @@ namespace Wikiled.Redis.Replication
                 information.Replication.Slaves == null ||
                 information.Replication.Slaves.Length < slave.GetServers().Count())
             {
+                log.Debug("Replication - Inactive");
                 return ReplicationProgress.CreateInActive();
             }
 
             var slaves = GetSlaveInformation(information);
-
+            log.Debug("Replication - Active");
             return ReplicationProgress.CreateActive(
                 new HostStatus(masterEndPoint, masterOffset.Value),
                 slaves.ToArray());

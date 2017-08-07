@@ -158,11 +158,7 @@ namespace Wikiled.Redis.Logic
 
         public IEnumerable<IServer> GetServers()
         {
-            foreach (var endpoint in configuration.Endpoints)
-            {
-                log.Debug("GetServers: {0}:{1}", endpoint.Host, endpoint.Port);
-                yield return connection.GetServer(endpoint.Host, endpoint.Port);
-            }
+            return configuration.Endpoints.Select(endpoint => connection.GetServer(endpoint.Host, endpoint.Port));
         }
 
         private void OnInternalError(object sender, InternalErrorEventArgs eventArgs)
