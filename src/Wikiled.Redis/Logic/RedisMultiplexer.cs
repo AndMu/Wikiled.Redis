@@ -123,6 +123,7 @@ namespace Wikiled.Redis.Logic
                 return;
             }
 
+            log.Debug("Openning...");
             connection = ConnectionMultiplexer.Connect(Configuration.GetOptions());
             connection.PreserveAsyncOrder = false;
             Database = connection.GetDatabase();

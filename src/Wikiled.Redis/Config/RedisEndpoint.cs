@@ -10,5 +10,10 @@ namespace Wikiled.Redis.Config
 
         [XmlAttribute("port")]
         public int Port { get; set; }
+
+        public override string ToString()
+        {
+            return $"{Host}:{Port}";
+        }
     }
 }
