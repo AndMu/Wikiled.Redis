@@ -1,12 +1,12 @@
 ﻿using System;
-using Wikiled.Redis.Keys;
-using Wikiled.Redis.Logic;
-using Wikiled.Redis.Serialization;
 using Moq;
 using NUnit.Framework;
 using StackExchange.Redis;
 using Wikiled.Redis.Channels;
 using Wikiled.Redis.Config;
+using Wikiled.Redis.Keys;
+using Wikiled.Redis.Logic;
+using Wikiled.Redis.Serialization;
 using Wikiled.Redis.Serialization.Subscription;
 
 namespace Wikiled.Redis.UnitTests.Logic
@@ -167,6 +167,26 @@ namespace Wikiled.Redis.UnitTests.Logic
             Assert.IsNotNull(definition);
             Assert.IsTrue(definition.IsWellKnown);
             Assert.AreEqual("L0:1", definition.GetNextId());
+        }
+
+        [Test]
+        public void Open()
+        {
+            redisLink = new RedisLink("Redis", multiplexer.Object);
+            redisLink.Open();
+            multiplexer.Verify(item => item.Open());
+        }
+
+        [Test]
+        public void OpenFailed()
+        {
+            redisLink = new RedisLink("Redis", multiplexer.Object);
+            multiplexer.Setup(item => item.Open()).Throws(new Exception());
+            Assert.Throws<Exception>(() => redisLink.Open());
+            Assert.AreEqual(ChannelState.Closed, redisLink.State);
+            multiplexer.Setup(item => item.Open());
+            redisLink.Open();
+            Assert.AreEqual(ChannelState.Open, redisLink.State);
         }
 
         [Test]

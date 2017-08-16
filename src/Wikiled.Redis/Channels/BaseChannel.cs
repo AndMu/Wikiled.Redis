@@ -16,8 +16,6 @@ namespace Wikiled.Redis.Channels
             Name = name;
         }
 
-        public bool CanReOpen => true;
-
         public string Name { get; }
 
         public ChannelState State
@@ -35,9 +33,7 @@ namespace Wikiled.Redis.Channels
             }
         }
 
-        private bool IsDispossed { get; set; }
-
-        private bool SupportRetry => false;
+        private bool IsDisposed { get; set; }
 
         public void Close()
         {
@@ -60,13 +56,13 @@ namespace Wikiled.Redis.Channels
         /// </summary>
         public void Dispose()
         {
-            if (IsDispossed)
+            if (IsDisposed)
             {
                 return;
             }
 
             logger.Debug("Disposing {0}", Name);
-            IsDispossed = true;
+            IsDisposed = true;
             Dispose(true);
             GC.SuppressFinalize(this);
         }
@@ -80,29 +76,8 @@ namespace Wikiled.Redis.Channels
                 {
                     return;
                 }
-
-                if (State == ChannelState.Closed && !CanReOpen)
-                {
-                    throw new ChannelException("This link can't be reopened");
-                }
-
-                State = ChannelState.Opening;
-                var currentState = OpenInternal();
-                switch (currentState)
-                {
-                    case ChannelState.Open:
-                        State = ChannelState.Open;
-                        break;
-                    case ChannelState.Opening:
-                        logger.Debug("Channel initializing");
-                        break;
-                    default:
-                        if (!SupportRetry)
-                        {
-                            State = ChannelState.Closed;
-                        }
-                        break;
-                }
+                
+                OpenAndSetState();
             }
         }
 
@@ -123,6 +98,20 @@ namespace Wikiled.Redis.Channels
         protected virtual ChannelState OpenInternal()
         {
             return ChannelState.Open;
+        }
+
+        private void OpenAndSetState()
+        {
+            try
+            {
+                State = ChannelState.Opening;
+                State = OpenInternal();
+            }
+            catch
+            {
+                State = ChannelState.Closed;
+                throw;
+            }
         }
     }
 }

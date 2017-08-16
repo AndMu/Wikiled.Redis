@@ -17,11 +17,10 @@ namespace Wikiled.Redis.Logic
 {
     public class RedisLink : BaseChannel, IRedisLink
     {
-        private readonly ConcurrentDictionary<Type, ISpecificPersistency> addRecordActions =
-            new ConcurrentDictionary<Type, ISpecificPersistency>();
-
         private static readonly Logger log = LogManager.GetCurrentClassLogger();
 
+        private readonly ConcurrentDictionary<Type, ISpecificPersistency> addRecordActions = new ConcurrentDictionary<Type, ISpecificPersistency>();
+        
         private readonly Dictionary<Type, object> typeHandler = new Dictionary<Type, object>();
 
         private readonly ConcurrentDictionary<Type, string> typeIdTable = new ConcurrentDictionary<Type, string>();
@@ -88,28 +87,21 @@ namespace Wikiled.Redis.Logic
             else if (definition.Serializer != null)
             {
                 var serialization = new HashSetSerialization(this);
-                action = definition.IsSingleInstance
-                             ? (ISpecificPersistency)new SingleItemSerialization(this, serialization)
-                             : new ObjectListSerialization(this, serialization, setList);
+                action = definition.IsSingleInstance ? (ISpecificPersistency)new SingleItemSerialization(this, serialization) : new ObjectListSerialization(this, serialization, setList);
             }
             else if (definition.IsWellKnown)
             {
                 var serialization = new ObjectHashSetSerialization(this, definition.DataSerializer);
-                action = definition.IsSingleInstance
-                             ? (ISpecificPersistency)new SingleItemSerialization(this, serialization)
-                             : new ObjectListSerialization(this, serialization, setList);
+                action = definition.IsSingleInstance ? (ISpecificPersistency)new SingleItemSerialization(this, serialization) : new ObjectListSerialization(this, serialization, setList);
             }
-            else if (!definition.IsSingleInstance &&
-                    !definition.ExtractType)
+            else if (!definition.IsSingleInstance && !definition.ExtractType)
             {
                 action = new ListSerialization(this, setList);
             }
             else
             {
                 var serialization = new ObjectHashSetSerialization(this, definition.DataSerializer);
-                action = definition.IsSingleInstance
-                             ? new SingleItemSerialization(this, serialization)
-                             : (ISpecificPersistency)new ObjectListSerialization(this, serialization, setList);
+                action = definition.IsSingleInstance ? new SingleItemSerialization(this, serialization) : (ISpecificPersistency)new ObjectListSerialization(this, serialization, setList);
             }
 
             log.Debug("GetSpecific<{0}> - Constructed - {1}", type, action);
@@ -121,8 +113,7 @@ namespace Wikiled.Redis.Logic
         {
             Guard.NotNullOrEmpty(() => id, id);
             Type type = null;
-            if (string.IsNullOrEmpty(id) ||
-               !typeNameTable.TryGetValue(id, out type))
+            if (string.IsNullOrEmpty(id) || !typeNameTable.TryGetValue(id, out type))
             {
                 log.Error("Type not found: {0}", id);
             }
@@ -184,8 +175,7 @@ namespace Wikiled.Redis.Logic
         {
             log.Info("RegisterHashType<{0}>", typeof(T));
             serializer = serializer ?? new KeyValueSerializer<T>(() => new T());
-            var definition = HandlingDefinition<T>
-                .ConstructKeyValue(this, serializer);
+            var definition = HandlingDefinition<T>.ConstructKeyValue(this, serializer);
             RegisterDefinition(definition);
             return definition;
         }
@@ -263,7 +253,8 @@ namespace Wikiled.Redis.Logic
             return base.OpenInternal();
         }
 
-        private void RegisterDefinition<T>(HandlingDefinition<T> definition) where T : class
+        private void RegisterDefinition<T>(HandlingDefinition<T> definition)
+            where T : class
         {
             Type type = typeof(T);
             if (typeHandler.ContainsKey(type))
@@ -272,11 +263,6 @@ namespace Wikiled.Redis.Logic
             }
 
             typeHandler[type] = definition;
-        }
-
-        public object ToArray()
-        {
-            throw new NotImplementedException();
         }
     }
 }

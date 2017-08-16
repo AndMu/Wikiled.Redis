@@ -62,7 +62,7 @@ namespace Wikiled.Redis.Logic
         IEnumerable<IServerInformation> GetInfo(string section = null);
 
         /// <summary>
-        ///     Dagerous get keys
+        /// Get keys
         /// </summary>
         /// <param name="pattern"></param>
         /// <returns></returns>
