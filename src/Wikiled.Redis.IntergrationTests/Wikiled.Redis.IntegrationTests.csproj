@@ -84,8 +84,8 @@
     <Reference Include="System.Windows" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
-    <Reference Include="Wikiled.Core.Utility, Version=2.1.12.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Wikiled.Core.Utility.2.1.12\lib\net462\Wikiled.Core.Utility.dll</HintPath>
+    <Reference Include="Wikiled.Core.Utility, Version=2.1.16.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Wikiled.Core.Utility.2.1.16\lib\net462\Wikiled.Core.Utility.dll</HintPath>
     </Reference>
     <Reference Include="WindowsBase" />
   </ItemGroup>
