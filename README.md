@@ -2,7 +2,13 @@ Redis library
 
 ![Nuget](https://img.shields.io/nuget/v/Wikiled.Redis.svg)
 
-Full example of repository [github](https://github.com/AndMu/TwitterMonitor/blob/master/src/Wikiled.Twitter/Persistency/RedisPersistency.cs)
+```
+Install-Package Wikiled.Redis
+```
+
+Full example of repository [GitHub RedisPersistency.cs](https://github.com/AndMu/TwitterMonitor/blob/master/src/Wikiled.Twitter/Persistency/RedisPersistency.cs)
+
+---
 Snapshot:
 ```
 var config = new RedisConfiguration("localhost", 6370);
