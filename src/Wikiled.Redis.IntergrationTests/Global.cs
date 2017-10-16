@@ -1,4 +1,6 @@
-﻿using NUnit.Framework;
+﻿using System.Configuration;
+using System.IO;
+using NUnit.Framework;
 using Wikiled.Redis.Logic;
 
 namespace Wikiled.Redis.IntegrationTests
@@ -12,7 +14,7 @@ namespace Wikiled.Redis.IntegrationTests
         public void Setup()
         {
             manager = new RedisProcessManager();
-            manager.Start(TestContext.CurrentContext.TestDirectory);
+            manager.Start(Path.Combine(TestContext.CurrentContext.TestDirectory, ConfigurationManager.AppSettings["Redis"]));
         }
 
         [OneTimeTearDown]

@@ -1,9 +1,9 @@
 ﻿using System;
-using System.Configuration;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using NLog;
+using Wikiled.Core.Utility.Arguments;
 
 namespace Wikiled.Redis.Logic
 {
@@ -61,22 +61,20 @@ namespace Wikiled.Redis.Logic
             }
         }
 
-        public void Start(string root)
+        public void Start(string redisPath)
         {
-            log.Info("Checking Redis instance");
-
-            var redisPath = ConfigurationManager.AppSettings["Redis"];
-
-            if (string.IsNullOrEmpty(redisPath))
-            {
-                throw new NullReferenceException("Redis configuration not found");
-            }
-
-            redisPath = Path.Combine(root, redisPath);
+            Guard.NotNullOrEmpty(() => redisPath, redisPath);
+            log.Info("Starting redis");
             ProcessStartInfo startInfo = new ProcessStartInfo();
             startInfo.Arguments = $"{configuration} --port {port}";
             startInfo.WorkingDirectory = redisPath;
             startInfo.FileName = Path.GetFullPath(Path.Combine(redisPath, "redis-server.exe"));
+
+            if (!File.Exists(startInfo.FileName))
+            {
+                throw new ArgumentException("Can't find file: " + startInfo.FileName, nameof(redisPath));
+            }
+
             startInfo.CreateNoWindow = false;
             process = new Process();
             process.StartInfo = startInfo;

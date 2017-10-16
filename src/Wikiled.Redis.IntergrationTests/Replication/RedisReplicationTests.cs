@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Configuration;
+using System.IO;
 using System.Net;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
@@ -35,8 +36,8 @@ namespace Wikiled.Redis.IntegrationTests.Replication
             factory = new ReplicationFactory(new SimpleRedisFactory(), TaskPoolScheduler.Default);
             redisOne = new RedisProcessManager(6017);
             redisTwo = new RedisProcessManager(6027);
-            redisOne.Start(TestContext.CurrentContext.TestDirectory);
-            redisTwo.Start(TestContext.CurrentContext.TestDirectory);
+            redisOne.Start(Path.Combine(TestContext.CurrentContext.TestDirectory, ConfigurationManager.AppSettings["Redis"]));
+            redisTwo.Start(Path.Combine(TestContext.CurrentContext.TestDirectory, ConfigurationManager.AppSettings["Redis"]));
 
             var config = XDocument.Load(Path.Combine(TestContext.CurrentContext.TestDirectory, @"Config\redis.config")).XmlDeserialize<RedisConfiguration>();
             config.Endpoints[0].Port = 6017;
