@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reactive.Linq;
 using System.Threading.Tasks;
 using NLog;
 using StackExchange.Redis;
@@ -56,14 +57,26 @@ namespace Wikiled.Redis.Logic
 
         public IObservable<T> GetRecords<T>(IIndexKey index, long start = 0, long end = -1)
         {
+            return GetRecords<T>(new[] { index }, start, end);
+        }
+
+        public IObservable<T> GetRecords<T>(IIndexKey[] index, long start = 0, long end = -1)
+        {
             Guard.NotNull(() => index, index);
             logger.Debug($"GetRecords {start}-{end}");
             var indexManager = new IndexManagerFactory(link, GetDatabase()).Create(index);
+            int batch = BatchSize;
+            if (index.Length > 0)
+            {
+                logger.Debug("Joined index batching is not supported");
+                batch = int.MaxValue;
+            }
+
             return ObserverHelpers.Batch(
                 indexManager.Count(),
                 (fromIndex, toIndex) => indexManager.GetKeys(fromIndex, toIndex),
                 GetRecords<T>,
-                BatchSize,
+                batch,
                 start,
                 end);
         }

@@ -21,35 +21,27 @@ namespace Wikiled.Redis.Indexing
 
             log.Debug("Redindex {0}", key);
             IndexManagerFactory manager = new IndexManagerFactory(link, link.Database);
-            var indexManagers = key.Indexes.Select(manager.Create).ToArray();
-            if (indexManagers.Length != 0)
+            var indexManagers = manager.Create(key.Indexes);
+            List<Task> tasks = new List<Task>();
+
+            tasks.Add(indexManagers.Reset());
+
+            await Task.WhenAll(tasks.ToArray()).ConfigureAwait(false);
+
+            var actualKey = (string)link.GetKey(key);
+            var mask = Regex.Replace(actualKey, $"{FieldConstants.Object}:.*", $"{FieldConstants.Object}*", RegexOptions.IgnoreCase);
+            int total = 0;
+
+            tasks.Clear();
+            foreach (RedisKey redisKey in link.Multiplexer.GetKeys(mask))
             {
-                List<Task> tasks = new List<Task>();
-                foreach (var indexManager in indexManagers)
-                {
-                    tasks.Add(indexManager.Reset());
-                }
-
-                await Task.WhenAll(tasks.ToArray()).ConfigureAwait(false);
-                
-                var actualKey = (string)link.GetKey(key);
-                var mask = Regex.Replace(actualKey, $"{FieldConstants.Object}:.*", $"{FieldConstants.Object}*", RegexOptions.IgnoreCase);
-                int total = 0;
-
-                tasks.Clear();
-                foreach (RedisKey redisKey in link.Multiplexer.GetKeys(mask))
-                {
-                    total++;
-                    var rawId = Regex.Replace(redisKey, $".*:{FieldConstants.Object}:", string.Empty, RegexOptions.IgnoreCase);
-                    foreach (var indexManager in indexManagers)
-                    {
-                        tasks.Add(indexManager.AddRawIndex(rawId));
-                    }
-                }
-
-                log.Debug("Redindexed {0} {1}", key, total);
-                await Task.WhenAll(tasks).ConfigureAwait(false);
+                total++;
+                var rawId = Regex.Replace(redisKey, $".*:{FieldConstants.Object}:", string.Empty, RegexOptions.IgnoreCase);
+                tasks.Add(indexManagers.AddRawIndex(rawId));
             }
+
+            log.Debug("Redindexed {0} {1}", key, total);
+            await Task.WhenAll(tasks).ConfigureAwait(false);
         }
     }
 }

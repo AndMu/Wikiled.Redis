@@ -59,7 +59,7 @@ namespace Wikiled.Redis.Indexing
             IObservable<RedisValue> result = null;
             foreach (var currentIndex in indexes)
             {
-                var current = GetIdsSingle(currentIndex);
+                var current = GetIdsSingle(currentIndex, start, stop);
                 result = result != null ? result.InnerJoin(current) : current;
             }
 

@@ -20,14 +20,15 @@ namespace Wikiled.Redis.Indexing
             this.database = database;
         }
 
-        public IIndexManager Create(IIndexKey index)
+        public IIndexManager Create(params IIndexKey[] index)
         {
             Guard.NotNull(() => index, index);
-            var indexKey = index as IndexKey;
-            var hashIndex = index as HashIndexKey;
+            Guard.IsValid(() => index, index, keys => keys.Length > 0, "Provide at least one index");
+            var indexKey = index[0] as IndexKey;
+            var hashIndex = index[0] as HashIndexKey;
             if (indexKey != null)
             {
-                return index.IsSet
+                return indexKey.IsSet
                            ? (IIndexManager)new SetIndexManager(link, database, index)
                            : new ListIndexManager(link, database, index);
             }

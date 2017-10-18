@@ -37,6 +37,8 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
 
         private IndexKey listAll;
 
+        private IndexKey listAll2;
+
         [SetUp]
         public void Setup()
         {
@@ -56,6 +58,7 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
             repository.Setup(item => item.Size).Returns(2);
             repositoryKey = new RepositoryKey(repository.Object, key);
             listAll = new IndexKey(repository.Object, "All", true);
+            listAll2 = new IndexKey(repository.Object, "All2", true);
         }
 
         [TearDown]
@@ -88,7 +91,7 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
             {
                 redis.Database.HashSet("Test", i, i);
             }
-            
+
             var result = await redis.GetHash("Test").ToArray();
             Assert.AreEqual(total, result.Length);
         }
@@ -97,7 +100,7 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
         public async Task Primitive()
         {
             await redis.Client.AddRecord(repositoryKey, 1).ConfigureAwait(false);
-            var result = await redis.Client.GetRecords<int>(repositoryKey).ToArray().ToTask().ConfigureAwait(false); 
+            var result = await redis.Client.GetRecords<int>(repositoryKey).ToArray().ToTask().ConfigureAwait(false);
             Assert.AreEqual(1, result[0]);
 
             await redis.Client.AddRecord(repositoryKey, "1").ConfigureAwait(false);
@@ -115,7 +118,7 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
         [TestCase(true, 1)]
         [TestCase(false, 10)]
         [TestCase(false, 1)]
-        public async Task TestListIndex(bool useSets, int batchSize)
+        public async Task TestIndex(bool useSets, int batchSize)
         {
             redis.Client.BatchSize = batchSize;
             var definition = redis.RegisterWellknown<Identity>();
@@ -123,26 +126,37 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
             definition.IsSet = useSets;
             var key1 = new RepositoryKey(repository.Object, new ObjectKey("Test1"));
             key1.AddIndex(listAll);
-            await redis.Client.AddRecord(key1, new Identity {Environment = "Test1"}).ConfigureAwait(false);
+            key1.AddIndex(listAll2);
+            await redis.Client.AddRecord(key1, new Identity { Environment = "Test1" }).ConfigureAwait(false);
 
             var key2 = new RepositoryKey(repository.Object, new ObjectKey("Test2"));
             key2.AddIndex(listAll);
+            key2.AddIndex(listAll2);
             await redis.Client.AddRecord(key2, new Identity { Environment = "Test2" }).ConfigureAwait(false);
 
-            string result1 = "Test2";
-            string result2 = "Test1";
-            var items = await redis.Client.GetRecords<Identity>(listAll).ToArray();
+            var key3 = new RepositoryKey(repository.Object, new ObjectKey("Test3"));
+            key3.AddIndex(listAll);
+            await redis.Client.AddRecord(key3, new Identity { Environment = "Test3" }).ConfigureAwait(false);
+
+            var items = redis.Client.GetRecords<Identity>(listAll).ToEnumerable().OrderBy(item => item.Environment).ToArray();
+            Assert.AreEqual(3, items.Length);
+            Assert.AreEqual("Test1", items[0].Environment);
+            Assert.AreEqual("Test2", items[1].Environment);
+            Assert.AreEqual("Test3", items[2].Environment);
+
+            items = redis.Client.GetRecords<Identity>(new[] { listAll, listAll2 }).ToEnumerable().OrderBy(item => item.Environment).ToArray();
             Assert.AreEqual(2, items.Length);
-            Assert.AreEqual(result1, items[0].Environment);
-            Assert.AreEqual(result2, items[1].Environment);
+            Assert.AreEqual("Test1", items[0].Environment);
+            Assert.AreEqual("Test2", items[1].Environment);
 
             items = await redis.Client.GetRecords<Identity>(listAll, 0, 0).ToArray();
             Assert.AreEqual(1, items.Length);
-            Assert.AreEqual(result1, items[0].Environment);
+            Assert.AreEqual("Test3", items[0].Environment);
 
-            items = await redis.Client.GetRecords<Identity>(listAll, 1, 3).ToArray();
-            Assert.AreEqual(1, items.Length);
-            Assert.AreEqual(result2, items[0].Environment);
+            items = redis.Client.GetRecords<Identity>(listAll, 1, 3).ToEnumerable().OrderBy(item => item.Environment).ToArray();
+            Assert.AreEqual(2, items.Length);
+            Assert.AreEqual("Test1", items[0].Environment);
+            Assert.AreEqual("Test2", items[1].Environment);
 
             items = await redis.Client.GetRecords<Identity>(listAll, 3, 4).ToArray();
             Assert.AreEqual(0, items.Length);
@@ -150,15 +164,15 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
             IndexManagerFactory factory = new IndexManagerFactory(redis, redis.Database);
             var manager = factory.Create(listAll);
             var count = await manager.Count().ConfigureAwait(false);
-            Assert.AreEqual(2, count);
+            Assert.AreEqual(3, count);
 
             count = (await manager.GetIds().ToArray()).Length;
-            Assert.AreEqual(2, count);
+            Assert.AreEqual(3, count);
 
             var result = await manager.GetIds(1, 2).ToArray();
-            Assert.AreEqual(result2, (string)result[0]);
+            Assert.AreEqual("Test2", (string)result[0]);
             result = await manager.GetIds(0, 1).ToArray();
-            Assert.AreEqual(result1, (string)result[0]);
+            Assert.AreEqual("Test3", (string)result[0]);
 
             await manager.Reset().ConfigureAwait(false);
             count = await manager.Count().ConfigureAwait(false);
@@ -166,7 +180,7 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
 
             await redis.Reindex(key2).ConfigureAwait(false);
             count = await manager.Count().ConfigureAwait(false);
-            Assert.AreEqual(2, count);
+            Assert.AreEqual(3, count);
         }
 
         [TestCase(true)]
@@ -216,13 +230,13 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
         public async Task AddToLimitedListTransaction()
         {
             var transaction = redis.StartTransaction();
-            var result = await redis.Client.ContainsRecord<string>(repositoryKey).ConfigureAwait(false); 
+            var result = await redis.Client.ContainsRecord<string>(repositoryKey).ConfigureAwait(false);
             Assert.IsFalse(result);
             var task1 = transaction.Client.AddRecord(repositoryKey, "Test1");
             var task2 = transaction.Client.AddRecord(repositoryKey, "Test2");
             var task3 = transaction.Client.AddRecord(repositoryKey, "Test3");
             await transaction.Commit().ConfigureAwait(false);
-            await Task.WhenAll(task1, task2, task3).ConfigureAwait(false); 
+            await Task.WhenAll(task1, task2, task3).ConfigureAwait(false);
             result = await redis.Client.ContainsRecord<string>(repositoryKey).ConfigureAwait(false);
             Assert.IsTrue(result);
             var value = await redis.Client.GetRecords<string>(repositoryKey).ToArray();
@@ -307,7 +321,7 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
             repositoryKey.AddIndex(new IndexKey(repository.Object, "Data", true));
             await redis.Client.AddRecord(repositoryKey, routing).ConfigureAwait(false);
             var result = await redis.Client.GetRecords<Identity>(repositoryKey).ToArray();
-            var result2 = await redis.Client.GetRecords<Identity>(new IndexKey(repository.Object, "Data", true)).ToArray(); 
+            var result2 = await redis.Client.GetRecords<Identity>(new IndexKey(repository.Object, "Data", true)).ToArray();
 
             Assert.AreEqual(1, result.Length);
             Assert.AreEqual(1, result2.Length);
@@ -322,7 +336,7 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
             var task1 = transaction.Client.AddRecord(key, "Test");
             var rawResult = await redis.Client.GetRecords<string>(key).LastOrDefaultAsync();
             Assert.IsNull(rawResult);
-            await transaction.Commit().ConfigureAwait(false); 
+            await transaction.Commit().ConfigureAwait(false);
             await task1.ConfigureAwait(false);
             rawResult = await redis.Client.GetRecords<string>(key).LastOrDefaultAsync();
             Assert.AreEqual("Test", rawResult);
@@ -347,7 +361,7 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
             Assert.AreEqual("Test", result.ApplicationId);
             Assert.AreEqual("DEV", result.Environment);
 
-            await redis.Client.DeleteAll<Identity>(key).ConfigureAwait(false); 
+            await redis.Client.DeleteAll<Identity>(key).ConfigureAwait(false);
             var total = await redis.Client.GetRecords<Identity>(key).ToArray();
             Assert.AreEqual(0, total.Length);
         }

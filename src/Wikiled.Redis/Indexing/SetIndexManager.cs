@@ -11,12 +11,9 @@ namespace Wikiled.Redis.Indexing
 {
     public class SetIndexManager : IndexManagerBase
     {
-        private readonly IIndexKey[] indexes;
-
         public SetIndexManager(IRedisLink link, IDatabaseAsync database, params IIndexKey[] indexes)
             : base(link, database, indexes)
         {
-            this.indexes = indexes;
         }
 
         protected override Task AddRawIndex(IIndexKey index, string rawKey)

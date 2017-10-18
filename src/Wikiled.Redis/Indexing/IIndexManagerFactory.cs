@@ -4,6 +4,6 @@ namespace Wikiled.Redis.Indexing
 {
     public interface IIndexManagerFactory
     {
-        IIndexManager Create(IIndexKey index);
+        IIndexManager Create(params IIndexKey[] index);
     }
 }
