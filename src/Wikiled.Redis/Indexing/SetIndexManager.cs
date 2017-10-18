@@ -11,35 +11,31 @@ namespace Wikiled.Redis.Indexing
 {
     public class SetIndexManager : IndexManagerBase
     {
-        private readonly IIndexKey index;
+        private readonly IIndexKey[] indexes;
 
-        public SetIndexManager(IRedisLink link, IDatabaseAsync database, IIndexKey index)
-            : base(link, database, index)
+        public SetIndexManager(IRedisLink link, IDatabaseAsync database, params IIndexKey[] indexes)
+            : base(link, database, indexes)
         {
-            Guard.NotNull(() => index, index);
-            Guard.NotNull(() => link, link);
-            Guard.NotNull(() => database, database);
-            this.index = index;
+            this.indexes = indexes;
         }
 
-        public override Task AddRawIndex(string rawKey)
+        protected override Task AddRawIndex(IIndexKey index, string rawKey)
         {
-            Guard.NotNullOrEmpty(() => rawKey, rawKey);
             return Database.SortedSetAddAsync(Link.GetIndexKey(index), rawKey, DateTime.UtcNow.ToUnixTime());
         }
 
-        public override Task<long> Count()
+        protected override Task<long> SingleCount(IIndexKey index)
         {
             return Database.SortedSetLengthAsync(Link.GetIndexKey(index));
         }
 
-        public override IObservable<RedisValue> GetIds(long start = 0, long stop = -1)
+        protected override IObservable<RedisValue> GetIdsSingle(IIndexKey index, long start = 0, long stop = -1)
         {
             return Observable.Create<RedisValue>(
                 async observer =>
                 {
                     var keys = await Database.SortedSetRangeByRankAsync(Link.GetIndexKey(index), start, stop, Order.Descending).ConfigureAwait(false);
-                    foreach(var key in keys)
+                    foreach (var key in keys)
                     {
                         observer.OnNext(key);
                     }

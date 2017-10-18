@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
@@ -11,6 +12,18 @@ namespace Wikiled.Redis.Helpers
 {
     public static class ObserverHelpers
     {
+        public static IObservable<T> InnerJoin<T>(this IObservable<T> first, IObservable<T> second)
+            where T : IEquatable<T>
+        {
+            return first.Join(
+                            second,
+                            _ => Observable.Never<Unit>(),
+                            _ => Observable.Never<Unit>(),
+                            (aOutput, bOutput) => (aOutput, bOutput))
+                        .Where(tupple => tupple.Item1.Equals(tupple.Item2))
+                        .Select(item => item.Item1);
+        }
+
         public static IObservable<HashEntry> GetHash(this IRedisLink link, string key)
         {
             return Observable.Create<HashEntry>(

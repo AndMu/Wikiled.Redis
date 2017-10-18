@@ -104,6 +104,7 @@
     <Compile Include="Data\XmlDataSerializerTests.cs" />
     <Compile Include="Data\ZipBinaryDataSerializerTests.cs" />
     <Compile Include="Data\ZipXmlDataSerializerTests.cs" />
+    <Compile Include="Helpers\ObserverHelpersTests.cs" />
     <Compile Include="Information\InfoTestsHelper.cs" />
     <Compile Include="Information\MemoryInfoTests.cs" />
     <Compile Include="Information\PersistenceInfoTests.cs" />
