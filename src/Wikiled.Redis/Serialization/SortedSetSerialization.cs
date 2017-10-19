@@ -11,13 +11,14 @@ using Wikiled.Redis.Logic;
 
 namespace Wikiled.Redis.Serialization
 {
-    public class SortedSetSerialization : ISpecificPersistency
+    public class SortedSetSerialization : BaseSetSerialization, ISpecificPersistency
     {
         private readonly IRedisLink link;
 
         private static readonly Logger log = LogManager.GetCurrentClassLogger();
 
         public SortedSetSerialization(IRedisLink link)
+            : base(link)
         {
             Guard.NotNull(() => link, link);
             this.link = link;
@@ -55,11 +56,6 @@ namespace Wikiled.Redis.Serialization
             }
 
             return Task.WhenAll(tasks);
-        }
-
-        public Task DeleteAll(IDatabaseAsync database, IDataKey key)
-        {
-            return link.DeleteAll(database, key);
         }
 
         public IObservable<T> GetRecords<T>(IDatabaseAsync database, IDataKey dataKey, long fromRecord = 0, long toRecord = -1)

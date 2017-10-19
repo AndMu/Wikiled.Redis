@@ -47,6 +47,26 @@ namespace Wikiled.Redis.Logic
         Task DeleteAll<T>(IDataKey key);
 
         /// <summary>
+        /// Set expire on key
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="key"></param>
+        /// <param name="span"></param>
+        /// <returns></returns>
+
+        Task SetExpire<T>(IDataKey key, TimeSpan span);
+
+        /// <summary>
+        /// Set expire on key
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="key"></param>
+        /// <param name="dateTime"></param>
+        /// <returns></returns>
+
+        Task SetExpire<T>(IDataKey key, DateTime dateTime);
+
+        /// <summary>
         ///     Get records helper method
         /// </summary>
         /// <typeparam name="T"></typeparam>

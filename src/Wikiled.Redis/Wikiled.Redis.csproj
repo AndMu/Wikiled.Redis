@@ -177,6 +177,7 @@
     <Compile Include="Replication\ReplicationProgressExtension.cs" />
     <Compile Include="Scripts\IScriptGenerator.cs" />
     <Compile Include="Scripts\ScriptGenerator.cs" />
+    <Compile Include="Serialization\BaseSetSerialization.cs" />
     <Compile Include="Serialization\BasicOperations.cs" />
     <Compile Include="Serialization\DictionarySerializer.cs" />
     <Compile Include="Serialization\HashSetSerialization.cs" />

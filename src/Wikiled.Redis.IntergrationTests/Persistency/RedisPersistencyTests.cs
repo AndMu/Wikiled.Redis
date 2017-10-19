@@ -276,6 +276,45 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
         }
 
         [Test]
+        public async Task DeleteUsingClient()
+        {
+            var result = await redis.Client.ContainsRecord<string>(key).ConfigureAwait(false);
+            Assert.IsFalse(result);
+            var client = redis.Client;
+
+            await client.AddRecord(key, "Test").ConfigureAwait(false);
+            result = await redis.Client.ContainsRecord<string>(key).ConfigureAwait(false);
+            Assert.IsTrue(result);
+
+            await client.DeleteAll<string>(key).ConfigureAwait(false);
+            var value = await client.GetRecords<string>(key).LastOrDefaultAsync();
+            Assert.IsNull(value);
+
+            result = await redis.Client.ContainsRecord<string>(key).ConfigureAwait(false);
+            Assert.IsFalse(result);
+        }
+
+        [Test]
+        public async Task ExpireKey()
+        {
+            var result = await redis.Client.ContainsRecord<string>(key).ConfigureAwait(false);
+            Assert.IsFalse(result);
+            var client = redis.Client;
+
+            await client.AddRecord(key, "Test").ConfigureAwait(false);
+            result = await redis.Client.ContainsRecord<string>(key).ConfigureAwait(false);
+            Assert.IsTrue(result);
+
+            await client.SetExpire<string>(key, TimeSpan.FromSeconds(1)).ConfigureAwait(false);
+            await Task.Delay(TimeSpan.FromSeconds(2)).ConfigureAwait(false);
+            var value = await client.GetRecords<string>(key).LastOrDefaultAsync();
+            Assert.IsNull(value);
+
+            result = await redis.Client.ContainsRecord<string>(key).ConfigureAwait(false);
+            Assert.IsFalse(result);
+        }
+
+        [Test]
         public async Task Flush()
         {
             var client = redis.Client;

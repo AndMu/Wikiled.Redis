@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Reactive.Linq;
 using System.Threading.Tasks;
 using NLog;
 using StackExchange.Redis;
@@ -53,6 +52,18 @@ namespace Wikiled.Redis.Logic
         {
             Guard.NotNull(() => key, key);
             return link.GetSpecific<T>().DeleteAll(GetDatabase(), key);
+        }
+
+        public Task SetExpire<T>(IDataKey key, TimeSpan span)
+        {
+            Guard.NotNull(() => key, key);
+            return link.GetSpecific<T>().SetExpire(GetDatabase(), key, span);
+        }
+
+        public Task SetExpire<T>(IDataKey key, DateTime dateTime)
+        {
+            Guard.NotNull(() => key, key);
+            return link.GetSpecific<T>().SetExpire(GetDatabase(), key, dateTime);
         }
 
         public IObservable<T> GetRecords<T>(IIndexKey index, long start = 0, long end = -1)

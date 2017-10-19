@@ -14,8 +14,7 @@ namespace Wikiled.Redis.Serialization
 {
     public class ObjectListSerialization : ISpecificPersistency
     {
-        private readonly ConcurrentDictionary<Type, RedisValue[]> columnsCache =
-            new ConcurrentDictionary<Type, RedisValue[]>();
+        private readonly ConcurrentDictionary<Type, RedisValue[]> columnsCache = new ConcurrentDictionary<Type, RedisValue[]>();
 
         private readonly IRedisLink link;
 
@@ -53,13 +52,40 @@ namespace Wikiled.Redis.Serialization
 
         public async Task DeleteAll(IDatabaseAsync database, IDataKey key)
         {
+            log.Debug("DeleteAll: [{0}]", key);
             Guard.NotNull(() => database, database);
             Guard.NotNull(() => key, key);
+            var keys = await GetAllKeys(database, key).ConfigureAwait(false);
+            await database.KeyDeleteAsync(keys.ToArray()).ConfigureAwait(false);
+        }
+
+        public async Task SetExpire(IDatabaseAsync database, IDataKey key, TimeSpan timeSpan)
+        {
+            log.Debug("SetExpire: [{0}] - {1}", key, timeSpan);
+            Guard.NotNull(() => database, database);
+            Guard.NotNull(() => key, key);
+            var keys = await GetAllKeys(database, key).ConfigureAwait(false);
+            var tasks = keys.Select(item => database.KeyExpireAsync(item, timeSpan));
+            await Task.WhenAll(tasks).ConfigureAwait(false);
+        }
+
+        public async Task SetExpire(IDatabaseAsync database, IDataKey key, DateTime dateTime)
+        {
+            log.Debug("SetExpire: [{0}] - {1}", key, dateTime);
+            Guard.NotNull(() => database, database);
+            Guard.NotNull(() => key, key);
+            var keys = await GetAllKeys(database, key).ConfigureAwait(false);
+            var tasks = keys.Select(item => database.KeyExpireAsync(item, dateTime));
+            await Task.WhenAll(tasks).ConfigureAwait(false);
+        }
+
+        private async Task<List<RedisKey>> GetAllKeys(IDatabaseAsync database, IDataKey key)
+        {
             var actualKey = link.GetKey(key);
             var allKeys = await redisSetList.GetRedisValues(database, actualKey, 0, -1).ConfigureAwait(false);
             var keys = allKeys.Select(item => (RedisKey)item.ToString()).ToList();
             keys.Add(actualKey);
-            await database.KeyDeleteAsync(keys.ToArray()).ConfigureAwait(false);
+            return keys;
         }
 
         public string GetKeyPrefix<T>()

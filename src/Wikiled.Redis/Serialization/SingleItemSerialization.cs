@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
@@ -12,7 +11,7 @@ using Wikiled.Redis.Logic;
 
 namespace Wikiled.Redis.Serialization
 {
-    public class SingleItemSerialization : ISpecificPersistency
+    public class SingleItemSerialization : BaseSetSerialization, ISpecificPersistency
     {
         private readonly IRedisLink link;
 
@@ -21,6 +20,7 @@ namespace Wikiled.Redis.Serialization
         private readonly IObjectSerialization objectSerialization;
 
         public SingleItemSerialization(IRedisLink link, IObjectSerialization objectSerialization)
+            : base(link)
         {
             Guard.NotNull(() => link, link);
             Guard.NotNull(() => objectSerialization, objectSerialization);
@@ -34,7 +34,7 @@ namespace Wikiled.Redis.Serialization
             Guard.NotNull(() => objectKey, objectKey);
             Guard.NotNull(() => instances, instances);
             log.Debug("AddRecords: {0}", instances.Length);
-            if(instances.Length > 1)
+            if (instances.Length > 1)
             {
                 throw new ArgumentOutOfRangeException();
             }
@@ -55,11 +55,6 @@ namespace Wikiled.Redis.Serialization
             Guard.NotNull(() => instances, instances);
             var tasks = keys.Select(dataKey => AddRecord(database, dataKey, instances));
             return Task.WhenAll(tasks);
-        }
-
-        public Task DeleteAll(IDatabaseAsync database, IDataKey key)
-        {
-            return link.DeleteAll(database, key);
         }
 
         public IObservable<T> GetRecords<T>(IDatabaseAsync database, IDataKey dataKey, long fromRecord = 0, long toRecord = -1)

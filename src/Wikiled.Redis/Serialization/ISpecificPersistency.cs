@@ -37,6 +37,24 @@ namespace Wikiled.Redis.Serialization
         Task DeleteAll(IDatabaseAsync database, IDataKey key);
 
         /// <summary>
+        /// Set Expire on key
+        /// </summary>
+        /// <param name="database"></param>
+        /// <param name="key"></param>
+        /// <param name="timeSpan"></param>
+        /// <returns></returns>
+        Task SetExpire(IDatabaseAsync database, IDataKey key, TimeSpan timeSpan);
+
+        /// <summary>
+        /// Set Expire on key
+        /// </summary>
+        /// <param name="database"></param>
+        /// <param name="key"></param>
+        /// <param name="dateTime"></param>
+        /// <returns></returns>
+        Task SetExpire(IDatabaseAsync database, IDataKey key, DateTime dateTime);
+
+        /// <summary>
         ///     Get records
         /// </summary>
         /// <typeparam name="T"></typeparam>

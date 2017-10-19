@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using StackExchange.Redis;
 using Wikiled.Core.Utility.Arguments;
 using Wikiled.Redis.Keys;
@@ -22,6 +23,22 @@ namespace Wikiled.Redis.Serialization
             Guard.NotNull(() => key, key);
             var actualKey = link.GetKey(key);
             return database.KeyDeleteAsync(actualKey);
+        }
+
+        public static Task SetExpire(this IRedisLink link, IDatabaseAsync database, IDataKey key, TimeSpan time)
+        {
+            Guard.NotNull(() => database, database);
+            Guard.NotNull(() => key, key);
+            var actualKey = link.GetKey(key);
+            return database.KeyExpireAsync(actualKey, time);
+        }
+
+        public static Task SetExpire(this IRedisLink link, IDatabaseAsync database, IDataKey key, DateTime dateTime)
+        {
+            Guard.NotNull(() => database, database);
+            Guard.NotNull(() => key, key);
+            var actualKey = link.GetKey(key);
+            return database.KeyExpireAsync(actualKey, dateTime);
         }
     }
 }

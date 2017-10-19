@@ -12,7 +12,7 @@ using Wikiled.Redis.Logic;
 
 namespace Wikiled.Redis.Serialization
 {
-    public class ListSerialization : ISpecificPersistency
+    public class ListSerialization : BaseSetSerialization, ISpecificPersistency
     {
         private readonly IRedisLink link;
 
@@ -21,6 +21,7 @@ namespace Wikiled.Redis.Serialization
         private readonly IRedisSetList redisSetList;
 
         public ListSerialization(IRedisLink link, IRedisSetList redisSetList)
+            : base(link)
         {
             Guard.NotNull(() => link, link);
             Guard.NotNull(() => redisSetList, redisSetList);
@@ -44,11 +45,6 @@ namespace Wikiled.Redis.Serialization
             Guard.NotNull(() => instances, instances);
             var task = keys.Select(dataKey => AddRecord(database, dataKey, instances));
             return Task.WhenAll(task);
-        }
-
-        public Task DeleteAll(IDatabaseAsync database, IDataKey key)
-        {
-            return link.DeleteAll(database, key);
         }
 
         public IObservable<T> GetRecords<T>(IDatabaseAsync database, IDataKey dataKey, long fromRecord = 0, long toRecord = -1)
