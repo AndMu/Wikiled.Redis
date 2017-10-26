@@ -28,8 +28,6 @@ namespace Wikiled.Redis.Logic
             configuration = configurationFile;
         }
 
-        public bool ShutdownRedis { get; set; } = true;
-
         public bool ShowRedis { get; set; } = false;
 
         public bool ReuseExisting { get; set; } = true;
@@ -45,7 +43,26 @@ namespace Wikiled.Redis.Logic
             }
 
             log.Info("Redis was started for this test run. Shuting down");
-            if (ShutdownRedis)
+            if (process != null)
+            {
+                if (process.HasExited)
+                {
+                    log.Error("Process already existed");
+                }
+                else
+                {
+                    if (!process.CloseMainWindow())
+                    {
+                        log.Info("Close failed");
+                        process.Kill();
+                    }
+                    else
+                    {
+                        process.WaitForExit();
+                    }
+                }
+            }
+            else
             {
                 link?.Multiplexer.Shutdown();
             }
