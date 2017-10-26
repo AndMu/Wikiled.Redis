@@ -132,9 +132,7 @@ namespace Wikiled.Redis.Logic
 
             typeName = type.GetTypeName();
             var typeKey = this.GetKey(new SimpleKey("Type", type.Name));
-
             var keys = Multiplexer.Database.SetMembers(typeKey);
-
             if (keys.Length > 0)
             {
                 if (keys.Length > 1)
@@ -142,7 +140,7 @@ namespace Wikiled.Redis.Logic
                     log.Warn("Too many types found: {0} for type: {1}", keys.Length, type);
                 }
 
-                log.Debug("Type found in Redis {0}:{1}]", type, keys[0]);
+                log.Debug("Type found in Redis [{0}:{1}]", type, keys[0]);
                 typeIdTable[type] = keys[0];
                 typeNameTable[keys[0]] = type;
                 return keys[0];

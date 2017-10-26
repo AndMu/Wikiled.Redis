@@ -55,6 +55,11 @@ namespace Wikiled.Redis.Logic
         void Flush();
 
         /// <summary>
+        /// Shutdown DB
+        /// </summary>
+        void Shutdown();
+
+        /// <summary>
         ///     Get INFO from redis servers
         /// </summary>
         /// <returns></returns>

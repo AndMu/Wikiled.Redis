@@ -4,6 +4,7 @@ using System.IO;
 using System.Threading;
 using NLog;
 using Wikiled.Core.Utility.Arguments;
+using Wikiled.Redis.Config;
 
 namespace Wikiled.Redis.Logic
 {
@@ -19,11 +20,19 @@ namespace Wikiled.Redis.Logic
 
         private bool hasStarted;
 
+        private IRedisLink link;
+
         public RedisProcessManager(int? port = null, string configurationFile = null)
         {
             this.port = port ?? 6666;
             configuration = configurationFile;
         }
+
+        public bool ShutdownRedis { get; set; } = true;
+
+        public bool ShowRedis { get; set; } = false;
+
+        public bool ReuseExisting { get; set; } = true;
 
         /// <summary>
         ///     Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
@@ -36,29 +45,12 @@ namespace Wikiled.Redis.Logic
             }
 
             log.Info("Redis was started for this test run. Shuting down");
-            if (process != null)
+            if (ShutdownRedis)
             {
-                if (process.HasExited)
-                {
-                    log.Error("Process already existed");
-                }
-                else
-                {
-                    if (!process.CloseMainWindow())
-                    {
-                        log.Info("Close failed");
-                        process.Kill();
-                    }
-                    else
-                    {
-                        process.WaitForExit();
-                    }
-                }
+                link?.Multiplexer.Shutdown();
             }
-            else
-            {
-                log.Error("Process is null");
-            }
+
+            link?.Dispose();
         }
 
         public void Start(string redisPath)
@@ -70,25 +62,44 @@ namespace Wikiled.Redis.Logic
             startInfo.WorkingDirectory = redisPath;
             startInfo.FileName = Path.GetFullPath(Path.Combine(redisPath, "redis-server.exe"));
 
+            if (!ShowRedis)
+            {
+                startInfo.CreateNoWindow = true;
+                startInfo.RedirectStandardOutput = true;
+                startInfo.UseShellExecute = false;
+            }
+
             if (!File.Exists(startInfo.FileName))
             {
                 throw new ArgumentException("Can't find file: " + startInfo.FileName, nameof(redisPath));
             }
 
-            startInfo.CreateNoWindow = false;
             process = new Process();
             process.StartInfo = startInfo;
-            if (!process.Start())
+            if (!process.Start() ||
+                !ReuseExisting)
             {
                 throw new NullReferenceException("Redis startup failed");
             }
-            
-            hasStarted = true;
+
+            // give some time to initialize redis
             Thread.Sleep(2000);
-            if (process.HasExited)
+            if (!ReuseExisting &&
+                process.HasExited)
             {
                 throw new NullReferenceException($"Redis startup failed, there maybe another process using the same port {port}");
             }
+
+            CheckStatus();
+            hasStarted = true;
+        }
+
+        private void CheckStatus()
+        {
+            var config = new RedisConfiguration("localhost", port);
+            config.ConnectTimeout = 500;
+            link = new RedisLink("testInstance", new RedisMultiplexer(config));
+            link.Open();
         }
     }
 }

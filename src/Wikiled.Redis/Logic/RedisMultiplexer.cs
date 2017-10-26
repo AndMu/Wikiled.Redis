@@ -98,6 +98,16 @@ namespace Wikiled.Redis.Logic
             }
         }
 
+        public void Shutdown()
+        {
+            log.Warn("Shutdown");
+            CheckConnection();
+            foreach (var server in GetServers())
+            {
+                server.Shutdown();
+            }
+        }
+
         public IEnumerable<IServerInformation> GetInfo(string section = null)
         {
             return GetServers().Select(server => new ServerInformation(server, server.Info(section)));

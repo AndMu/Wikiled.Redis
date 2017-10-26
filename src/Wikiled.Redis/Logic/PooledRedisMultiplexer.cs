@@ -87,6 +87,14 @@ namespace Wikiled.Redis.Logic
         }
 
         /// <summary>
+        /// Shutdown redis instances
+        /// </summary>
+        public void Shutdown()
+        {
+            instance.Shutdown();
+        }
+
+        /// <summary>
         ///     Get INFO from redis servers
         /// </summary>
         /// <returns></returns>
