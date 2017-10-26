@@ -20,8 +20,6 @@ namespace Wikiled.Redis.Logic
 
         private bool hasStarted;
 
-        private IRedisLink link;
-
         public RedisProcessManager(int? port = null, string configurationFile = null)
         {
             this.port = port ?? 6666;
@@ -64,10 +62,12 @@ namespace Wikiled.Redis.Logic
             }
             else
             {
-                link?.Multiplexer.Shutdown();
+                using (var link = CreateLink())
+                {
+                    link.Open();
+                    link.Multiplexer.Shutdown();
+                }
             }
-
-            link?.Dispose();
         }
 
         public void Start(string redisPath)
@@ -113,10 +113,17 @@ namespace Wikiled.Redis.Logic
 
         private void CheckStatus()
         {
+            using (var link = CreateLink())
+            {
+                link.Open();
+            }
+        }
+
+        private IRedisLink CreateLink()
+        {
             var config = new RedisConfiguration("localhost", port);
             config.ConnectTimeout = 500;
-            link = new RedisLink("testInstance", new RedisMultiplexer(config));
-            link.Open();
+            return new RedisLink("testInstance", new RedisMultiplexer(config));
         }
     }
 }
