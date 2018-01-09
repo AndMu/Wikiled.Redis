@@ -40,58 +40,44 @@ namespace Wikiled.Redis.UnitTests.Logic
         }
 
         [Test]
-        public void ConstructWellKnown()
-        {
-            Assert.Throws<ArgumentException>(() => HandlingDefinition<Identity>.ConstructWellKnown(link.Object));
-            link.Setup(item => item.State).Returns(ChannelState.Open);
-            link.Setup(item => item.LinkId).Returns(-1);
-            Assert.Throws<ArgumentException>(() => HandlingDefinition<Identity>.ConstructWellKnown(link.Object));
-
-            link.Setup(item => item.LinkId).Returns(10);
-            Assert.Throws<ArgumentOutOfRangeException>(() => HandlingDefinition<int>.ConstructWellKnown(link.Object));
-            var instance = HandlingDefinition<Identity>.ConstructWellKnown(link.Object);
-            Assert.IsTrue(instance.IsWellKnown);
-            Assert.IsNull(instance.Serializer);
-            Assert.AreEqual("L10:1", instance.GetNextId());
-            Assert.AreEqual("L10:2", instance.GetNextId());
-        }
-
-        [Test]
         public void TestPrimitiveType()
         {
             link.Setup(item => item.State).Returns(ChannelState.Open);
             link.Setup(item => item.LinkId).Returns(-1);
             link.Setup(item => item.LinkId).Returns(10);
             var definition = HandlingDefinition<int>.ConstructGeneric(link.Object);
+            Assert.Throws<ArgumentOutOfRangeException>(() => definition.IsNormalized = true);
             Assert.Throws<ArgumentOutOfRangeException>(() => definition.IsSingleInstance = true);
-            Assert.Throws<ArgumentOutOfRangeException>(() => definition.ExtractType = true);
+            Assert.Throws<ArgumentOutOfRangeException>(() => definition.IsWellKnown= true);
+            Mock<IKeyValueSerializer<int>> serializer = new Mock<IKeyValueSerializer<int>>();
+            Assert.Throws<ArgumentOutOfRangeException>(() => definition.Serializer = serializer.Object);
+            Assert.IsFalse(definition.IsNormalized);
+            Assert.IsFalse(definition.IsSingleInstance);
+            Assert.IsFalse(definition.IsWellKnown);
+            Assert.IsNull(definition.Serializer);
         }
 
         [Test]
-        public void ConstructKeyValue()
+        public void ConstructRefType()
         {
-            Assert.Throws<ArgumentException>(
-                () =>
-                HandlingDefinition<Identity>.ConstructKeyValue(
-                    link.Object,
-                    new KeyValueSerializer<Identity>(() => new Identity())));
-
             link.Setup(item => item.State).Returns(ChannelState.Open);
             link.Setup(item => item.LinkId).Returns(-1);
-            Assert.Throws<ArgumentException>(
-                () =>
-                HandlingDefinition<Identity>.ConstructKeyValue(
-                    link.Object,
-                    new KeyValueSerializer<Identity>(() => new Identity())));
+            link.Setup(item => item.LinkId).Returns(10);
+            var definition = HandlingDefinition<Identity>.ConstructGeneric(link.Object);
+            Assert.IsFalse(definition.IsNormalized);
+            Assert.IsFalse(definition.IsSingleInstance);
+            Assert.IsFalse(definition.IsWellKnown);
+            Assert.IsNull(definition.Serializer);
+            definition.IsNormalized = true;
+            definition.IsSingleInstance = true;
+            definition.IsWellKnown = true;
 
-            link.Setup(item => item.LinkId).Returns(1);
-
-            var instance = HandlingDefinition<Identity>.ConstructKeyValue(
-                link.Object,
-                new KeyValueSerializer<Identity>(() => new Identity()));
-            Assert.IsTrue(instance.IsWellKnown);
-            Assert.IsNotNull(instance.Serializer);
-            Assert.AreEqual("L1:1", instance.GetNextId());
+            Mock<IKeyValueSerializer<Identity>> serializer = new Mock<IKeyValueSerializer<Identity>>();
+            definition.Serializer = serializer.Object;
+            Assert.IsTrue(definition.IsNormalized);
+            Assert.IsTrue(definition.IsSingleInstance);
+            Assert.IsTrue(definition.IsWellKnown);
+            Assert.IsNotNull(definition.Serializer);
         }
     }
 }

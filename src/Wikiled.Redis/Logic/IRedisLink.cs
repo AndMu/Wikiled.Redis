@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Net;
 using StackExchange.Redis;
 using Wikiled.Redis.Channels;
 using Wikiled.Redis.Data;
 using Wikiled.Redis.Keys;
-using Wikiled.Redis.Replication;
 using Wikiled.Redis.Scripts;
 using Wikiled.Redis.Serialization;
 using Wikiled.Redis.Serialization.Subscription;
@@ -39,12 +37,20 @@ namespace Wikiled.Redis.Logic
         IRedisMultiplexer Multiplexer { get; }
 
         /// <summary>
-        ///     Register generic
+        /// Register generic type serializer
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="serializer"></param>
         /// <returns></returns>
         HandlingDefinition<T> ConstructGeneric<T>(IDataSerializer serializer = null) where T : class;
+
+        /// <summary>
+        /// Register known type for which we don't have to serialize information
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="serializer"></param>
+        /// <returns></returns>
+        HandlingDefinition<T> ConstructKnownType<T>(IDataSerializer serializer = null) where T : class;
 
         /// <summary>
         ///     Get handling definition
@@ -83,10 +89,10 @@ namespace Wikiled.Redis.Logic
         HandlingDefinition<T> RegisterHashType<T>(IKeyValueSerializer<T> serializer = null) where T : class, new();
 
         /// <summary>
-        ///     Register known type for which we don't have to serialize information
+        ///     Register type which extracts object into separate record
         /// </summary>
         /// <typeparam name="T">Type</typeparam>
-        HandlingDefinition<T> RegisterWellknown<T>(IDataSerializer serializer = null) where T : class;
+        HandlingDefinition<T> RegisterNormalized<T>(IDataSerializer serializer = null) where T : class;
 
         /// <summary>
         ///     Get client which performs actions in transaction

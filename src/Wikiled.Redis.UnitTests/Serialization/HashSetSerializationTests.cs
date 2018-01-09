@@ -21,9 +21,10 @@ namespace Wikiled.Redis.UnitTests.Serialization
             link = new Mock<IRedisLink>();
             link.Setup(item => item.State).Returns(ChannelState.Open);
             link.Setup(item => item.LinkId).Returns(0);
+            var definition = HandlingDefinition<Identity>.ConstructGeneric(link.Object);
+            definition.Serializer = new KeyValueSerializer<Identity>(() => new Identity());
             link.Setup(item => item.GetDefinition<Identity>())
-                .Returns(
-                HandlingDefinition<Identity>.ConstructKeyValue(link.Object, new KeyValueSerializer<Identity>(() => new Identity())));
+                .Returns(definition);
             instance = new HashSetSerialization(link.Object);
         }
 

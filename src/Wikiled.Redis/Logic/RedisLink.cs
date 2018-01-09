@@ -58,8 +58,7 @@ namespace Wikiled.Redis.Logic
         public HandlingDefinition<T> GetDefinition<T>()
         {
             Type type = typeof(T);
-            object definition;
-            if (!typeHandler.TryGetValue(type, out definition))
+            if (!typeHandler.TryGetValue(type, out var definition))
             {
                 definition = HandlingDefinition<T>.ConstructGeneric(this);
                 typeHandler[type] = definition;
@@ -71,9 +70,8 @@ namespace Wikiled.Redis.Logic
         public ISpecificPersistency GetSpecific<T>()
         {
             Type type = typeof(T);
-            ISpecificPersistency action;
             log.Debug("GetSpecific<{0}>", type);
-            if (addRecordActions.TryGetValue(type, out action))
+            if (addRecordActions.TryGetValue(type, out var action))
             {
                 return action;
             }
@@ -89,12 +87,7 @@ namespace Wikiled.Redis.Logic
                 var serialization = new HashSetSerialization(this);
                 action = definition.IsSingleInstance ? (ISpecificPersistency)new SingleItemSerialization(this, serialization) : new ObjectListSerialization(this, serialization, setList);
             }
-            else if (definition.IsWellKnown)
-            {
-                var serialization = new ObjectHashSetSerialization(this, definition.DataSerializer);
-                action = definition.IsSingleInstance ? (ISpecificPersistency)new SingleItemSerialization(this, serialization) : new ObjectListSerialization(this, serialization, setList);
-            }
-            else if (!definition.IsSingleInstance && !definition.ExtractType)
+            else if (!definition.IsSingleInstance && !definition.ExtractType && !definition.IsNormalized)
             {
                 action = new ListSerialization(this, setList);
             }
@@ -124,8 +117,7 @@ namespace Wikiled.Redis.Logic
         public string GetTypeID(Type type)
         {
             log.Debug("Resolving {0}", type);
-            string typeName;
-            if (typeIdTable.TryGetValue(type, out typeName))
+            if (typeIdTable.TryGetValue(type, out var typeName))
             {
                 return typeName;
             }
@@ -173,16 +165,30 @@ namespace Wikiled.Redis.Logic
         {
             log.Info("RegisterHashType<{0}>", typeof(T));
             serializer = serializer ?? new KeyValueSerializer<T>(() => new T());
-            var definition = HandlingDefinition<T>.ConstructKeyValue(this, serializer);
+            var definition = HandlingDefinition<T>.ConstructGeneric(this);
+            definition.Serializer = serializer;
+            definition.IsWellKnown = true;
+            definition.IsNormalized = true;
             RegisterDefinition(definition);
             return definition;
         }
 
-        public HandlingDefinition<T> RegisterWellknown<T>(IDataSerializer serializer = null)
+        public HandlingDefinition<T> RegisterNormalized<T>(IDataSerializer serializer = null)
             where T : class
         {
-            log.Info("RegisterWellknown<{0}>", typeof(T));
-            var definition = HandlingDefinition<T>.ConstructWellKnown(this, serializer);
+            log.Info("RegisterNormalized<{0}>", typeof(T));
+            var definition = HandlingDefinition<T>.ConstructGeneric(this, serializer);
+            definition.IsNormalized = true;
+            RegisterDefinition(definition);
+            return definition;
+        }
+
+        public HandlingDefinition<T> ConstructKnownType<T>(IDataSerializer serializer = null)
+            where T : class
+        {
+            log.Info("ConstructKnownType<{0}>", typeof(T));
+            var definition = HandlingDefinition<T>.ConstructGeneric(this, serializer);
+            definition.IsWellKnown = true;
             RegisterDefinition(definition);
             return definition;
         }
@@ -206,8 +212,7 @@ namespace Wikiled.Redis.Logic
             where T : class
         {
             Guard.NotNull(() => action, action);
-            var persistency = GetSpecific<T>() as ObjectListSerialization;
-            if (persistency == null)
+            if (!(GetSpecific<T>() is ObjectListSerialization persistency))
             {
                 log.Warn("Type persitency not supported");
                 return null;

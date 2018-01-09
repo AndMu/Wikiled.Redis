@@ -20,6 +20,12 @@ namespace Wikiled.Redis.Logic
 
         private long linkId;
 
+        private bool isWellKnown;
+
+        private IKeyValueSerializer<T> serializer;
+
+        private bool isNormalized;
+
         private HandlingDefinition()
         {
         }
@@ -31,7 +37,7 @@ namespace Wikiled.Redis.Logic
             get => extractType;
             set
             {
-                if(value &&
+                if (value &&
                    RedisValueExtractor.IsPrimitive<T>())
                 {
                     throw new ArgumentOutOfRangeException(nameof(value), "Primitive type can't extract type");
@@ -51,7 +57,7 @@ namespace Wikiled.Redis.Logic
             get => isSingleInstance;
             set
             {
-                if(value &&
+                if (value &&
                    RedisValueExtractor.IsPrimitive<T>())
                 {
                     throw new ArgumentOutOfRangeException(nameof(value), "Primitive type can't have single instance");
@@ -61,30 +67,71 @@ namespace Wikiled.Redis.Logic
             }
         }
 
+        public bool IsNormalized
+        {
+            get => isNormalized;
+            set
+            {
+                if (value &&
+                    RedisValueExtractor.IsPrimitive<T>())
+                {
+                    throw new ArgumentOutOfRangeException(nameof(value), "Primitive type can't be normalized");
+                }
+
+                isNormalized = value;
+            }
+        }
+
         /// <summary>
         ///     Is well known
         /// </summary>
-        public bool IsWellKnown { get; private set; }
+        public bool IsWellKnown
+        {
+            get => isWellKnown;
+            set
+            {
+                if (value &&
+                    RedisValueExtractor.IsPrimitive<T>())
+                {
+                    throw new ArgumentOutOfRangeException(nameof(value), "Primitive type can't be well known ");
+                }
+
+                isWellKnown = value;
+            }
+        }
 
         /// <summary>
         ///     Get key value serializer
         /// </summary>
         /// <typeparam name="T">Type serializer</typeparam>
         /// <returns>If it is supported instance of serializer</returns>
-        public IKeyValueSerializer<T> Serializer { get; private set; }
+        public IKeyValueSerializer<T> Serializer
+        {
+            get => serializer;
+            set
+            {
+                if (value != null &&
+                    RedisValueExtractor.IsPrimitive<T>())
+                {
+                    throw new ArgumentOutOfRangeException(nameof(value), "Primitive can't have key value serializer");
+                }
+
+                serializer = value;
+            }
+        }
 
         public static HandlingDefinition<T> ConstructGeneric(IRedisLink redis, IDataSerializer serializer = null)
         {
             Guard.IsValid(() => redis, redis, item => redis.State == ChannelState.Open, "Redis link is not open");
             Guard.IsValid(() => redis, redis, item => item.LinkId >= 0, "Redis link id invalid");
             log.Debug("ConstructGeneric");
-            if(RedisValueExtractor.IsPrimitive<T>() &&
+            if (RedisValueExtractor.IsPrimitive<T>() &&
                (serializer != null))
             {
                 throw new ArgumentOutOfRangeException(nameof(T), "Primitive type can't have serializer");
             }
 
-            if((serializer == null) &&
+            if ((serializer == null) &&
                !RedisValueExtractor.IsPrimitive<T>())
             {
                 serializer = new FlatProtoDataSerializer(false);
@@ -92,46 +139,6 @@ namespace Wikiled.Redis.Logic
 
             var instance = new HandlingDefinition<T>();
             instance.IsWellKnown = false;
-            instance.linkId = redis.LinkId;
-            instance.DataSerializer = serializer;
-            return instance;
-        }
-
-        public static HandlingDefinition<T> ConstructKeyValue(IRedisLink redis, IKeyValueSerializer<T> serializer)
-        {
-            Guard.IsValid(() => redis, redis, item => redis.State == ChannelState.Open, "Redis link is not open");
-            Guard.IsValid(() => redis, redis, item => item.LinkId >= 0, "Redis link id invalid");
-            Guard.NotNull(() => serializer, serializer);
-            log.Debug("ConstructKeyValue");
-            var instance = new HandlingDefinition<T>();
-            if(RedisValueExtractor.IsPrimitive<T>())
-            {
-                throw new ArgumentOutOfRangeException(nameof(T), "Primitive type can't be key value");
-            }
-
-            instance.IsWellKnown = true;
-            instance.Serializer = serializer;
-            instance.linkId = redis.LinkId;
-            return instance;
-        }
-
-        public static HandlingDefinition<T> ConstructWellKnown(IRedisLink redis, IDataSerializer serializer = null)
-        {
-            Guard.IsValid(() => redis, redis, item => redis.State == ChannelState.Open, "Redis link is not open");
-            Guard.IsValid(() => redis, redis, item => item.LinkId >= 0, "Redis link id invalid");
-            log.Debug("ConstructWellKnown");
-            if(RedisValueExtractor.IsPrimitive<T>())
-            {
-                throw new ArgumentOutOfRangeException(nameof(T), "Primitive type can't be well known");
-            }
-
-            if(serializer == null)
-            {
-                serializer = new FlatProtoDataSerializer(true);
-            }
-
-            var instance = new HandlingDefinition<T>();
-            instance.IsWellKnown = true;
             instance.linkId = redis.LinkId;
             instance.DataSerializer = serializer;
             return instance;

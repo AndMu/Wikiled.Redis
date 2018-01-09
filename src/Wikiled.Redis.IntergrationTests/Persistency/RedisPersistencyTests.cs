@@ -111,7 +111,7 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
         [Test]
         public void PrimitiveType()
         {
-            Assert.Throws<ArgumentOutOfRangeException>(() => redis.RegisterWellknown<string>());
+            Assert.Throws<ArgumentOutOfRangeException>(() => redis.RegisterNormalized<string>());
         }
 
         [TestCase(true, 10)]
@@ -121,7 +121,7 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
         public async Task TestIndex(bool useSets, int batchSize)
         {
             redis.Client.BatchSize = batchSize;
-            var definition = redis.RegisterWellknown<Identity>();
+            var definition = redis.RegisterNormalized<Identity>();
             definition.IsSingleInstance = true;
             definition.IsSet = useSets;
             var key1 = new RepositoryKey(repository.Object, new ObjectKey("Test1"));
@@ -394,7 +394,7 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
         [Test]
         public async Task Wellknown()
         {
-            redis.RegisterWellknown<Identity>();
+            redis.RegisterNormalized<Identity>();
             await redis.Client.AddRecord(key, routing).ConfigureAwait(false);
             var result = await redis.Client.GetRecords<Identity>(key).FirstAsync();
             Assert.AreEqual("Test", result.ApplicationId);

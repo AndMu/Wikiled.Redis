@@ -72,17 +72,17 @@ namespace Wikiled.Redis.UnitTests.Logic
         }
 
         [Test]
-        public void GetSpecificWellKnown()
+        public void GetSpecificNormalized()
         {
-            redisLink.RegisterWellknown<Identity>();
+            redisLink.RegisterNormalized<Identity>();
             var specificClient = redisLink.GetSpecific<Identity>();
             Assert.IsInstanceOf<ObjectListSerialization>(specificClient);
         }
 
         [Test]
-        public void GetSpecificWellKnownSingle()
+        public void GetSpecificNormalizedSingle()
         {
-            redisLink.RegisterWellknown<Identity>().IsSingleInstance = true;
+            redisLink.RegisterNormalized<Identity>().IsSingleInstance = true;
             var specificClient = redisLink.GetSpecific<Identity>();
             Assert.IsInstanceOf<SingleItemSerialization>(specificClient);
         }
@@ -151,12 +151,12 @@ namespace Wikiled.Redis.UnitTests.Logic
         {
             var result = redisLink.HasDefinition<Identity>();
             Assert.IsFalse(result);
-            redisLink.RegisterWellknown<Identity>();
+            redisLink.RegisterNormalized<Identity>();
             result = redisLink.HasDefinition<Identity>();
             Assert.IsTrue(result);
             var definition = redisLink.GetDefinition<Identity>();
             Assert.IsNotNull(definition);
-            Assert.IsTrue(definition.IsWellKnown);
+            Assert.IsTrue(definition.IsNormalized);
         }
 
         [Test]
