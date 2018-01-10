@@ -6,7 +6,6 @@ using StackExchange.Redis;
 using Wikiled.Core.Utility.Arguments;
 using Wikiled.Core.Utility.Extensions;
 using Wikiled.Redis.Channels;
-using Wikiled.Redis.Data;
 using Wikiled.Redis.Keys;
 using Wikiled.Redis.Persistency;
 using Wikiled.Redis.Scripts;
@@ -45,15 +44,6 @@ namespace Wikiled.Redis.Logic
         public long LinkId { get; private set; }
 
         public IRedisMultiplexer Multiplexer { get; }
-
-        public HandlingDefinition<T> ConstructGeneric<T>(IDataSerializer serializer = null)
-            where T : class
-        {
-            log.Info("ConstructGeneric<{0}>", typeof(T));
-            var definition = HandlingDefinition<T>.ConstructGeneric(this, serializer);
-            RegisterDefinition(definition);
-            return definition;
-        }
 
         public HandlingDefinition<T> GetDefinition<T>()
         {
@@ -160,39 +150,6 @@ namespace Wikiled.Redis.Logic
             return typeHandler.ContainsKey(type);
         }
 
-        public HandlingDefinition<T> RegisterHashType<T>(IKeyValueSerializer<T> serializer = null)
-            where T : class, new()
-        {
-            log.Info("RegisterHashType<{0}>", typeof(T));
-            serializer = serializer ?? new KeyValueSerializer<T>(() => new T());
-            var definition = HandlingDefinition<T>.ConstructGeneric(this);
-            definition.Serializer = serializer;
-            definition.IsWellKnown = true;
-            definition.IsNormalized = true;
-            RegisterDefinition(definition);
-            return definition;
-        }
-
-        public HandlingDefinition<T> RegisterNormalized<T>(IDataSerializer serializer = null)
-            where T : class
-        {
-            log.Info("RegisterNormalized<{0}>", typeof(T));
-            var definition = HandlingDefinition<T>.ConstructGeneric(this, serializer);
-            definition.IsNormalized = true;
-            RegisterDefinition(definition);
-            return definition;
-        }
-
-        public HandlingDefinition<T> ConstructKnownType<T>(IDataSerializer serializer = null)
-            where T : class
-        {
-            log.Info("ConstructKnownType<{0}>", typeof(T));
-            var definition = HandlingDefinition<T>.ConstructGeneric(this, serializer);
-            definition.IsWellKnown = true;
-            RegisterDefinition(definition);
-            return definition;
-        }
-
         public IRedisTransaction StartTransaction()
         {
             log.Debug("StartTransaction");
@@ -256,7 +213,7 @@ namespace Wikiled.Redis.Logic
             return base.OpenInternal();
         }
 
-        private void RegisterDefinition<T>(HandlingDefinition<T> definition)
+        public void RegisterDefinition<T>(HandlingDefinition<T> definition)
             where T : class
         {
             Type type = typeof(T);

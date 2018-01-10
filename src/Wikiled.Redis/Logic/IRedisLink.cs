@@ -1,7 +1,6 @@
 ﻿using System;
 using StackExchange.Redis;
 using Wikiled.Redis.Channels;
-using Wikiled.Redis.Data;
 using Wikiled.Redis.Keys;
 using Wikiled.Redis.Scripts;
 using Wikiled.Redis.Serialization;
@@ -37,22 +36,6 @@ namespace Wikiled.Redis.Logic
         IRedisMultiplexer Multiplexer { get; }
 
         /// <summary>
-        /// Register generic type serializer
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="serializer"></param>
-        /// <returns></returns>
-        HandlingDefinition<T> ConstructGeneric<T>(IDataSerializer serializer = null) where T : class;
-
-        /// <summary>
-        /// Register known type for which we don't have to serialize information
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="serializer"></param>
-        /// <returns></returns>
-        HandlingDefinition<T> ConstructKnownType<T>(IDataSerializer serializer = null) where T : class;
-
-        /// <summary>
         ///     Get handling definition
         /// </summary>
         /// <typeparam name="T">Type</typeparam>
@@ -76,23 +59,18 @@ namespace Wikiled.Redis.Logic
         string GetTypeID(Type type);
 
         /// <summary>
+        /// Register type definition
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="definition"></param>
+        void RegisterDefinition<T>(HandlingDefinition<T> definition) where T : class;
+
+        /// <summary>
         ///     Has registered definition
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
         bool HasDefinition<T>();
-
-        /// <summary>
-        ///     Register type which is persisted as hash
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        HandlingDefinition<T> RegisterHashType<T>(IKeyValueSerializer<T> serializer = null) where T : class, new();
-
-        /// <summary>
-        ///     Register type which extracts object into separate record
-        /// </summary>
-        /// <typeparam name="T">Type</typeparam>
-        HandlingDefinition<T> RegisterNormalized<T>(IDataSerializer serializer = null) where T : class;
 
         /// <summary>
         ///     Get client which performs actions in transaction
