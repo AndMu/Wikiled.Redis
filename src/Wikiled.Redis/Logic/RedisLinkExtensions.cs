@@ -14,6 +14,7 @@ namespace Wikiled.Redis.Logic
             log.Info("RegisterNormalized<{0}>", typeof(T));
             var definition = HandlingDefinition<T>.ConstructGeneric(link, serializer);
             definition.IsNormalized = true;
+			definition.IsWellKnown = true;
             link.RegisterDefinition(definition);
             return definition;
         }
