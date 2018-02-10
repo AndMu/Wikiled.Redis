@@ -1,177 +1,42 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{0A53B8F3-7C69-472C-8E2D-B9F69D63BDBB}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Wikiled.Redis.UnitTests</RootNamespace>
-    <AssemblyName>Wikiled.Redis.UnitTests</AssemblyName>
-    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <NuGetPackageImportStamp>0a923cbe</NuGetPackageImportStamp>
-    <TargetFrameworkProfile />
+    <TargetFrameworks>NET471</TargetFrameworks>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
+
+  <PropertyGroup>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
+
   <ItemGroup>
-    <Reference Include="Castle.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=407dd0808d44fbdc, processorArchitecture=MSIL">
-      <HintPath>..\packages\Castle.Core.4.2.1\lib\net45\Castle.Core.dll</HintPath>
-    </Reference>
-    <Reference Include="Crc32C.NET, Version=1.0.5.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Crc32C.NET.1.0.5.0\lib\net20\Crc32C.NET.dll</HintPath>
-    </Reference>
-    <Reference Include="ICSharpCode.SharpZipLib, Version=0.86.0.518, Culture=neutral, PublicKeyToken=1b03e6acf1164f73, processorArchitecture=MSIL">
-      <HintPath>..\packages\SharpZipLib.0.86.0\lib\20\ICSharpCode.SharpZipLib.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Reactive.Testing, Version=3.0.3000.0, Culture=neutral, PublicKeyToken=94bc3704cddfc263, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Reactive.Testing.3.1.1\lib\net46\Microsoft.Reactive.Testing.dll</HintPath>
-    </Reference>
-    <Reference Include="Moq, Version=4.8.0.0, Culture=neutral, PublicKeyToken=69f491c39445e920, processorArchitecture=MSIL">
-      <HintPath>..\packages\Moq.4.8.1\lib\net45\Moq.dll</HintPath>
-    </Reference>
-    <Reference Include="NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
-      <HintPath>..\packages\NLog.4.4.12\lib\net45\NLog.dll</HintPath>
-    </Reference>
-    <Reference Include="nunit.framework, Version=3.9.0.0, Culture=neutral, PublicKeyToken=2638cd05610744eb, processorArchitecture=MSIL">
-      <HintPath>..\packages\NUnit.3.9.0\lib\net45\nunit.framework.dll</HintPath>
-    </Reference>
-    <Reference Include="protobuf-net, Version=2.3.3.0, Culture=neutral, PublicKeyToken=257b51d87d2e4d67, processorArchitecture=MSIL">
-      <HintPath>..\packages\protobuf-net.2.3.3\lib\net40\protobuf-net.dll</HintPath>
-    </Reference>
-    <Reference Include="Snappy.NET, Version=1.1.1.8, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Snappy.NET.1.1.1.8\lib\net45\Snappy.NET.dll</HintPath>
-    </Reference>
-    <Reference Include="StackExchange.Redis, Version=1.2.6.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\StackExchange.Redis.1.2.6\lib\net46\StackExchange.Redis.dll</HintPath>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Configuration" />
-    <Reference Include="System.IO.Compression" />
-    <Reference Include="System.Reactive.Core, Version=3.0.3000.0, Culture=neutral, PublicKeyToken=94bc3704cddfc263, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Reactive.Core.3.1.1\lib\net46\System.Reactive.Core.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.Reactive.Interfaces, Version=3.0.1000.0, Culture=neutral, PublicKeyToken=94bc3704cddfc263, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Reactive.Interfaces.3.1.1\lib\net45\System.Reactive.Interfaces.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.Reactive.Linq, Version=3.0.3000.0, Culture=neutral, PublicKeyToken=94bc3704cddfc263, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Reactive.Linq.3.1.1\lib\net46\System.Reactive.Linq.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.Reactive.PlatformServices, Version=3.0.3000.0, Culture=neutral, PublicKeyToken=94bc3704cddfc263, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Reactive.PlatformServices.3.1.1\lib\net46\System.Reactive.PlatformServices.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.Reactive.Windows.Threading, Version=3.0.1000.0, Culture=neutral, PublicKeyToken=94bc3704cddfc263, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Reactive.Windows.Threading.3.1.1\lib\net45\System.Reactive.Windows.Threading.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.Threading.Tasks.Extensions, Version=4.1.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Threading.Tasks.Extensions.4.4.0\lib\netstandard2.0\System.Threading.Tasks.Extensions.dll</HintPath>
-    </Reference>
-    <Reference Include="System.ValueTuple, Version=4.0.2.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.ValueTuple.4.4.0\lib\net461\System.ValueTuple.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.Windows" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
-    <Reference Include="Wikiled.Core.Utility, Version=2.1.17.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Wikiled.Core.Utility.2.1.17\lib\net462\Wikiled.Core.Utility.dll</HintPath>
-    </Reference>
-    <Reference Include="WindowsBase" />
+    <Compile Include="..\GlobalAssemblyInfo.cs" Link="Properties\GlobalAssemblyInfo.cs" />
   </ItemGroup>
+
   <ItemGroup>
-    <Compile Include="Config\RedisConfigurationTests.cs" />
-    <Compile Include="Data\BinaryDataSerializerTests.cs" />
-    <Compile Include="Data\FlatProtoDataSerializerTests.cs" />
-    <Compile Include="Data\RedisValueExtractorTests.cs" />
-    <Compile Include="Data\XmlDataSerializerTests.cs" />
-    <Compile Include="Data\ZipBinaryDataSerializerTests.cs" />
-    <Compile Include="Data\ZipXmlDataSerializerTests.cs" />
-    <Compile Include="Helpers\ObserverHelpersTests.cs" />
-    <Compile Include="Information\InfoTestsHelper.cs" />
-    <Compile Include="Information\MemoryInfoTests.cs" />
-    <Compile Include="Information\PersistenceInfoTests.cs" />
-    <Compile Include="Information\ReplicationInfoTests.cs" />
-    <Compile Include="Information\ServerInformationTests.cs" />
-    <Compile Include="Information\SlaveInformationTests.cs" />
-    <Compile Include="Information\StatsInfoTests.cs" />
-    <Compile Include="Keys\ObjectKeyTests.cs" />
-    <Compile Include="Keys\RepositoryKeyTests.cs" />
-    <Compile Include="Keys\SimpleKeyTests.cs" />
-    <Compile Include="Logic\HandlingDefinitionTests.cs" />
-    <Compile Include="Logic\PooledRedisMultiplexerTests.cs" />
-    <Compile Include="Logic\Pool\RedisLinksPoolTests.cs" />
-    <Compile Include="Logic\RedisClientTests.cs" />
-    <Compile Include="Logic\RedisExtensionsTests.cs" />
-    <Compile Include="Logic\RedisFactoryTests.cs" />
-    <Compile Include="Logic\RedisLinkTests.cs" />
-    <Compile Include="Logic\RedisMultiplexerTests.cs" />
-    <Compile Include="Logic\RedisTransactionTests.cs" />
-    <Compile Include="Logic\SimpleRedisFactory.cs" />
-    <Compile Include="MockData\IMainData.cs" />
-    <Compile Include="MockData\MainDataOne.cs" />
-    <Compile Include="MockData\MainDataTwo.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Replication\LogginProgressTrackerTests.cs" />
-    <Compile Include="Replication\ReplicationFactoryTests.cs" />
-    <Compile Include="Replication\ReplicationManagerTests.cs" />
-    <Compile Include="Replication\ReplicationProgressExtensionTests.cs" />
-    <Compile Include="Replication\ReplicationProgressTests.cs" />
-    <Compile Include="Replication\ReplicationTestManager.cs" />
-    <Compile Include="Scripts\ScriptGeneratorTests.cs" />
-    <Compile Include="Serialization\DictionarySerializerTests.cs" />
-    <Compile Include="Serialization\HashSetSerializationTests.cs" />
-    <Compile Include="Serialization\KeyValueSerializerTests.cs" />
-    <Compile Include="Serialization\ListSerializationTests.cs" />
-    <Compile Include="Serialization\ObjectListSerializationTests.cs" />
-    <Compile Include="Serialization\ObjectSetSerializationTests.cs" />
-    <Compile Include="Serialization\SingleItemSerializationTests.cs" />
-    <Compile Include="Serialization\TestType.cs" />
-    <Compile Include="Subscription\KeyspaceEventTests.cs" />
+    <PackageReference Include="Castle.Core" version="4.2.1" />
+    <PackageReference Include="Crc32C.NET" version="1.0.5.0" />
+    <PackageReference Include="Microsoft.Reactive.Testing" version="3.1.1" />
+    <PackageReference Include="Moq" version="4.7.145" />
+    <PackageReference Include="NLog" version="4.4.12" />
+    <PackageReference Include="NUnit" version="3.9.0" />
+    <PackageReference Include="NUnit3TestAdapter" Version="3.9.0" />
+    <PackageReference Include="protobuf-net" version="2.3.6" />
+    <PackageReference Include="SharpZipLib" version="0.86.0" />
+    <PackageReference Include="Snappy.NET" version="1.1.1.8" />
+    <PackageReference Include="StackExchange.Redis" version="1.2.6" />
+    <PackageReference Include="System.Reactive" version="3.1.1" />
+    <PackageReference Include="System.Reactive.Core" version="3.1.1" />
+    <PackageReference Include="System.Reactive.Interfaces" version="3.1.1" />
+    <PackageReference Include="System.Reactive.Linq" version="3.1.1" />
+    <PackageReference Include="System.Reactive.PlatformServices" version="3.1.1" />
+    <PackageReference Include="System.Reactive.Windows.Threading" version="3.1.1" />
+    <PackageReference Include="System.Threading.Tasks.Extensions" version="4.4.0" />
+    <PackageReference Include="System.ValueTuple" version="4.4.0" />
+    <PackageReference Include="Wikiled.Core.Utility" version="2.1.18" />
   </ItemGroup>
+
   <ItemGroup>
-    <None Include="app.config" />
-    <None Include="packages.config" />
+    <ProjectReference Include="..\Wikiled.Redis\Wikiled.Redis.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Wikiled.Redis\Wikiled.Redis.csproj">
-      <Project>{751548A8-9F5E-40E7-A50A-5BCAC239363F}</Project>
-      <Name>Wikiled.Redis</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
+
 </Project>

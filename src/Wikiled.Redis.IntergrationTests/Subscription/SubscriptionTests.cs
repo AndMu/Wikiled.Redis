@@ -2,6 +2,7 @@
 using System.IO;
 using System.Threading;
 using System.Xml.Linq;
+using NLog;
 using NUnit.Framework;
 using Wikiled.Core.Utility.Serialization;
 using Wikiled.Redis.Channels;
@@ -15,6 +16,10 @@ namespace Wikiled.Redis.IntegrationTests.Subscription
     [TestFixture]
     public class SubscriptionTests
     {
+        private static readonly Logger log = LogManager.GetCurrentClassLogger();
+
+        private RedisInside.Redis redisInstance;
+
         private RedisLink redis;
 
         private ObjectKey key;
@@ -22,11 +27,19 @@ namespace Wikiled.Redis.IntegrationTests.Subscription
         [SetUp]
         public void Setup()
         {
+            redisInstance = new RedisInside.Redis(i => i.Port(6666).LogTo(item => log.Debug(item)));
             var config = XDocument.Load(Path.Combine(TestContext.CurrentContext.TestDirectory, @"Config\redis.config")).XmlDeserialize<RedisConfiguration>();
             redis = new RedisLink("IT", new RedisMultiplexer(config));
             redis.Open();
             redis.Multiplexer.Flush();
             key = new ObjectKey("Test", "Key");
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            redis.Dispose();
+            redisInstance.Dispose();
         }
 
         [Test]

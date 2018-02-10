@@ -1,81 +1,70 @@
-﻿/*
- * Copyright 2014 Google Inc. All rights reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-#define UNSAFE_BYTEBUFFER  // uncomment this line to use faster ByteBuffer
+﻿#define UNSAFE_BYTEBUFFER // uncomment this line to use faster ByteBuffer
 
 using System;
 
 namespace Wikiled.FlatBuffers
 {
     /// <summary>
-    /// Class to mimic Java's ByteBuffer which is used heavily in Flatbuffers.
-    /// If your execution environment allows unsafe code, you should enable
-    /// unsafe code in your project and #define UNSAFE_BYTEBUFFER to use a
-    /// MUCH faster version of ByteBuffer.
+    ///     Class to mimic Java's ByteBuffer which is used heavily in Flatbuffers.
+    ///     If your execution environment allows unsafe code, you should enable
+    ///     unsafe code in your project and #define UNSAFE_BYTEBUFFER to use a
+    ///     MUCH faster version of ByteBuffer.
     /// </summary>
     public class ByteBuffer
     {
-        private readonly byte[] _buffer;
-        private int _pos;  // Must track start of the buffer.
+        public int Length
+        {
+            get
+            {
+                return Data.Length;
+            }
+        }
 
-        public int Length { get { return _buffer.Length; } }
-
-        public byte[] Data { get { return _buffer; } }
+        public byte[] Data { get; }
 
         public ByteBuffer(byte[] buffer)
         {
-            _buffer = buffer;
-            _pos = 0;
+            Data = buffer;
+            Position = 0;
         }
 
-        public int Position { get { return _pos; } }
+        public int Position { get; private set; }
 
         // Pre-allocated helper arrays for convertion.
-        private float[] floathelper = new[] { 0.0f };
-        private int[] inthelper = new[] { 0 };
-        private double[] doublehelper = new[] { 0.0 };
-        private ulong[] ulonghelper = new[] { 0UL };
+        private float[] floathelper = { 0.0f };
+
+        private int[] inthelper = { 0 };
+
+        private double[] doublehelper = { 0.0 };
+
+        private ulong[] ulonghelper = { 0UL };
 
         // Helper functions for the unsafe version.
-        static public ushort ReverseBytes(ushort input)
+        public static ushort ReverseBytes(ushort input)
         {
-            return (ushort)(((input & 0x00FFU) << 8) |
-                            ((input & 0xFF00U) >> 8));
+            return (ushort)(((input & 0x00FFU) << 8) | ((input & 0xFF00U) >> 8));
         }
-        static public uint ReverseBytes(uint input)
+
+        public static uint ReverseBytes(uint input)
         {
-            return ((input & 0x000000FFU) << 24) |
-                   ((input & 0x0000FF00U) <<  8) |
-                   ((input & 0x00FF0000U) >>  8) |
-                   ((input & 0xFF000000U) >> 24);
+            return ((input & 0x000000FFU) << 24) | ((input & 0x0000FF00U) << 8) | ((input & 0x00FF0000U) >> 8) | ((input & 0xFF000000U) >> 24);
         }
-        static public ulong ReverseBytes(ulong input)
+
+        public static ulong ReverseBytes(ulong input)
         {
-            return (((input & 0x00000000000000FFUL) << 56) |
-                    ((input & 0x000000000000FF00UL) << 40) |
-                    ((input & 0x0000000000FF0000UL) << 24) |
-                    ((input & 0x00000000FF000000UL) <<  8) |
-                    ((input & 0x000000FF00000000UL) >>  8) |
-                    ((input & 0x0000FF0000000000UL) >> 24) |
-                    ((input & 0x00FF000000000000UL) >> 40) |
-                    ((input & 0xFF00000000000000UL) >> 56));
+            return ((input & 0x00000000000000FFUL) << 56) |
+                   ((input & 0x000000000000FF00UL) << 40) |
+                   ((input & 0x0000000000FF0000UL) << 24) |
+                   ((input & 0x00000000FF000000UL) << 8) |
+                   ((input & 0x000000FF00000000UL) >> 8) |
+                   ((input & 0x0000FF0000000000UL) >> 24) |
+                   ((input & 0x00FF000000000000UL) >> 40) |
+                   ((input & 0xFF00000000000000UL) >> 56);
         }
 
 #if !UNSAFE_BYTEBUFFER
-        // Helper functions for the safe (but slower) version.
+
+// Helper functions for the safe (but slower) version.
         protected void WriteLittleEndian(int offset, int count, ulong data)
         {
             if (BitConverter.IsLittleEndian)
@@ -120,26 +109,27 @@ namespace Wikiled.FlatBuffers
         private void AssertOffsetAndLength(int offset, int length)
         {
             if (offset < 0 ||
-                offset >= _buffer.Length ||
-                offset + length > _buffer.Length)
+                offset >= Data.Length ||
+                offset + length > Data.Length)
                 throw new ArgumentOutOfRangeException();
         }
 
         public void PutSbyte(int offset, sbyte value)
         {
             AssertOffsetAndLength(offset, sizeof(sbyte));
-            _buffer[offset] = (byte)value;
-            _pos = offset;
+            Data[offset] = (byte)value;
+            Position = offset;
         }
 
         public void PutByte(int offset, byte value)
         {
             AssertOffsetAndLength(offset, sizeof(byte));
-            _buffer[offset] = value;
-            _pos = offset;
+            Data[offset] = value;
+            Position = offset;
         }
 
 #if UNSAFE_BYTEBUFFER
+
         // Unsafe but more efficient versions of Put*.
         public void PutShort(int offset, short value)
         {
@@ -149,13 +139,12 @@ namespace Wikiled.FlatBuffers
         public unsafe void PutUshort(int offset, ushort value)
         {
             AssertOffsetAndLength(offset, sizeof(ushort));
-            fixed (byte* ptr = _buffer)
+            fixed (byte* ptr = Data)
             {
-                *(ushort*)(ptr + offset) = BitConverter.IsLittleEndian
-                    ? value
-                    : ReverseBytes(value);
+                *(ushort*)(ptr + offset) = BitConverter.IsLittleEndian ? value : ReverseBytes(value);
             }
-            _pos = offset;
+
+            Position = offset;
         }
 
         public void PutInt(int offset, int value)
@@ -166,16 +155,15 @@ namespace Wikiled.FlatBuffers
         public unsafe void PutUint(int offset, uint value)
         {
             AssertOffsetAndLength(offset, sizeof(uint));
-            fixed (byte* ptr = _buffer)
+            fixed (byte* ptr = Data)
             {
-                *(uint*)(ptr + offset) = BitConverter.IsLittleEndian
-                    ? value
-                    : ReverseBytes(value);
+                *(uint*)(ptr + offset) = BitConverter.IsLittleEndian ? value : ReverseBytes(value);
             }
-            _pos = offset;
+
+            Position = offset;
         }
 
-        public unsafe void PutLong(int offset, long value)
+        public void PutLong(int offset, long value)
         {
             PutUlong(offset, (ulong)value);
         }
@@ -184,19 +172,18 @@ namespace Wikiled.FlatBuffers
         {
             AssertOffsetAndLength(offset, sizeof(ulong));
 
-            fixed (byte* ptr = _buffer)
+            fixed (byte* ptr = Data)
             {
-                *(ulong*)(ptr + offset) = BitConverter.IsLittleEndian
-                    ? value
-                    : ReverseBytes(value);
+                *(ulong*)(ptr + offset) = BitConverter.IsLittleEndian ? value : ReverseBytes(value);
             }
-            _pos = offset;
+
+            Position = offset;
         }
 
         public unsafe void PutFloat(int offset, float value)
         {
             AssertOffsetAndLength(offset, sizeof(float));
-            fixed (byte* ptr = _buffer)
+            fixed (byte* ptr = Data)
             {
                 if (BitConverter.IsLittleEndian)
                 {
@@ -204,31 +191,34 @@ namespace Wikiled.FlatBuffers
                 }
                 else
                 {
-                    *(uint*)(ptr + offset) = ReverseBytes(*(uint*)(&value));
+                    *(uint*)(ptr + offset) = ReverseBytes(*(uint*)&value);
                 }
             }
-            _pos = offset;
+
+            Position = offset;
         }
 
         public unsafe void PutDouble(int offset, double value)
         {
             AssertOffsetAndLength(offset, sizeof(double));
-            fixed (byte* ptr = _buffer)
+            fixed (byte* ptr = Data)
             {
                 if (BitConverter.IsLittleEndian)
                 {
                     *(double*)(ptr + offset) = value;
-
                 }
                 else
                 {
                     *(ulong*)(ptr + offset) = ReverseBytes(*(ulong*)(ptr + offset));
                 }
             }
-            _pos = offset;
+
+            Position = offset;
         }
+
 #else // !UNSAFE_BYTEBUFFER
-        // Slower versions of Put* for when unsafe code is not allowed.
+
+// Slower versions of Put* for when unsafe code is not allowed.
         public void PutShort(int offset, short value)
         {
             AssertOffsetAndLength(offset, sizeof(short));
@@ -286,16 +276,17 @@ namespace Wikiled.FlatBuffers
         public sbyte GetSbyte(int index)
         {
             AssertOffsetAndLength(index, sizeof(sbyte));
-            return (sbyte)_buffer[index];
+            return (sbyte)Data[index];
         }
 
         public byte Get(int index)
         {
             AssertOffsetAndLength(index, sizeof(byte));
-            return _buffer[index];
+            return Data[index];
         }
 
 #if UNSAFE_BYTEBUFFER
+
         // Unsafe but more efficient versions of Get*.
         public short GetShort(int offset)
         {
@@ -305,11 +296,9 @@ namespace Wikiled.FlatBuffers
         public unsafe ushort GetUshort(int offset)
         {
             AssertOffsetAndLength(offset, sizeof(ushort));
-            fixed (byte* ptr = _buffer)
+            fixed (byte* ptr = Data)
             {
-                return BitConverter.IsLittleEndian
-                    ? *(ushort*)(ptr + offset)
-                    : ReverseBytes(*(ushort*)(ptr + offset));
+                return BitConverter.IsLittleEndian ? *(ushort*)(ptr + offset) : ReverseBytes(*(ushort*)(ptr + offset));
             }
         }
 
@@ -321,11 +310,9 @@ namespace Wikiled.FlatBuffers
         public unsafe uint GetUint(int offset)
         {
             AssertOffsetAndLength(offset, sizeof(uint));
-            fixed (byte* ptr = _buffer)
+            fixed (byte* ptr = Data)
             {
-                return BitConverter.IsLittleEndian
-                    ? *(uint*)(ptr + offset)
-                    : ReverseBytes(*(uint*)(ptr + offset));
+                return BitConverter.IsLittleEndian ? *(uint*)(ptr + offset) : ReverseBytes(*(uint*)(ptr + offset));
             }
         }
 
@@ -337,49 +324,45 @@ namespace Wikiled.FlatBuffers
         public unsafe ulong GetUlong(int offset)
         {
             AssertOffsetAndLength(offset, sizeof(ulong));
-            fixed (byte* ptr = _buffer)
+            fixed (byte* ptr = Data)
             {
-                return BitConverter.IsLittleEndian
-                    ? *(ulong*)(ptr + offset)
-                    : ReverseBytes(*(ulong*)(ptr + offset));
+                return BitConverter.IsLittleEndian ? *(ulong*)(ptr + offset) : ReverseBytes(*(ulong*)(ptr + offset));
             }
         }
 
         public unsafe float GetFloat(int offset)
         {
             AssertOffsetAndLength(offset, sizeof(float));
-            fixed (byte* ptr = _buffer)
+            fixed (byte* ptr = Data)
             {
                 if (BitConverter.IsLittleEndian)
                 {
                     return *(float*)(ptr + offset);
                 }
-                else
-                {
-                    uint uvalue = ReverseBytes(*(uint*)(ptr + offset));
-                    return *(float*)(&uvalue);
-                }
+
+                uint uvalue = ReverseBytes(*(uint*)(ptr + offset));
+                return *(float*)&uvalue;
             }
         }
 
         public unsafe double GetDouble(int offset)
         {
             AssertOffsetAndLength(offset, sizeof(double));
-            fixed (byte* ptr = _buffer)
+            fixed (byte* ptr = Data)
             {
                 if (BitConverter.IsLittleEndian)
                 {
                     return *(double*)(ptr + offset);
                 }
-                else
-                {
-                    ulong uvalue = ReverseBytes(*(ulong*)(ptr + offset));
-                    return *(double*)(&uvalue);
-                }
+
+                ulong uvalue = ReverseBytes(*(ulong*)(ptr + offset));
+                return *(double*)&uvalue;
             }
         }
+
 #else // !UNSAFE_BYTEBUFFER
-        // Slower versions of Get* for when unsafe code is not allowed.
+
+// Slower versions of Get* for when unsafe code is not allowed.
         public short GetShort(int index)
         {
             return (short)ReadLittleEndian(index, sizeof(short));
@@ -421,7 +404,9 @@ namespace Wikiled.FlatBuffers
         public double GetDouble(int index)
         {
             ulong i = ReadLittleEndian(index, sizeof(double));
-            // There's Int64BitsToDouble but it uses unsafe code internally.
+            
+
+// There's Int64BitsToDouble but it uses unsafe code internally.
             ulonghelper[0] = i;
             Buffer.BlockCopy(ulonghelper, 0, doublehelper, 0, sizeof(double));
             return doublehelper[0];

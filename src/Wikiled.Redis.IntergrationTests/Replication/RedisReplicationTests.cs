@@ -7,6 +7,7 @@ using System.Reactive.Threading.Tasks;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using NLog;
 using NUnit.Framework;
 using Wikiled.Core.Utility.Serialization;
 using Wikiled.Redis.Config;
@@ -18,9 +19,11 @@ namespace Wikiled.Redis.IntegrationTests.Replication
     [TestFixture]
     public class RedisReplicationTests
     {
-        private RedisProcessManager redisOne;
+        private static readonly Logger log = LogManager.GetCurrentClassLogger();
 
-        private RedisProcessManager redisTwo;
+        private RedisInside.Redis redisOne;
+
+        private RedisInside.Redis redisTwo;
 
         private RedisLink linkOne;
 
@@ -31,24 +34,24 @@ namespace Wikiled.Redis.IntegrationTests.Replication
         private ReplicationFactory factory;
 
         [SetUp]
-        public void Setup()
+        public async Task Setup()
         {
             factory = new ReplicationFactory(new SimpleRedisFactory(), TaskPoolScheduler.Default);
-            redisOne = new RedisProcessManager(6017);
-            redisTwo = new RedisProcessManager(6027);
-            redisOne.Start(Path.Combine(TestContext.CurrentContext.TestDirectory, ConfigurationManager.AppSettings["Redis"]));
-            redisTwo.Start(Path.Combine(TestContext.CurrentContext.TestDirectory, ConfigurationManager.AppSettings["Redis"]));
+            redisOne = new RedisInside.Redis(i => i.LogTo(item => log.Debug(item)));
+            redisTwo = new RedisInside.Redis(i => i.LogTo(item => log.Debug(item)));
+            
 
+            await Task.Delay(1000).ConfigureAwait(false);
             var config = XDocument.Load(Path.Combine(TestContext.CurrentContext.TestDirectory, @"Config\redis.config")).XmlDeserialize<RedisConfiguration>();
-            config.Endpoints[0].Port = 6017;
+            config.Endpoints[0].Port = ((IPEndPoint)redisOne.Endpoint).Port;
             linkOne = new RedisLink("RedisOne", new RedisMultiplexer(config));
 
             config = XDocument.Load(Path.Combine(TestContext.CurrentContext.TestDirectory, @"Config\redis.config")).XmlDeserialize<RedisConfiguration>();
-            config.Endpoints[0].Port = 6027;
+            config.Endpoints[0].Port = ((IPEndPoint)redisTwo.Endpoint).Port;
             linkTwo = new RedisLink("RedisTwo", new RedisMultiplexer(config));
-
             linkOne.Open();
             linkOne.Multiplexer.Flush();
+            Thread.Sleep(1000);
             linkTwo.Open();
             linkTwo.Multiplexer.Flush();
 
@@ -77,7 +80,7 @@ namespace Wikiled.Redis.IntegrationTests.Replication
         [Test]
         public async Task TestReplicationAsync()
         {
-            var result = await factory.Replicate(new DnsEndPoint("localhost", 6017), new DnsEndPoint("localhost", 6027), new CancellationTokenSource(10000).Token);
+            var result = await factory.Replicate(new DnsEndPoint("localhost", 6017), new DnsEndPoint("localhost", 6027), new CancellationTokenSource(10000).Token).ConfigureAwait(false);
             ValidateResultOn(result);
             ValidateOff(1);
         }
@@ -90,15 +93,15 @@ namespace Wikiled.Redis.IntegrationTests.Replication
             {
                 CancellationTokenSource tokenSource = new CancellationTokenSource(replicationWait);
                 var completed = await replication.Progress.Where(item => item.InSync)
-                                           .FirstAsync()
-                                           .ToTask(tokenSource.Token);
+                                                 .FirstAsync()
+                                                 .ToTask(tokenSource.Token).ConfigureAwait(false);
 
                 ValidateResultOn(completed);
 
                 tokenSource = new CancellationTokenSource(replicationWait);
                 await replication.Progress.Where(item => item.InSync && item.Master.Offset != completed.Master.Offset)
-                                       .FirstAsync()
-                                       .ToTask(tokenSource.Token);
+                                 .FirstAsync()
+                                 .ToTask(tokenSource.Token).ConfigureAwait(false);
 
                 // add data while in replication mode
                 linkOne.Database.ListLeftPush(key, "Test2");

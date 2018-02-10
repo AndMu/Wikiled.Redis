@@ -1,8 +1,0 @@
-﻿<package>
-  <metadata>
-    <id>ATS.FlatBuffers</id>
-    <version>1.0.0</version>
-    <authors>ATS</authors>
-    <description>ATS Flatbuffers version</description>
-  </metadata>  
-</package>

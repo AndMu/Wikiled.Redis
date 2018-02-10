@@ -1,9 +1,9 @@
 ﻿using System;
-using Wikiled.Redis.Logic;
 using Moq;
 using NUnit.Framework;
 using Wikiled.Redis.Channels;
 using Wikiled.Redis.Data;
+using Wikiled.Redis.Logic;
 using Wikiled.Redis.Serialization;
 
 namespace Wikiled.Redis.UnitTests.Logic
@@ -11,9 +11,9 @@ namespace Wikiled.Redis.UnitTests.Logic
     [TestFixture]
     public class HandlingDefinitionTests
     {
-        private Mock<IRedisLink> link;
-
         private Mock<IDataSerializer> dataSerializer;
+
+        private Mock<IRedisLink> link;
 
         [SetUp]
         public void Setup()
@@ -31,30 +31,12 @@ namespace Wikiled.Redis.UnitTests.Logic
             Assert.Throws<ArgumentException>(() => HandlingDefinition<Identity>.ConstructGeneric(link.Object));
 
             link.Setup(item => item.LinkId).Returns(10);
-            
+
             Assert.Throws<ArgumentOutOfRangeException>(() => HandlingDefinition<int>.ConstructGeneric(link.Object, dataSerializer.Object));
             var instance = HandlingDefinition<Identity>.ConstructGeneric(link.Object);
             Assert.IsFalse(instance.IsWellKnown);
             Assert.IsNull(instance.Serializer);
             Assert.AreEqual("L10:1", instance.GetNextId());
-        }
-
-        [Test]
-        public void TestPrimitiveType()
-        {
-            link.Setup(item => item.State).Returns(ChannelState.Open);
-            link.Setup(item => item.LinkId).Returns(-1);
-            link.Setup(item => item.LinkId).Returns(10);
-            var definition = HandlingDefinition<int>.ConstructGeneric(link.Object);
-            Assert.Throws<ArgumentOutOfRangeException>(() => definition.IsNormalized = true);
-            Assert.Throws<ArgumentOutOfRangeException>(() => definition.IsSingleInstance = true);
-            Assert.Throws<ArgumentOutOfRangeException>(() => definition.IsWellKnown= true);
-            Mock<IKeyValueSerializer<int>> serializer = new Mock<IKeyValueSerializer<int>>();
-            Assert.Throws<ArgumentOutOfRangeException>(() => definition.Serializer = serializer.Object);
-            Assert.IsFalse(definition.IsNormalized);
-            Assert.IsFalse(definition.IsSingleInstance);
-            Assert.IsFalse(definition.IsWellKnown);
-            Assert.IsNull(definition.Serializer);
         }
 
         [Test]
@@ -78,6 +60,24 @@ namespace Wikiled.Redis.UnitTests.Logic
             Assert.IsTrue(definition.IsSingleInstance);
             Assert.IsTrue(definition.IsWellKnown);
             Assert.IsNotNull(definition.Serializer);
+        }
+
+        [Test]
+        public void TestPrimitiveType()
+        {
+            link.Setup(item => item.State).Returns(ChannelState.Open);
+            link.Setup(item => item.LinkId).Returns(-1);
+            link.Setup(item => item.LinkId).Returns(10);
+            var definition = HandlingDefinition<int>.ConstructGeneric(link.Object);
+            Assert.Throws<ArgumentOutOfRangeException>(() => definition.IsNormalized = true);
+            Assert.Throws<ArgumentOutOfRangeException>(() => definition.IsSingleInstance = true);
+            Assert.Throws<ArgumentOutOfRangeException>(() => definition.IsWellKnown = true);
+            Mock<IKeyValueSerializer<int>> serializer = new Mock<IKeyValueSerializer<int>>();
+            Assert.Throws<ArgumentOutOfRangeException>(() => definition.Serializer = serializer.Object);
+            Assert.IsFalse(definition.IsNormalized);
+            Assert.IsFalse(definition.IsSingleInstance);
+            Assert.IsFalse(definition.IsWellKnown);
+            Assert.IsNull(definition.Serializer);
         }
     }
 }

@@ -7,6 +7,7 @@ using System.Reactive.Threading.Tasks;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Moq;
+using NLog;
 using NUnit.Framework;
 using StackExchange.Redis;
 using Wikiled.Core.Utility.Serialization;
@@ -25,6 +26,10 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
     [TestFixture]
     public class RedisPersistencyTests
     {
+        private static readonly Logger log = LogManager.GetCurrentClassLogger();
+
+        private RedisInside.Redis redisInstance;
+
         private ObjectKey key;
 
         private RedisLink redis;
@@ -42,6 +47,7 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
         [SetUp]
         public void Setup()
         {
+            redisInstance = new RedisInside.Redis(i => i.Port(6666).LogTo(item => log.Debug(item)));
             var config = XDocument.Load(Path.Combine(TestContext.CurrentContext.TestDirectory, @"Config\redis.config")).XmlDeserialize<RedisConfiguration>();
             redis = new RedisLink("IT", new RedisMultiplexer(config));
             redis.Open();
@@ -65,6 +71,7 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
         public void TearDown()
         {
             redis.Dispose();
+            redisInstance.Dispose();
         }
 
         [Test]
