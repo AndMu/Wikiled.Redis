@@ -1,5 +1,4 @@
-﻿using System.Configuration;
-using System.IO;
+﻿using System.IO;
 using System.Net;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
@@ -37,11 +36,10 @@ namespace Wikiled.Redis.IntegrationTests.Replication
         public async Task Setup()
         {
             factory = new ReplicationFactory(new SimpleRedisFactory(), TaskPoolScheduler.Default);
-            redisOne = new RedisInside.Redis(i => i.LogTo(item => log.Debug(item)));
-            redisTwo = new RedisInside.Redis(i => i.LogTo(item => log.Debug(item)));
+            redisOne = new RedisInside.Redis(i => i.LogTo(item => log.Debug(item)).WithPersistence());
+            redisTwo = new RedisInside.Redis(i => i.LogTo(item => log.Debug(item)).WithPersistence());
             
-
-            await Task.Delay(1000).ConfigureAwait(false);
+            await Task.Delay(500).ConfigureAwait(false);
             var config = XDocument.Load(Path.Combine(TestContext.CurrentContext.TestDirectory, @"Config\redis.config")).XmlDeserialize<RedisConfiguration>();
             config.Endpoints[0].Port = ((IPEndPoint)redisOne.Endpoint).Port;
             linkOne = new RedisLink("RedisOne", new RedisMultiplexer(config));
@@ -51,7 +49,6 @@ namespace Wikiled.Redis.IntegrationTests.Replication
             linkTwo = new RedisLink("RedisTwo", new RedisMultiplexer(config));
             linkOne.Open();
             linkOne.Multiplexer.Flush();
-            Thread.Sleep(1000);
             linkTwo.Open();
             linkTwo.Multiplexer.Flush();
 
@@ -71,16 +68,19 @@ namespace Wikiled.Redis.IntegrationTests.Replication
         [TearDown]
         public void TearDown()
         {
-            redisOne.Dispose();
-            redisTwo.Dispose();
             linkTwo.Dispose();
             linkOne.Dispose();
+            redisOne.Dispose();
+            redisTwo.Dispose();
         }
 
         [Test]
         public async Task TestReplicationAsync()
         {
-            var result = await factory.Replicate(new DnsEndPoint("localhost", 6017), new DnsEndPoint("localhost", 6027), new CancellationTokenSource(10000).Token).ConfigureAwait(false);
+            var result = await factory.Replicate(
+                             new DnsEndPoint("localhost", ((IPEndPoint)redisOne.Endpoint).Port), 
+                             new DnsEndPoint("localhost", ((IPEndPoint)redisTwo.Endpoint).Port), 
+                             new CancellationTokenSource(10000).Token).ConfigureAwait(false);
             ValidateResultOn(result);
             ValidateOff(1);
         }
