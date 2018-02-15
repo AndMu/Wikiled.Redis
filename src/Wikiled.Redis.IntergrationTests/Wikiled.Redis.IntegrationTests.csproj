@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>NET471</TargetFrameworks>
-  </PropertyGroup>
+    </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Moq" version="4.7.145" />
@@ -35,5 +35,11 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
+  
+  <Target Name="ForceGenerationOfBindingRedirects" AfterTargets="ResolveAssemblyReferences" BeforeTargets="GenerateBindingRedirects" Condition="'$(AutoGenerateBindingRedirects)' == 'true'">
+    <PropertyGroup>
+      <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
+    </PropertyGroup>
+  </Target>
 
 </Project>
