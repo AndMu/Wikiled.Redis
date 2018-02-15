@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Reactive;
-using System.Reactive.Concurrency;
 using Castle.Components.DictionaryAdapter;
 using Microsoft.Reactive.Testing;
 using Wikiled.Redis.Replication;
@@ -33,10 +32,7 @@ namespace Wikiled.Redis.UnitTests.Replication
         {
             var progress = ReplicationProgress.CreateActive(
                 new HostStatus(new DnsEndPoint("Test", 1), 100),
-                new[]
-                {
-                    new HostStatus(new DnsEndPoint("Test", 1), 100)
-                });
+                new HostStatus(new DnsEndPoint("Test", 1), 100));
             var observable = scheduler.CreateHotObservable(
                 new Recorded<Notification<ReplicationProgress>>(0, Notification.CreateOnNext(progress)),
                 new Recorded<Notification<ReplicationProgress>>(1, Notification.CreateOnNext(progress)),
