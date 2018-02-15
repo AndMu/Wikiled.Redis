@@ -10,7 +10,7 @@ using Moq;
 using NLog;
 using NUnit.Framework;
 using StackExchange.Redis;
-using Wikiled.Core.Utility.Serialization;
+using Wikiled.Common.Serialization;
 using Wikiled.Redis.Channels;
 using Wikiled.Redis.Config;
 using Wikiled.Redis.Helpers;

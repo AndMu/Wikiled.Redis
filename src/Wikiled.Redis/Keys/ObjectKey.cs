@@ -1,4 +1,4 @@
-﻿using Wikiled.Core.Utility.Arguments;
+﻿using Wikiled.Common.Arguments;
 using Wikiled.Redis.Logic;
 
 namespace Wikiled.Redis.Keys

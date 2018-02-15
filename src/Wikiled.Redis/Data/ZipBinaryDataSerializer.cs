@@ -1,7 +1,7 @@
 ﻿using System;
-using Wikiled.Core.Utility.Arguments;
-using Wikiled.Core.Utility.Helpers;
-using Wikiled.Core.Utility.Serialization;
+using Wikiled.Common.Arguments;
+using Wikiled.Common.Helpers;
+using Wikiled.Common.Serialization;
 
 namespace Wikiled.Redis.Data
 {

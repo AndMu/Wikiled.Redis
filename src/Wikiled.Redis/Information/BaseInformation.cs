@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using Wikiled.Core.Utility.Arguments;
+using Wikiled.Common.Arguments;
 
 namespace Wikiled.Redis.Information
 {

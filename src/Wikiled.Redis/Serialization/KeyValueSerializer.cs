@@ -2,8 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using NLog;
-using Wikiled.Core.Utility.Arguments;
-using Wikiled.Core.Utility.Extensions;
+using Wikiled.Common.Arguments;
+using Wikiled.Common.Extensions;
+using Wikiled.Common.Reflection;
 
 namespace Wikiled.Redis.Serialization
 {

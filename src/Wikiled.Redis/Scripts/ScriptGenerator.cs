@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Text;
-using Wikiled.Core.Utility.Extensions;
+using Wikiled.Common.Extensions;
 
 namespace Wikiled.Redis.Scripts
 {

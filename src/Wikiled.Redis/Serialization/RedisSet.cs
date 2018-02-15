@@ -4,8 +4,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using NLog;
 using StackExchange.Redis;
-using Wikiled.Core.Utility.Arguments;
-using Wikiled.Core.Utility.Helpers;
+using Wikiled.Common.Arguments;
+using Wikiled.Common.Helpers;
 using Wikiled.Redis.Keys;
 using Wikiled.Redis.Logic;
 

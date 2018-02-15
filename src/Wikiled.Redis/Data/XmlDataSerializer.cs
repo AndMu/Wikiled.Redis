@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Xml.Linq;
 using Snappy;
-using Wikiled.Core.Utility.Arguments;
-using Wikiled.Core.Utility.Extensions;
-using Wikiled.Core.Utility.Serialization;
+using Wikiled.Common.Arguments;
+using Wikiled.Common.Extensions;
+using Wikiled.Common.Serialization;
 
 namespace Wikiled.Redis.Data
 {

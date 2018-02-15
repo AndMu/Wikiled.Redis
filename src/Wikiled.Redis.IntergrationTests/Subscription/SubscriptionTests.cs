@@ -4,7 +4,7 @@ using System.Threading;
 using System.Xml.Linq;
 using NLog;
 using NUnit.Framework;
-using Wikiled.Core.Utility.Serialization;
+using Wikiled.Common.Serialization;
 using Wikiled.Redis.Channels;
 using Wikiled.Redis.Config;
 using Wikiled.Redis.Keys;

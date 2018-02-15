@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Net;
 using StackExchange.Redis;
-using Wikiled.Core.Utility.Arguments;
+using Wikiled.Common.Arguments;
 
 namespace Wikiled.Redis.Information
 {

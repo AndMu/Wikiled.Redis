@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>NET462;NET471</TargetFrameworks>
+    <TargetFrameworks>NETSTANDARD2.0</TargetFrameworks>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -10,32 +10,20 @@
     <Authors>Wikiled</Authors>
     <Description>Wikiled Redis library</Description>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <tags>redis</tags>
     <ProjectUrl>https://github.com/AndMu/Wikiled.Redis</ProjectUrl>
     <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);IncludeP2PAssets</TargetsForTfmSpecificBuildOutput>
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\GlobalAssemblyInfo.cs" Link="Properties\GlobalAssemblyInfo.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Crc32C.NET" version="1.0.5.0" />
-    <PackageReference Include="NLog" version="4.4.12" />
-    <PackageReference Include="Polly" version="5.8.0" />
+    <PackageReference Include="NLog" Version="4.5.0-rc05" />
+    <PackageReference Include="Polly" Version="5.8.0" />
     <PackageReference Include="protobuf-net" version="2.3.6" />
-    <PackageReference Include="SharpZipLib" version="0.86.0" />
-    <PackageReference Include="Snappy.NET" version="1.1.1.8" />
+    <PackageReference Include="Snappy.Standard" Version="0.2.0" />
     <PackageReference Include="StackExchange.Redis" version="1.2.6" />
-    <PackageReference Include="System.Reactive" version="3.1.1" />
-    <PackageReference Include="System.Reactive.Core" version="3.1.1" />
-    <PackageReference Include="System.Reactive.Interfaces" version="3.1.1" />
-    <PackageReference Include="System.Reactive.Linq" version="3.1.1" />
-    <PackageReference Include="System.Reactive.PlatformServices" version="3.1.1" />
-    <PackageReference Include="System.Reactive.Windows.Threading" version="3.1.1" />
-    <PackageReference Include="System.ValueTuple" version="4.4.0" />
-    <PackageReference Include="Wikiled.Core.Utility" version="2.1.18" />
-
+    <PackageReference Include="System.Reactive.Linq" Version="3.1.1" />
+    <PackageReference Include="Wikiled.Common" Version="1.0.3" />
   </ItemGroup>
 
   <ItemGroup>

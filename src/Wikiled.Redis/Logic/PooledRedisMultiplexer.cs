@@ -4,7 +4,7 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using StackExchange.Redis;
-using Wikiled.Core.Utility.Arguments;
+using Wikiled.Common.Arguments;
 using Wikiled.Redis.Config;
 using Wikiled.Redis.Information;
 using Wikiled.Redis.Serialization.Subscription;

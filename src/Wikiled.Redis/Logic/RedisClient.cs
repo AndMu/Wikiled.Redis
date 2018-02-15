@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using NLog;
 using StackExchange.Redis;
-using Wikiled.Core.Utility.Arguments;
+using Wikiled.Common.Arguments;
 using Wikiled.Redis.Helpers;
 using Wikiled.Redis.Indexing;
 using Wikiled.Redis.Keys;

@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using NLog;
 using StackExchange.Redis;
-using Wikiled.Core.Utility.Arguments;
+using Wikiled.Common.Arguments;
 using Wikiled.Redis.Data;
 using Wikiled.Redis.Logic;
 

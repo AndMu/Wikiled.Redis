@@ -4,7 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Reactive.Linq;
 using NLog;
-using Wikiled.Core.Utility.Arguments;
+using Wikiled.Common.Arguments;
 using Wikiled.Redis.Channels;
 using Wikiled.Redis.Information;
 using Wikiled.Redis.Logic;

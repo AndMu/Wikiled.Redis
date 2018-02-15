@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using NLog;
 using NUnit.Framework;
-using Wikiled.Core.Utility.Serialization;
+using Wikiled.Common.Serialization;
 using Wikiled.Redis.Config;
 using Wikiled.Redis.Logic;
 using Wikiled.Redis.Replication;

@@ -2,7 +2,7 @@
 using System.Linq;
 using NLog;
 using StackExchange.Redis;
-using Wikiled.Core.Utility.Arguments;
+using Wikiled.Common.Arguments;
 using Wikiled.Redis.Logic;
 
 namespace Wikiled.Redis.Serialization
