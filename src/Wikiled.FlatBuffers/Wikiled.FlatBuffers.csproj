@@ -2,7 +2,6 @@
 
   <PropertyGroup>
     <TargetFrameworks>NETSTANDARD2.0</TargetFrameworks>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
