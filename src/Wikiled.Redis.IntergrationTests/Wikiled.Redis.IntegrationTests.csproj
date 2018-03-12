@@ -19,6 +19,7 @@
     <PackageReference Include="NUnit3TestAdapter" Version="3.10.0" />
     <PackageReference Include="protobuf-net" version="2.3.7" />
     <PackageReference Include="StackExchange.Redis" version="1.2.6" />
+    <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.4.0" />
     <PackageReference Include="Wikiled.RedisInside" Version="3.2.100.10" />
     <PackageReference Include="System.Reactive.Linq" version="3.1.1" />
     <PackageReference Include="System.Reactive.PlatformServices" version="3.1.1" />
