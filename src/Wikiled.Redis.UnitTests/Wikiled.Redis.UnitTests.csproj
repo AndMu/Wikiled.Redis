@@ -7,11 +7,11 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Reactive.Testing" version="3.1.1" />
-    <PackageReference Include="Moq" version="4.7.145" />
+    <PackageReference Include="Moq" version="4.8.2" />
     <PackageReference Include="NLog" Version="4.5.0-rc05" />
     <PackageReference Include="NUnit" version="3.9.0" />
-    <PackageReference Include="NUnit3TestAdapter" Version="3.9.0" />
-    <PackageReference Include="protobuf-net" version="2.3.6" />
+    <PackageReference Include="NUnit3TestAdapter" Version="3.10.0" />
+    <PackageReference Include="protobuf-net" version="2.3.7" />
     <PackageReference Include="StackExchange.Redis" version="1.2.6" />
   </ItemGroup>
 
@@ -19,10 +19,11 @@
     <ProjectReference Include="..\Wikiled.Redis\Wikiled.Redis.csproj" />
   </ItemGroup>
 
-  <Target Name="ForceGenerationOfBindingRedirects"
-          AfterTargets="ResolveAssemblyReferences"
-          BeforeTargets="GenerateBindingRedirects"
-          Condition="'$(AutoGenerateBindingRedirects)' == 'true'">
+  <ItemGroup>
+    <Service Include="{82a7f48d-3b50-4b1e-b82e-3ada8210c358}" />
+  </ItemGroup>
+
+  <Target Name="ForceGenerationOfBindingRedirects" AfterTargets="ResolveAssemblyReferences" BeforeTargets="GenerateBindingRedirects" Condition="'$(AutoGenerateBindingRedirects)' == 'true'">
     <PropertyGroup>
       <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
     </PropertyGroup>

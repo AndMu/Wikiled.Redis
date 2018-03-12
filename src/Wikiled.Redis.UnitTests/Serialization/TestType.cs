@@ -1,6 +1,6 @@
 ﻿using System;
 using ProtoBuf;
-using Wikiled.Core.Utility.Extensions;
+using Wikiled.Common.Extensions;
 
 namespace Wikiled.Redis.UnitTests.Serialization
 {

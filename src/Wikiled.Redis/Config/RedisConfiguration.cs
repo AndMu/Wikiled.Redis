@@ -98,7 +98,7 @@ namespace Wikiled.Redis.Config
             {
                 builder.Append($"[{redisEndpoint.Host}:{redisEndpoint.Port}]");
             }
-
+            
             return builder.ToString();
         }
 

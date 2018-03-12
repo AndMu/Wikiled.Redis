@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Moq" version="4.7.145" />
+    <PackageReference Include="Moq" version="4.8.2" />
     <PackageReference Include="NLog" Version="4.5.0-rc05" />
     <PackageReference Include="NUnit" version="3.9.0" />
     <PackageReference Include="NUnit.ConsoleRunner" version="3.8.0" />
@@ -16,8 +16,8 @@
     <PackageReference Include="NUnit.Extension.TeamCityEventListener" version="1.0.3" />
     <PackageReference Include="NUnit.Extension.VSProjectLoader" version="3.7.0" />
     <PackageReference Include="NUnit.Runners" version="3.8.0" />
-    <PackageReference Include="NUnit3TestAdapter" Version="3.9.0" />
-    <PackageReference Include="protobuf-net" version="2.3.6" />
+    <PackageReference Include="NUnit3TestAdapter" Version="3.10.0" />
+    <PackageReference Include="protobuf-net" version="2.3.7" />
     <PackageReference Include="StackExchange.Redis" version="1.2.6" />
     <PackageReference Include="Wikiled.RedisInside" Version="3.2.100.10" />
     <PackageReference Include="System.Reactive.Linq" version="3.1.1" />
@@ -35,6 +35,10 @@
     <None Update="NLog.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Service Include="{82a7f48d-3b50-4b1e-b82e-3ada8210c358}" />
   </ItemGroup>
 
   <Target Name="ForceGenerationOfBindingRedirects" AfterTargets="ResolveAssemblyReferences" BeforeTargets="GenerateBindingRedirects" Condition="'$(AutoGenerateBindingRedirects)' == 'true'">

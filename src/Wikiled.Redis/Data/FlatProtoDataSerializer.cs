@@ -2,7 +2,6 @@
 using System.IO;
 using Wikiled.Common.Arguments;
 using Wikiled.Common.Reflection;
-using Wikiled.Core.Utility.Extensions;
 using Wikiled.FlatBuffers;
 using Wikiled.Redis.Helpers;
 

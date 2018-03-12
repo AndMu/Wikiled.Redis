@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 using NUnit.Framework;
-using Wikiled.Core.Utility.Extensions;
+using Wikiled.Common.Extensions;
 using Wikiled.Redis.Serialization;
 
 namespace Wikiled.Redis.UnitTests.Serialization
