@@ -55,8 +55,7 @@ namespace Wikiled.Redis.Serialization
             return Observable.Create<T>(
                 async observer =>
                 {
-                    var items =
-                        await redisSetList.GetRedisValues(database, key, fromRecord, toRecord).ConfigureAwait(false);
+                    var items = await redisSetList.GetRedisValues(database, key, fromRecord, toRecord).ConfigureAwait(false);
                     var values = GetValues<T>(key, items);
                     foreach (var value in values)
                     {
@@ -69,8 +68,7 @@ namespace Wikiled.Redis.Serialization
 
         private RedisValue GetValue<T>(T instance)
         {
-            RedisValue redisValue;
-            if (!RedisValueExtractor.TryParsePrimitive(instance, out redisValue))
+            if (!RedisValueExtractor.TryParsePrimitive(instance, out RedisValue redisValue))
             {
                 var definition = link.GetDefinition<T>();
                 return definition.DataSerializer.Serialize(instance);

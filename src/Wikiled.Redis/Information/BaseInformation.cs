@@ -20,10 +20,8 @@ namespace Wikiled.Redis.Information
 
         protected string GetType(string type)
         {
-            Dictionary<string, string> types;
-            string value;
-            if (!Main.RawData.TryGetValue(category, out types) ||
-                !types.TryGetValue(type, out value))
+            if (!Main.RawData.TryGetValue(category, out Dictionary<string, string> types) ||
+                !types.TryGetValue(type, out string value))
             {
                 return null;
             }

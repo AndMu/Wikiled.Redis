@@ -77,9 +77,9 @@ namespace Wikiled.Redis.Logic
             logger.Debug($"GetRecords {start}-{end}");
             var indexManager = new IndexManagerFactory(link, GetDatabase()).Create(index);
             int batch = BatchSize;
-            if (index.Length > 0)
+            if (index.Length > 1)
             {
-                logger.Debug("Joined index batching is not supported");
+                logger.Warn("Joined index batching is not supported");
                 batch = int.MaxValue;
             }
 

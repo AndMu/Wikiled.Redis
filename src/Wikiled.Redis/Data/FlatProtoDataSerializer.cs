@@ -44,8 +44,7 @@ namespace Wikiled.Redis.Data
         public byte[] Serialize<T>(T instance)
         {
             Guard.NotNull(() => instance, instance);
-            bool compressed;
-            var data = instance.SmartSerializeCompress(out compressed);
+            var data = instance.SmartSerializeCompress(out bool compressed);
             FlatBufferBuilder builder = new FlatBufferBuilder(data.Length + 255);
 
             // allocate payload

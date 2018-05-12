@@ -50,8 +50,7 @@ namespace Wikiled.Redis.Serialization
                 }
 
                 total++;
-                Action<KeyValuePair<string, string>, T> setAction;
-                if(writeActions.TryGetValue(hashEntry.Key, out setAction))
+                if (writeActions.TryGetValue(hashEntry.Key, out Action<KeyValuePair<string, string>, T> setAction))
                 {
                     setAction(hashEntry, instance);
                 }
@@ -60,7 +59,7 @@ namespace Wikiled.Redis.Serialization
                     log.Error("Failed to find entry: {0} in instance: {1}", hashEntry.Key, typeof(T));
                 }
 
-                if(total == Properties.Length)
+                if (total == Properties.Length)
                 {
                     total = 0;
                     if(instance != null)

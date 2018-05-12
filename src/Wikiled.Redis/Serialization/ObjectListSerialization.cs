@@ -102,8 +102,7 @@ namespace Wikiled.Redis.Serialization
             return Observable.Create<T>(
                 async observer =>
                 {
-                    RedisValue[] columns;
-                    if (!columnsCache.TryGetValue(typeof(T), out columns))
+                    if (!columnsCache.TryGetValue(typeof(T), out RedisValue[] columns))
                     {
                         var subKey = link.GetKey("object");
                         columns =

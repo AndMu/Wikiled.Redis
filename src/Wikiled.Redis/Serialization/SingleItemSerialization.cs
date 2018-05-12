@@ -105,8 +105,7 @@ namespace Wikiled.Redis.Serialization
             RedisValue[] values = new RedisValue[columns.Length];
             for (int i = 0; i < columns.Length; i++)
             {
-                RedisValue value;
-                if (table.TryGetValue(columns[i], out value))
+                if (table.TryGetValue(columns[i], out RedisValue value))
                 {
                     values[i] = value;
                 }

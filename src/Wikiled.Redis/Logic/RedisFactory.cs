@@ -38,8 +38,7 @@ namespace Wikiled.Redis.Logic
 
             lock(syncObject)
             {
-                PooledRedisMultiplexer multiplexer;
-                if(poolTable.TryGetValue(configuration, out multiplexer))
+                if (poolTable.TryGetValue(configuration, out PooledRedisMultiplexer multiplexer))
                 {
                     multiplexer.Increment();
                     return multiplexer;
@@ -60,8 +59,7 @@ namespace Wikiled.Redis.Logic
             lock(syncObject)
             {
                 multiplexer.Released += MultiplexerOnReleased;
-                RedisConfiguration config;
-                if(poolReverseTable.TryGetValue(multiplexer, out config))
+                if (poolReverseTable.TryGetValue(multiplexer, out RedisConfiguration config))
                 {
                     poolTable.Remove(config);
                 }

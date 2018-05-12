@@ -41,8 +41,7 @@ namespace Wikiled.Redis.UnitTests.Helpers
         [Test]
         public void SmartSerializeCompress()
         {
-            bool compressed;
-            var data = instance.SmartSerializeCompress(out compressed);
+            var data = instance.SmartSerializeCompress(out bool compressed);
             Assert.IsFalse(compressed);
             Assert.AreEqual(8, data.Length);
 

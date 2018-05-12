@@ -33,8 +33,7 @@ namespace Wikiled.Redis.UnitTests.Data
         [Test]
         public void TryParsePrimitiveComplex()
         {
-            RedisValue result;
-            var success = RedisValueExtractor.TryParsePrimitive<int?>(1, out result);
+            var success = RedisValueExtractor.TryParsePrimitive<int?>(1, out RedisValue result);
             Assert.AreEqual(true, success);
             Assert.AreEqual((RedisValue)1, result);
 
@@ -50,8 +49,7 @@ namespace Wikiled.Redis.UnitTests.Data
         [TestCase(null, false, null)]
         public void TryParsePrimitive(object instance, bool isSuccess, object value)
         {
-            RedisValue result;
-            var success = RedisValueExtractor.TryParsePrimitive(instance, out result);
+            var success = RedisValueExtractor.TryParsePrimitive(instance, out RedisValue result);
             Assert.AreEqual(isSuccess, success);
             Assert.AreEqual((RedisValue)(string)value, result);
         }
