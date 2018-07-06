@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using Wikiled.Common.Arguments;
 
 namespace Wikiled.Redis.Information
 {
@@ -10,9 +9,12 @@ namespace Wikiled.Redis.Information
 
         protected BaseInformation(IServerInformation main, string category)
         {
-            Guard.NotNull(() => main, main);
-            Guard.NotNullOrEmpty(() => category, category);
-            Main = main;
+            if (string.IsNullOrEmpty(category))
+            {
+                throw new ArgumentException("Value cannot be null or empty.", nameof(category));
+            }
+
+            Main = main ?? throw new ArgumentNullException(nameof(main));
             this.category = category;
         }
 

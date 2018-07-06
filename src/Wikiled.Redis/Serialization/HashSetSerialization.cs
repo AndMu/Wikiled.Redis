@@ -1,8 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using NLog;
 using StackExchange.Redis;
-using Wikiled.Common.Arguments;
 using Wikiled.Redis.Logic;
 
 namespace Wikiled.Redis.Serialization
@@ -15,8 +15,7 @@ namespace Wikiled.Redis.Serialization
 
         public HashSetSerialization(IRedisLink link)
         {
-            Guard.NotNull(() => link, link);
-            this.link = link;
+            this.link = link ?? throw new ArgumentNullException(nameof(link));
         }
 
         public string[] GetColumns<T>()
@@ -33,7 +32,11 @@ namespace Wikiled.Redis.Serialization
 
         public IEnumerable<HashEntry> GetEntries<T>(T instance)
         {
-            Guard.NotNull(() => instance, instance);
+            if (instance == null)
+            {
+                throw new ArgumentNullException(nameof(instance));
+            }
+
             var definition = link.GetDefinition<T>();
             if(definition.Serializer == null)
             {
@@ -55,7 +58,11 @@ namespace Wikiled.Redis.Serialization
 
         public IEnumerable<T> GetInstances<T>(RedisValue[] values)
         {
-            Guard.NotNull(() => values, values);
+            if (values == null)
+            {
+                throw new ArgumentNullException(nameof(values));
+            }
+
             var definition = link.GetDefinition<T>();
             return definition.Serializer.DeserializeStream(GetValues(definition.Serializer.Properties, values));
         }

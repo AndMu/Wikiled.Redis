@@ -4,7 +4,6 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using NLog;
 using StackExchange.Redis;
-using Wikiled.Common.Arguments;
 using Wikiled.Redis.Helpers;
 using Wikiled.Redis.Keys;
 using Wikiled.Redis.Logic;
@@ -21,12 +20,9 @@ namespace Wikiled.Redis.Indexing
 
         protected IndexManagerBase(IRedisLink link, IDatabaseAsync database, params IIndexKey[] indexes)
         {
-            Guard.NotNull(() => indexes, indexes);
-            Guard.NotNull(() => link, link);
-            Guard.NotNull(() => database, database);
-            Link = link;
-            Database = database;
-            this.indexes = indexes;
+            Link = link ?? throw new ArgumentNullException(nameof(link));
+            Database = database ?? throw new ArgumentNullException(nameof(database));
+            this.indexes = indexes ?? throw new ArgumentNullException(nameof(indexes));
             repository = indexes.Select(item => item.RepositoryKey).First();
         }
 
@@ -36,13 +32,21 @@ namespace Wikiled.Redis.Indexing
 
         public Task AddIndex(IDataKey key)
         {
-            Guard.NotNull(() => key, key);
+            if (key == null)
+            {
+                throw new ArgumentNullException(nameof(key));
+            }
+
             return AddRawIndex(key.RecordId);
         }
 
         public Task AddRawIndex(string rawKey)
         {
-            Guard.NotNullOrEmpty(() => rawKey, rawKey);
+            if (string.IsNullOrEmpty(rawKey))
+            {
+                throw new ArgumentException("Value cannot be null or empty.", nameof(rawKey));
+            }
+
             var tasks = indexes.Select(index => AddRawIndex(index, rawKey));
             return Task.WhenAll(tasks);
         }

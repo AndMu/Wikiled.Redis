@@ -5,7 +5,6 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using NLog;
 using StackExchange.Redis;
-using Wikiled.Common.Arguments;
 using Wikiled.Redis.Keys;
 using Wikiled.Redis.Logic;
 
@@ -22,17 +21,27 @@ namespace Wikiled.Redis.Serialization
         public SingleItemSerialization(IRedisLink link, IObjectSerialization objectSerialization)
             : base(link)
         {
-            Guard.NotNull(() => link, link);
-            Guard.NotNull(() => objectSerialization, objectSerialization);
-            this.objectSerialization = objectSerialization;
-            this.link = link;
+            this.objectSerialization = objectSerialization ?? throw new ArgumentNullException(nameof(objectSerialization));
+            this.link = link ?? throw new ArgumentNullException(nameof(link));
         }
 
         public Task AddRecord<T>(IDatabaseAsync database, IDataKey objectKey, params T[] instances)
         {
-            Guard.NotNull(() => database, database);
-            Guard.NotNull(() => objectKey, objectKey);
-            Guard.NotNull(() => instances, instances);
+            if (database == null)
+            {
+                throw new ArgumentNullException(nameof(database));
+            }
+
+            if (objectKey == null)
+            {
+                throw new ArgumentNullException(nameof(objectKey));
+            }
+
+            if (instances == null)
+            {
+                throw new ArgumentNullException(nameof(instances));
+            }
+
             log.Debug("AddRecords: {0}", instances.Length);
             if (instances.Length > 1)
             {
@@ -50,17 +59,37 @@ namespace Wikiled.Redis.Serialization
 
         public Task AddRecords<T>(IDatabaseAsync database, IEnumerable<IDataKey> keys, params T[] instances)
         {
-            Guard.NotNull(() => database, database);
-            Guard.NotNull(() => keys, keys);
-            Guard.NotNull(() => instances, instances);
+            if (database == null)
+            {
+                throw new ArgumentNullException(nameof(database));
+            }
+
+            if (keys == null)
+            {
+                throw new ArgumentNullException(nameof(keys));
+            }
+
+            if (instances == null)
+            {
+                throw new ArgumentNullException(nameof(instances));
+            }
+
             var tasks = keys.Select(dataKey => AddRecord(database, dataKey, instances));
             return Task.WhenAll(tasks);
         }
 
         public IObservable<T> GetRecords<T>(IDatabaseAsync database, IDataKey dataKey, long fromRecord = 0, long toRecord = -1)
         {
-            Guard.NotNull(() => database, database);
-            Guard.NotNull(() => dataKey, dataKey);
+            if (database == null)
+            {
+                throw new ArgumentNullException(nameof(database));
+            }
+
+            if (dataKey == null)
+            {
+                throw new ArgumentNullException(nameof(dataKey));
+            }
+
             var key = link.GetKey(dataKey);
             log.Debug("GetRecords: {0}", key);
             if (fromRecord != 0 &&

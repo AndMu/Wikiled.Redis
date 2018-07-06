@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using Wikiled.Common.Arguments;
 using Wikiled.Common.Reflection;
 using Wikiled.FlatBuffers;
 using Wikiled.Redis.Helpers;
@@ -18,7 +17,11 @@ namespace Wikiled.Redis.Data
 
         public T Deserialize<T>(byte[] data)
         {
-            Guard.NotNull(() => data, data);
+            if (data == null)
+            {
+                throw new ArgumentNullException(nameof(data));
+            }
+
             var redisData = RedisData.GetRootAsRedisData(new ByteBuffer(data));
             Type type = typeof(T);
             if (!string.IsNullOrEmpty(redisData.Type))
@@ -31,7 +34,11 @@ namespace Wikiled.Redis.Data
 
         public object Deserialize(Type type, byte[] data)
         {
-            Guard.NotNull(() => data, data);
+            if (data == null)
+            {
+                throw new ArgumentNullException(nameof(data));
+            }
+
             var redisData = RedisData.GetRootAsRedisData(new ByteBuffer(data));
             if (!string.IsNullOrEmpty(redisData.Type))
             {
@@ -43,7 +50,11 @@ namespace Wikiled.Redis.Data
 
         public byte[] Serialize<T>(T instance)
         {
-            Guard.NotNull(() => instance, instance);
+            if (instance == null)
+            {
+                throw new ArgumentNullException(nameof(instance));
+            }
+
             var data = instance.SmartSerializeCompress(out bool compressed);
             FlatBufferBuilder builder = new FlatBufferBuilder(data.Length + 255);
 

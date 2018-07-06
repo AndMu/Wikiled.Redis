@@ -23,7 +23,7 @@ namespace Wikiled.Redis.UnitTests.Information
         [Test]
         public void ParseInvalid()
         {
-            Assert.Throws<ArgumentNullException>(() => SlaveInformation.Parse(null));
+            Assert.Throws<ArgumentException>(() => SlaveInformation.Parse(null));
             Assert.Throws<ArgumentOutOfRangeException>(() => SlaveInformation.Parse("ip=127.0.0.1,port=6027,state=online"));
         }
     }

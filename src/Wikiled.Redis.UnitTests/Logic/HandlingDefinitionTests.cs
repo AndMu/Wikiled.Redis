@@ -25,10 +25,10 @@ namespace Wikiled.Redis.UnitTests.Logic
         [Test]
         public void ConstructGeneric()
         {
-            Assert.Throws<ArgumentException>(() => HandlingDefinition<Identity>.ConstructGeneric(link.Object));
+            Assert.Throws<ArgumentOutOfRangeException>(() => HandlingDefinition<Identity>.ConstructGeneric(link.Object));
             link.Setup(item => item.State).Returns(ChannelState.Open);
             link.Setup(item => item.LinkId).Returns(-1);
-            Assert.Throws<ArgumentException>(() => HandlingDefinition<Identity>.ConstructGeneric(link.Object));
+            Assert.Throws<ArgumentOutOfRangeException>(() => HandlingDefinition<Identity>.ConstructGeneric(link.Object));
 
             link.Setup(item => item.LinkId).Returns(10);
 

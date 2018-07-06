@@ -1,5 +1,5 @@
-﻿using StackExchange.Redis;
-using Wikiled.Common.Arguments;
+﻿using System;
+using StackExchange.Redis;
 
 namespace Wikiled.Redis.Serialization.Subscription
 {
@@ -7,10 +7,21 @@ namespace Wikiled.Redis.Serialization.Subscription
     {
         public KeyspaceEvent(string key, RedisChannel channel, RedisValue value)
         {
-            Guard.NotNullOrEmpty(() => key, key);
-            Guard.IsValid(() => channel, channel, item => !channel.IsNullOrEmpty, nameof(channel));
-            Guard.IsValid(() => value, value, item => !value.IsNullOrEmpty, nameof(value));
-            
+            if (channel.IsNullOrEmpty)
+            {
+                throw new ArgumentException(nameof(channel));
+            }
+
+            if (value.IsNullOrEmpty)
+            {
+                throw new ArgumentException(nameof(value));
+            }
+
+            if (string.IsNullOrEmpty(key))
+            {
+                throw new ArgumentException("Value cannot be null or empty.", nameof(key));
+            }
+
             Channel = channel;
             Key = key;
             Value = value;

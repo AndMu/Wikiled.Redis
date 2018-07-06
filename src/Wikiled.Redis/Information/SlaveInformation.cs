@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using System.Net;
-using Wikiled.Common.Arguments;
 
 namespace Wikiled.Redis.Information
 {
@@ -16,7 +15,11 @@ namespace Wikiled.Redis.Information
 
         public static SlaveInformation Parse(string line)
         {
-            Guard.NotNullOrEmpty(() => line, line);
+            if (string.IsNullOrEmpty(line))
+            {
+                throw new ArgumentException("Value cannot be null or empty.", nameof(line));
+            }
+
             var blocks = line.Split(',').Select(item => item.Split('='))
                 .ToDictionary(item => item[0], item => item[1], StringComparer.OrdinalIgnoreCase);
             if (blocks.Count < 5)

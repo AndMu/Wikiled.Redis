@@ -1,7 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using NLog;
 using StackExchange.Redis;
-using Wikiled.Common.Arguments;
 using Wikiled.Redis.Channels;
 
 namespace Wikiled.Redis.Logic
@@ -16,10 +16,8 @@ namespace Wikiled.Redis.Logic
 
         public RedisTransaction(IRedisLink link, ITransaction transaction)
         {
-            Guard.NotNull(() => link, link);
-            Guard.NotNull(() => transaction, transaction);
-            this.transaction = transaction;
-            this.link = link;
+            this.transaction = transaction ?? throw new ArgumentNullException(nameof(transaction));
+            this.link = link ?? throw new ArgumentNullException(nameof(link));
             Client = new RedisClient(link, transaction);
         }
 

@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using NLog;
-using Wikiled.Common.Arguments;
-using Wikiled.Common.Extensions;
 using Wikiled.Common.Reflection;
 
 namespace Wikiled.Redis.Serialization
@@ -39,7 +37,11 @@ namespace Wikiled.Redis.Serialization
 
         public IEnumerable<T> DeserializeStream(IEnumerable<KeyValuePair<string, string>> entries)
         {
-            Guard.NotNull(() => entries, entries);
+            if (entries == null)
+            {
+                throw new ArgumentNullException(nameof(entries));
+            }
+
             int total = 0;
             T instance = null;
             foreach(var hashEntry in entries)
@@ -72,7 +74,11 @@ namespace Wikiled.Redis.Serialization
 
         public IEnumerable<KeyValuePair<string, string>> Serialize(T instance)
         {
-            Guard.NotNull(() => instance, instance);
+            if (instance == null)
+            {
+                throw new ArgumentNullException(nameof(instance));
+            }
+
             return readActions.Select(item => item(instance));
         }
 

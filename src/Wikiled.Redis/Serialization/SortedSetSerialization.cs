@@ -5,7 +5,6 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using NLog;
 using StackExchange.Redis;
-using Wikiled.Common.Arguments;
 using Wikiled.Redis.Keys;
 using Wikiled.Redis.Logic;
 
@@ -20,23 +19,46 @@ namespace Wikiled.Redis.Serialization
         public SortedSetSerialization(IRedisLink link)
             : base(link)
         {
-            Guard.NotNull(() => link, link);
-            this.link = link;
+            this.link = link ?? throw new ArgumentNullException(nameof(link));
         }
 
         public Task AddRecord<T>(IDatabaseAsync database, IDataKey key, params T[] instances)
         {
-            Guard.NotNull(() => database, database);
-            Guard.NotNull(() => key, key);
-            Guard.NotNull(() => instances, instances);
+            if (database == null)
+            {
+                throw new ArgumentNullException(nameof(database));
+            }
+
+            if (key == null)
+            {
+                throw new ArgumentNullException(nameof(key));
+            }
+
+            if (instances == null)
+            {
+                throw new ArgumentNullException(nameof(instances));
+            }
+
             return AddRecords(database, new[] { key }, instances);
         }
 
         public Task AddRecords<T>(IDatabaseAsync database, IEnumerable<IDataKey> keys, params T[] instances)
         {
-            Guard.NotNull(() => database, database);
-            Guard.NotNull(() => keys, keys);
-            Guard.NotNull(() => instances, instances);
+            if (database == null)
+            {
+                throw new ArgumentNullException(nameof(database));
+            }
+
+            if (keys == null)
+            {
+                throw new ArgumentNullException(nameof(keys));
+            }
+
+            if (instances == null)
+            {
+                throw new ArgumentNullException(nameof(instances));
+            }
+
             if (typeof(T) != typeof(SortedSetEntry))
             {
                 throw new ArgumentOutOfRangeException(nameof(T));
@@ -60,8 +82,16 @@ namespace Wikiled.Redis.Serialization
 
         public IObservable<T> GetRecords<T>(IDatabaseAsync database, IDataKey dataKey, long fromRecord = 0, long toRecord = -1)
         {
-            Guard.NotNull(() => database, database);
-            Guard.NotNull(() => dataKey, dataKey);
+            if (database == null)
+            {
+                throw new ArgumentNullException(nameof(database));
+            }
+
+            if (dataKey == null)
+            {
+                throw new ArgumentNullException(nameof(dataKey));
+            }
+
             if (typeof(T) != typeof(SortedSetEntry))
             {
                 throw new ArgumentOutOfRangeException(nameof(T));

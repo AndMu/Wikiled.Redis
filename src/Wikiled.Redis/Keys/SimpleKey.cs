@@ -1,4 +1,5 @@
-﻿using Wikiled.Common.Arguments;
+﻿
+using System;
 
 namespace Wikiled.Redis.Keys
 {
@@ -12,8 +13,11 @@ namespace Wikiled.Redis.Keys
         private SimpleKey(string repository, ObjectKey objectKey)
             : base(objectKey.RecordId, repository + ":" + objectKey.FullKey)
         {
-            Guard.NotNull(() => objectKey, objectKey);
-            Guard.NotNullOrEmpty(() => repository, repository);
+            if (string.IsNullOrEmpty(repository))
+            {
+                throw new ArgumentException("Value cannot be null or empty.", nameof(repository));
+            }
+
             ObjectKey = objectKey;
         }
 
@@ -21,8 +25,16 @@ namespace Wikiled.Redis.Keys
 
         public static SimpleKey GenerateKey(string repository, string objectName)
         {
-            Guard.NotNullOrEmpty(() => repository, repository);
-            Guard.NotNullOrEmpty(() => objectName, objectName);
+            if (string.IsNullOrEmpty(repository))
+            {
+                throw new ArgumentException("Value cannot be null or empty.", nameof(repository));
+            }
+
+            if (string.IsNullOrEmpty(objectName))
+            {
+                throw new ArgumentException("Value cannot be null or empty.", nameof(objectName));
+            }
+
             ObjectKey objectKey = new ObjectKey(objectName);
             return new SimpleKey(repository, objectKey);
         }

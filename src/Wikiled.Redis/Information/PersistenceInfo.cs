@@ -1,4 +1,5 @@
-﻿using Wikiled.Common.Arguments;
+﻿
+using System;
 
 namespace Wikiled.Redis.Information
 {
@@ -9,7 +10,11 @@ namespace Wikiled.Redis.Information
         public PersistenceInfo(IServerInformation main)
             : base(main, Name)
         {
-            Guard.NotNull(() => main, main);
+            if (main == null)
+            {
+                throw new ArgumentNullException(nameof(main));
+            }
+
             AofSize = GetType<long>("aof_current_size");
             IsRdbSaving = GetType<byte>("rdb_bgsave_in_progress");
             IsAofRewriting = GetType<byte>("aof_rewrite_in_progress");

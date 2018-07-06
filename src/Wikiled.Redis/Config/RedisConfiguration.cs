@@ -1,10 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Text;
 using System.Xml.Serialization;
 using NLog;
 using StackExchange.Redis;
-using Wikiled.Common.Arguments;
 
 namespace Wikiled.Redis.Config
 {
@@ -26,14 +26,22 @@ namespace Wikiled.Redis.Config
         public RedisConfiguration(DnsEndPoint endPoint)
             : this()
         {
-            Guard.NotNull(() => endPoint, endPoint);
+            if (endPoint == null)
+            {
+                throw new ArgumentNullException(nameof(endPoint));
+            }
+
             Endpoints = new[] { new RedisEndpoint { Host = endPoint.Host, Port = endPoint.Port } };
         }
 
         public RedisConfiguration(string host, int? port = null)
             : this()
         {
-            Guard.NotNullOrEmpty(() => host, host);
+            if (string.IsNullOrEmpty(host))
+            {
+                throw new ArgumentException("Value cannot be null or empty.", nameof(host));
+            }
+
             Endpoints = new[] { new RedisEndpoint { Host = host } };
             if (port.HasValue)
             {
@@ -43,7 +51,11 @@ namespace Wikiled.Redis.Config
 
         protected RedisConfiguration(RedisConfiguration redisSettings)
         {
-            Guard.NotNull(() => redisSettings, redisSettings);
+            if (redisSettings == null)
+            {
+                throw new ArgumentNullException(nameof(redisSettings));
+            }
+
             PoolConnection = redisSettings.PoolConnection;
             AbortOnConnectFail = redisSettings.AbortOnConnectFail;
             ConnectRetry = redisSettings.ConnectRetry;

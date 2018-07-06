@@ -1,4 +1,4 @@
-﻿using Wikiled.Common.Arguments;
+﻿using System;
 using Wikiled.Redis.Logic;
 
 namespace Wikiled.Redis.Keys
@@ -8,14 +8,24 @@ namespace Wikiled.Redis.Keys
         public ObjectKey(string id)
             : base(id, FieldConstants.Object + ":" + id)
         {
-            Guard.NotNullOrEmpty(() => id, id);
+            if (string.IsNullOrEmpty(id))
+            {
+                throw new ArgumentException("Value cannot be null or empty.", nameof(id));
+            }
         }
 
         public ObjectKey(params string[] keys)
             :base(string.Join(":", keys), FieldConstants.Object + ":" + string.Join(":", keys))
         {
-            Guard.NotNull(() => keys, keys);
-            Guard.IsValid(() => keys, keys, item => item.Length > 0, "Pleace specify non empty array");
+            if (keys == null)
+            {
+                throw new ArgumentNullException(nameof(keys));
+            }
+
+            if (keys.Length == 0)
+            {
+                throw new ArgumentException("Value cannot be an empty collection.", nameof(keys));
+            }
         }
     }
 }

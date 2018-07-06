@@ -3,7 +3,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using NLog;
 using StackExchange.Redis;
-using Wikiled.Common.Arguments;
 using Wikiled.Common.Reflection;
 using Wikiled.Redis.Channels;
 using Wikiled.Redis.Keys;
@@ -29,8 +28,7 @@ namespace Wikiled.Redis.Logic
         public RedisLink(string name, IRedisMultiplexer multiplexer)
             : base(name)
         {
-            Guard.NotNull(() => multiplexer, multiplexer);
-            Multiplexer = multiplexer;
+            Multiplexer = multiplexer ?? throw new ArgumentNullException(nameof(multiplexer));
             Generator = new ScriptGenerator();
             Client = new RedisClient(this);
         }
@@ -94,7 +92,11 @@ namespace Wikiled.Redis.Logic
 
         public Type GetTypeByName(string id)
         {
-            Guard.NotNullOrEmpty(() => id, id);
+            if (string.IsNullOrEmpty(id))
+            {
+                throw new ArgumentException("Value cannot be null or empty.", nameof(id));
+            }
+
             Type type = null;
             if (string.IsNullOrEmpty(id) || !typeNameTable.TryGetValue(id, out type))
             {
@@ -159,8 +161,16 @@ namespace Wikiled.Redis.Logic
 
         public ISubscriber SubscribeKeyEvents(IDataKey key, Action<KeyspaceEvent> action)
         {
-            Guard.NotNull(() => key, key);
-            Guard.NotNull(() => action, action);
+            if (key == null)
+            {
+                throw new ArgumentNullException(nameof(key));
+            }
+
+            if (action == null)
+            {
+                throw new ArgumentNullException(nameof(action));
+            }
+
             var typeKey = this.GetKey(key);
             return Multiplexer.SubscribeKeyEvents(typeKey, action);
         }
@@ -168,7 +178,11 @@ namespace Wikiled.Redis.Logic
         public ISubscriber SubscribeTypeEvents<T>(Action<KeyspaceEvent> action)
             where T : class
         {
-            Guard.NotNull(() => action, action);
+            if (action == null)
+            {
+                throw new ArgumentNullException(nameof(action));
+            }
+
             if (!(GetSpecific<T>() is ObjectListSerialization persistency))
             {
                 log.Warn("Type persitency not supported");

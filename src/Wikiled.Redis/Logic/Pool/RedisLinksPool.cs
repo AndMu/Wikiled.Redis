@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using NLog;
-using Wikiled.Common.Arguments;
 using Wikiled.Common.Extensions;
 using Wikiled.Redis.Channels;
 using Wikiled.Redis.Config;
@@ -20,8 +20,7 @@ namespace Wikiled.Redis.Logic.Pool
 
         public RedisLinksPool(RedisConfiguration[] configurations)
         {
-            Guard.NotNull(() => configurations, configurations);
-            this.configurations = configurations;
+            configurations = configurations ?? throw new ArgumentNullException(nameof(configurations));
             State = ChannelState.New;
             logger.Debug("Adding {0} services", configurations.Length);
         }

@@ -1,5 +1,5 @@
-﻿using System.Linq;
-using Wikiled.Common.Arguments;
+﻿using System;
+using System.Linq;
 
 namespace Wikiled.Redis.Replication
 {
@@ -11,9 +11,21 @@ namespace Wikiled.Redis.Replication
 
         public static ReplicationProgress CreateActive(HostStatus master, params HostStatus[] slaves)
         {
-            Guard.NotNull(() => master, master);
-            Guard.NotNull(() => slaves, slaves);
-            Guard.IsValid(() => slaves, slaves, statuses => statuses.Length > 0, "Minimum length is 1");
+            if (master == null)
+            {
+                throw new ArgumentNullException(nameof(master));
+            }
+
+            if (slaves == null)
+            {
+                throw new ArgumentNullException(nameof(slaves));
+            }
+
+            if (slaves.Length == 0)
+            {
+                throw new ArgumentException("Value cannot be an empty collection.", nameof(slaves));
+            }
+
             ReplicationProgress instance = new ReplicationProgress();
             instance.IsActive = true;
             instance.Master = master;

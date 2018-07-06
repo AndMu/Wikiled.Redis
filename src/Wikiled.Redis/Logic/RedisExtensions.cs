@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using StackExchange.Redis;
-using Wikiled.Common.Arguments;
 using Wikiled.Redis.Indexing;
 using Wikiled.Redis.Keys;
 
@@ -11,30 +11,65 @@ namespace Wikiled.Redis.Logic
     {
         public static RedisKey GetIndexKey(this IRedisLink link, IIndexKey index)
         {
-            Guard.NotNull(() => link, link);
-            Guard.NotNull(() => index, index);
+            if (link == null)
+            {
+                throw new ArgumentNullException(nameof(link));
+            }
+
+            if (index == null)
+            {
+                throw new ArgumentNullException(nameof(index));
+            }
+
             return string.IsNullOrEmpty(index.RepositoryKey) ? link.GetKey(index.Key) : link.GetKey($"{index.RepositoryKey}:{index.Key}");
         }
 
         public static RedisKey GetKey(this IRedisLink link, IDataKey key)
         {
-            Guard.NotNull(() => link, link);
-            Guard.NotNull(() => key, key);
+            if (link == null)
+            {
+                throw new ArgumentNullException(nameof(link));
+            }
+
+            if (key == null)
+            {
+                throw new ArgumentNullException(nameof(key));
+            }
+
             return GetKey(link, key.FullKey);
         }
 
         public static RedisKey GetKey(this IRedisLink link, string key)
         {
-            Guard.NotNull(() => link, link);
-            Guard.NotNull(() => key, key);
+            if (link == null)
+            {
+                throw new ArgumentNullException(nameof(link));
+            }
+
+            if (key == null)
+            {
+                throw new ArgumentNullException(nameof(key));
+            }
+
             return link.Name + ":" + key;
         }
 
         public static Task[] Indexing(this IRedisLink link, IDatabaseAsync database, IDataKey dataKey)
         {
-            Guard.NotNull(() => link, link);
-            Guard.NotNull(() => dataKey, dataKey);
-            Guard.NotNull(() => database, database);
+            if (link == null)
+            {
+                throw new ArgumentNullException(nameof(link));
+            }
+
+            if (database == null)
+            {
+                throw new ArgumentNullException(nameof(database));
+            }
+
+            if (dataKey == null)
+            {
+                throw new ArgumentNullException(nameof(dataKey));
+            }
 
             List<Task> tasks = new List<Task>();
 

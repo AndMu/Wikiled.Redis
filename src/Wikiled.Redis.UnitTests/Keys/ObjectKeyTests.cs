@@ -10,7 +10,7 @@ namespace Wikiled.Redis.UnitTests.Keys
         [Test]
         public void Construct()
         {
-            Assert.Throws<ArgumentNullException>(() => new ObjectKey((string)null));
+            Assert.Throws<ArgumentException>(() => new ObjectKey((string)null));
             var key = new ObjectKey("Test");
             Assert.AreEqual("object:Test", key.FullKey);
         }

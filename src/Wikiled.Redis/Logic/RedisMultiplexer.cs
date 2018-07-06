@@ -5,7 +5,6 @@ using System.Net;
 using System.Threading.Tasks;
 using NLog;
 using StackExchange.Redis;
-using Wikiled.Common.Arguments;
 using Wikiled.Redis.Config;
 using Wikiled.Redis.Information;
 using Wikiled.Redis.Serialization.Subscription;
@@ -24,8 +23,7 @@ namespace Wikiled.Redis.Logic
 
         public RedisMultiplexer(RedisConfiguration configuration)
         {
-            Guard.NotNull(() => configuration, configuration);
-            this.configuration = configuration;
+            this.configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         }
 
         public IRedisConfiguration Configuration => configuration;

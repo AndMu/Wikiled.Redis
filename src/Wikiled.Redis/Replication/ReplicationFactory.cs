@@ -5,7 +5,6 @@ using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
 using System.Threading;
 using System.Threading.Tasks;
-using Wikiled.Common.Arguments;
 using Wikiled.Redis.Config;
 using Wikiled.Redis.Logic;
 
@@ -21,17 +20,23 @@ namespace Wikiled.Redis.Replication
 
         public ReplicationFactory(IRedisFactory redisFactory, IScheduler scheduler, ILogginProgressTracker tracker = null)
         {
-            Guard.NotNull(() => redisFactory, redisFactory);
-            Guard.NotNull(() => scheduler, scheduler);
-            this.redisFactory = redisFactory;
-            this.scheduler = scheduler;
+            this.redisFactory = redisFactory ?? throw new ArgumentNullException(nameof(redisFactory));
+            this.scheduler = scheduler ?? throw new ArgumentNullException(nameof(scheduler));
             this.tracker = tracker;
         }
 
         public IReplicationManager StartReplicationFrom(IRedisMultiplexer master, IRedisMultiplexer slave)
         {
-            Guard.NotNull(() => master, master);
-            Guard.NotNull(() => slave, slave);
+            if (master == null)
+            {
+                throw new ArgumentNullException(nameof(master));
+            }
+
+            if (slave == null)
+            {
+                throw new ArgumentNullException(nameof(slave));
+            }
+
             var timer = Observable.Interval(TimeSpan.FromSeconds(1), scheduler);
             var manager = new ReplicationManager(master, slave, timer);
             tracker?.Track(manager.Progress);

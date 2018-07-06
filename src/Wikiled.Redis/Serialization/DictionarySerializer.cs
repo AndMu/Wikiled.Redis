@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
-using Wikiled.Common.Arguments;
 
 namespace Wikiled.Redis.Serialization
 {
@@ -8,8 +8,7 @@ namespace Wikiled.Redis.Serialization
     {
         public DictionarySerializer(string[] properties)
         {
-            Guard.NotNull(() => properties, properties);
-            Properties = properties;
+            Properties = properties ?? throw new ArgumentNullException(nameof(properties));
         }
 
         public string[] Properties { get; }

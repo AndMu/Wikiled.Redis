@@ -6,7 +6,6 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using NLog;
 using StackExchange.Redis;
-using Wikiled.Common.Arguments;
 using Wikiled.Redis.Keys;
 using Wikiled.Redis.Logic;
 
@@ -26,44 +25,81 @@ namespace Wikiled.Redis.Serialization
 
         public ObjectListSerialization(IRedisLink link, IObjectSerialization objectSerialization, IRedisSetList redisSetList)
         {
-            Guard.NotNull(() => link, link);
-            Guard.NotNull(() => objectSerialization, objectSerialization);
-            Guard.NotNull(() => redisSetList, redisSetList);
-            this.objectSerialization = objectSerialization;
-            this.redisSetList = redisSetList;
-            this.link = link;
+            this.objectSerialization = objectSerialization ?? throw new ArgumentNullException(nameof(objectSerialization));
+            this.redisSetList = redisSetList ?? throw new ArgumentNullException(nameof(redisSetList));
+            this.link = link ?? throw new ArgumentNullException(nameof(link));
         }
 
         public Task AddRecord<T>(IDatabaseAsync database, IDataKey key, params T[] instances)
         {
-            Guard.NotNull(() => database, database);
-            Guard.NotNull(() => key, key);
-            Guard.NotNull(() => instances, instances);
+            if (database == null)
+            {
+                throw new ArgumentNullException(nameof(database));
+            }
+
+            if (key == null)
+            {
+                throw new ArgumentNullException(nameof(key));
+            }
+
+            if (instances == null)
+            {
+                throw new ArgumentNullException(nameof(instances));
+            }
+
             return AddRecords(database, new[] { key }, instances);
         }
 
         public Task AddRecords<T>(IDatabaseAsync database, IEnumerable<IDataKey> keys, T[] instances)
         {
-            Guard.NotNull(() => database, database);
-            Guard.NotNull(() => keys, keys);
-            Guard.NotNull(() => instances, instances);
+            if (database == null)
+            {
+                throw new ArgumentNullException(nameof(database));
+            }
+
+            if (keys == null)
+            {
+                throw new ArgumentNullException(nameof(keys));
+            }
+
+            if (instances == null)
+            {
+                throw new ArgumentNullException(nameof(instances));
+            }
+
             return Task.WhenAll(instances.Select(item => AddSingleRecord(database, keys, item)));
         }
 
         public async Task DeleteAll(IDatabaseAsync database, IDataKey key)
         {
+            if (database == null)
+            {
+                throw new ArgumentNullException(nameof(database));
+            }
+
+            if (key == null)
+            {
+                throw new ArgumentNullException(nameof(key));
+            }
+
             log.Debug("DeleteAll: [{0}]", key);
-            Guard.NotNull(() => database, database);
-            Guard.NotNull(() => key, key);
             var keys = await GetAllKeys(database, key).ConfigureAwait(false);
             await database.KeyDeleteAsync(keys.ToArray()).ConfigureAwait(false);
         }
 
         public async Task SetExpire(IDatabaseAsync database, IDataKey key, TimeSpan timeSpan)
         {
+            if (database == null)
+            {
+                throw new ArgumentNullException(nameof(database));
+            }
+
+            if (key == null)
+            {
+                throw new ArgumentNullException(nameof(key));
+            }
+
             log.Debug("SetExpire: [{0}] - {1}", key, timeSpan);
-            Guard.NotNull(() => database, database);
-            Guard.NotNull(() => key, key);
             var keys = await GetAllKeys(database, key).ConfigureAwait(false);
             var tasks = keys.Select(item => database.KeyExpireAsync(item, timeSpan));
             await Task.WhenAll(tasks).ConfigureAwait(false);
@@ -71,9 +107,17 @@ namespace Wikiled.Redis.Serialization
 
         public async Task SetExpire(IDatabaseAsync database, IDataKey key, DateTime dateTime)
         {
+            if (database == null)
+            {
+                throw new ArgumentNullException(nameof(database));
+            }
+
+            if (key == null)
+            {
+                throw new ArgumentNullException(nameof(key));
+            }
+
             log.Debug("SetExpire: [{0}] - {1}", key, dateTime);
-            Guard.NotNull(() => database, database);
-            Guard.NotNull(() => key, key);
             var keys = await GetAllKeys(database, key).ConfigureAwait(false);
             var tasks = keys.Select(item => database.KeyExpireAsync(item, dateTime));
             await Task.WhenAll(tasks).ConfigureAwait(false);
@@ -95,8 +139,16 @@ namespace Wikiled.Redis.Serialization
 
         public IObservable<T> GetRecords<T>(IDatabaseAsync database, IDataKey dataKey, long fromRecord = 0, long toRecord = -1)
         {
-            Guard.NotNull(() => database, database);
-            Guard.NotNull(() => dataKey, dataKey);
+            if (database == null)
+            {
+                throw new ArgumentNullException(nameof(database));
+            }
+
+            if (dataKey == null)
+            {
+                throw new ArgumentNullException(nameof(dataKey));
+            }
+
             var key = link.GetKey(dataKey);
             log.Debug("GetRecords: {0} {1}:{2}", key, fromRecord, toRecord);
             return Observable.Create<T>(

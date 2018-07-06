@@ -1,5 +1,4 @@
-﻿using Wikiled.Common.Arguments;
-
+﻿
 namespace Wikiled.Redis.Information
 {
     public class StatsInfo : BaseInformation, IStatsInfo
@@ -9,7 +8,11 @@ namespace Wikiled.Redis.Information
         public StatsInfo(IServerInformation main)
             : base(main, Name)
         {
-            Guard.NotNull(() => main, main);
+            if (main == null)
+            {
+                throw new System.ArgumentNullException(nameof(main));
+            }
+
             TotalCommands = GetType<long>("total_commands_processed");
         }
 

@@ -2,7 +2,6 @@
 using System.Threading.Tasks;
 using NLog;
 using StackExchange.Redis;
-using Wikiled.Common.Arguments;
 using Wikiled.Redis.Keys;
 using Wikiled.Redis.Logic;
 
@@ -16,8 +15,7 @@ namespace Wikiled.Redis.Serialization
 
         public BaseSetSerialization(IRedisLink link)
         {
-            Guard.NotNull(() => link, link);
-            this.link = link;
+            this.link = link ?? throw new ArgumentNullException(nameof(link));
         }
 
         public Task DeleteAll(IDatabaseAsync database, IDataKey key)

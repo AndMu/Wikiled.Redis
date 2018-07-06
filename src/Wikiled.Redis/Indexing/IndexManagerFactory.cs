@@ -1,6 +1,5 @@
 ﻿using System;
 using StackExchange.Redis;
-using Wikiled.Common.Arguments;
 using Wikiled.Redis.Keys;
 using Wikiled.Redis.Logic;
 
@@ -14,16 +13,22 @@ namespace Wikiled.Redis.Indexing
 
         public IndexManagerFactory(IRedisLink link, IDatabaseAsync database)
         {
-            Guard.NotNull(() => link, link);
-            Guard.NotNull(() => database, database);
-            this.link = link;
-            this.database = database;
+            this.link = link ?? throw new ArgumentNullException(nameof(link));
+            this.database = database ?? throw new ArgumentNullException(nameof(database));
         }
 
         public IIndexManager Create(params IIndexKey[] index)
         {
-            Guard.NotNull(() => index, index);
-            Guard.IsValid(() => index, index, keys => keys.Length > 0, "Provide at least one index");
+            if (index == null)
+            {
+                throw new ArgumentNullException(nameof(index));
+            }
+
+            if (index.Length == 0)
+            {
+                throw new ArgumentException("Value cannot be an empty collection.", nameof(index));
+            }
+
             var indexKey = index[0] as IndexKey;
             var hashIndex = index[0] as HashIndexKey;
             if (indexKey != null)

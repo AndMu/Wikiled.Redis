@@ -1,5 +1,5 @@
-﻿using System.Collections.Generic;
-using Wikiled.Common.Arguments;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Wikiled.Redis.Keys
 {
@@ -9,8 +9,16 @@ namespace Wikiled.Redis.Keys
 
         protected BaseKey(string recordId, string fullKey)
         {
-            Guard.NotNullOrEmpty(() => fullKey, fullKey);
-            Guard.NotNullOrEmpty(() => recordId, recordId);
+            if (string.IsNullOrEmpty(recordId))
+            {
+                throw new ArgumentException("Value cannot be null or empty.", nameof(recordId));
+            }
+
+            if (string.IsNullOrEmpty(fullKey))
+            {
+                throw new ArgumentException("Value cannot be null or empty.", nameof(fullKey));
+            }
+
             RecordId = recordId;
             FullKey = fullKey;
         }
@@ -23,7 +31,11 @@ namespace Wikiled.Redis.Keys
 
         public virtual void AddIndex(IIndexKey key)
         {
-            Guard.NotNull(() => key, key);
+            if (key == null)
+            {
+                throw new ArgumentNullException(nameof(key));
+            }
+
             indexes.Add(key);
         }
 

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Xml.Linq;
-using Wikiled.Common.Arguments;
 using Wikiled.Common.Helpers;
 using Wikiled.Common.Serialization;
 
@@ -10,19 +9,31 @@ namespace Wikiled.Redis.Data
     {
         public byte[] Serialize<T>(T instance) 
         {
-            Guard.NotNull(() => instance, instance);
+            if (instance == null)
+            {
+                throw new ArgumentNullException(nameof(instance));
+            }
+
             return instance.XmlSerializeZip();
         }
 
         public T Deserialize<T>(byte[] data) 
         {
-            Guard.NotNull(() => data, data);
+            if (data == null)
+            {
+                throw new ArgumentNullException(nameof(data));
+            }
+
             return data.XmlDeserializeZip<T>();
         }
 
         public object Deserialize(Type type, byte[] data)
         {
-            Guard.NotNull(() => data, data);
+            if (data == null)
+            {
+                throw new ArgumentNullException(nameof(data));
+            }
+
             return XDocument.Parse(data.UnZipString()).XmlDeserialize(type);
         }
     }

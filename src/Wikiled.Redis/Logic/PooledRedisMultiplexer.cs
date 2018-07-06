@@ -4,7 +4,6 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using StackExchange.Redis;
-using Wikiled.Common.Arguments;
 using Wikiled.Redis.Config;
 using Wikiled.Redis.Information;
 using Wikiled.Redis.Serialization.Subscription;
@@ -21,8 +20,7 @@ namespace Wikiled.Redis.Logic
 
         public PooledRedisMultiplexer(IRedisMultiplexer instance)
         {
-            Guard.NotNull(() => instance, instance);
-            this.instance = instance;
+            this.instance = instance ?? throw new ArgumentNullException(nameof(instance));
             counter = 0;
         }
 

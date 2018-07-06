@@ -1,4 +1,5 @@
-﻿using Wikiled.Common.Arguments;
+﻿
+using System;
 
 namespace Wikiled.Redis.Information
 {
@@ -9,7 +10,11 @@ namespace Wikiled.Redis.Information
         public ReplicationInfo(IServerInformation main)
             : base(main, Name)
         {
-            Guard.NotNull(() => main, main);
+            if (main == null)
+            {
+                throw new ArgumentNullException(nameof(main));
+            }
+
             Role = GetType<ReplicationRole>("role");
             if (Role == ReplicationRole.Slave)
             {

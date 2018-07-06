@@ -17,7 +17,7 @@
     <PackageReference Include="NUnit.Extension.VSProjectLoader" version="3.7.0" />
     <PackageReference Include="NUnit.Runners" version="3.8.0" />
     <PackageReference Include="NUnit3TestAdapter" Version="3.10.0" />
-    <PackageReference Include="protobuf-net" version="2.3.12" />
+    <PackageReference Include="protobuf-net" version="2.3.13" />
     <PackageReference Include="StackExchange.Redis" version="1.2.6" />
     <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.1" />
     <PackageReference Include="Wikiled.RedisInside" Version="3.2.100.10" />

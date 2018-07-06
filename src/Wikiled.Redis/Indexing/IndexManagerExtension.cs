@@ -1,9 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using NLog;
 using StackExchange.Redis;
-using Wikiled.Common.Arguments;
 using Wikiled.Redis.Keys;
 using Wikiled.Redis.Logic;
 
@@ -15,8 +15,15 @@ namespace Wikiled.Redis.Indexing
 
         public static async Task Reindex(this IRedisLink link, IDataKey key)
         {
-            Guard.NotNull(() => link, link);
-            Guard.NotNull(() => key, key);
+            if (link == null)
+            {
+                throw new ArgumentNullException(nameof(link));
+            }
+
+            if (key == null)
+            {
+                throw new ArgumentNullException(nameof(key));
+            }
 
             log.Debug("Redindex {0}", key);
             IndexManagerFactory manager = new IndexManagerFactory(link, link.Database);

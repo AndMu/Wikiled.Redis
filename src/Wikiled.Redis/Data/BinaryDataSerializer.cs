@@ -1,26 +1,37 @@
 ﻿using System;
-using Wikiled.Common.Arguments;
 using Wikiled.Common.Serialization;
 
 namespace Wikiled.Redis.Data
 {
     public class BinaryDataSerializer : IDataSerializer
     {
-        public byte[] Serialize<T>(T instance) 
+        public byte[] Serialize<T>(T instance)
         {
-            Guard.NotNull(() => instance, instance);
+            if (instance == null)
+            {
+                throw new ArgumentNullException(nameof(instance));
+            }
+
             return instance.GetArrayBin();
         }
 
-        public T Deserialize<T>(byte[] data) 
+        public T Deserialize<T>(byte[] data)
         {
-            Guard.NotNull(() => data, data);
+            if (data == null)
+            {
+                throw new ArgumentNullException(nameof(data));
+            }
+
             return data.GetObjectBin<T>();
         }
 
         public object Deserialize(Type type, byte[] data)
         {
-            Guard.NotNull(() => data, data);
+            if (data == null)
+            {
+                throw new ArgumentNullException(nameof(data));
+            }
+
             return data.GetObjectBin();
         }
     }

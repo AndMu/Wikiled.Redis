@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Xml.Linq;
 using Snappy;
-using Wikiled.Common.Arguments;
 using Wikiled.Common.Extensions;
 using Wikiled.Common.Serialization;
 
@@ -18,21 +17,33 @@ namespace Wikiled.Redis.Data
 
         public byte[] Serialize<T>(T instance) 
         {
-            Guard.NotNull(() => instance, instance);
+            if (instance == null)
+            {
+                throw new ArgumentNullException(nameof(instance));
+            }
+
             var data = instance.XmlSerialize().ToString().GetBytes();
             return compressed ? SnappyCodec.Compress(data) : data;
         }
 
         public T Deserialize<T>(byte[] data) 
         {
-            Guard.NotNull(() => data, data);
+            if (data == null)
+            {
+                throw new ArgumentNullException(nameof(data));
+            }
+
             data = compressed ? SnappyCodec.Uncompress(data) : data;
             return XDocument.Parse(data.GetString()).XmlDeserialize<T>();
         }
 
         public object Deserialize(Type type, byte[] data)
         {
-            Guard.NotNull(() => data, data);
+            if (data == null)
+            {
+                throw new ArgumentNullException(nameof(data));
+            }
+
             data = compressed ? SnappyCodec.Uncompress(data) : data;
             return XDocument.Parse(data.GetString()).XmlDeserialize(type);
         }

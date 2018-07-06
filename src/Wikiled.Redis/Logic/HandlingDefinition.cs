@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading;
 using NLog;
-using Wikiled.Common.Arguments;
 using Wikiled.Redis.Channels;
 using Wikiled.Redis.Data;
 using Wikiled.Redis.Serialization;
@@ -122,8 +121,21 @@ namespace Wikiled.Redis.Logic
 
         public static HandlingDefinition<T> ConstructGeneric(IRedisLink redis, IDataSerializer serializer = null)
         {
-            Guard.IsValid(() => redis, redis, item => redis.State == ChannelState.Open, "Redis link is not open");
-            Guard.IsValid(() => redis, redis, item => item.LinkId >= 0, "Redis link id invalid");
+            if (redis == null)
+            {
+                throw new ArgumentNullException(nameof(redis));
+            }
+
+            if (redis.State != ChannelState.Open)
+            {
+                throw new ArgumentOutOfRangeException("Redis link is not open", nameof(redis));
+            }
+
+            if (redis.LinkId < 0)
+            {
+                throw new ArgumentOutOfRangeException("Redis link id invalid", nameof(redis));
+            }
+
             log.Debug("ConstructGeneric");
             if (RedisValueExtractor.IsPrimitive<T>() &&
                (serializer != null))

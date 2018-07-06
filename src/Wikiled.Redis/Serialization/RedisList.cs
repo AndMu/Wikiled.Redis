@@ -1,9 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using NLog;
 using StackExchange.Redis;
-using Wikiled.Common.Arguments;
 using Wikiled.Redis.Keys;
 using Wikiled.Redis.Logic;
 using Wikiled.Redis.Persistency;
@@ -18,8 +18,7 @@ namespace Wikiled.Redis.Serialization
 
         public RedisList(IRedisLink link)
         {
-            Guard.NotNull(() => link, link);
-            this.link = link;
+            this.link = link ?? throw new ArgumentNullException(nameof(link));
         }
 
         public Task<long> GetLength(IDatabaseAsync database, RedisKey key)

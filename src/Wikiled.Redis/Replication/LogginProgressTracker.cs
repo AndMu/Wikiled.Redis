@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
-using NLog;
-using Wikiled.Common.Arguments;
 
 namespace Wikiled.Redis.Replication
 {
@@ -16,11 +14,9 @@ namespace Wikiled.Redis.Replication
 
         public LogginProgressTracker(IScheduler scheduler, TimeSpan frequency, Action<string> logging)
         {
-            Guard.NotNull(() => scheduler, scheduler);
-            Guard.NotNull(() => logging, logging);
-            this.scheduler = scheduler;
+            this.scheduler = scheduler ?? throw new ArgumentNullException(nameof(scheduler));
             this.frequency = frequency;
-            this.logging = logging;
+            this.logging = logging ?? throw new ArgumentNullException(nameof(logging));
         }
 
         public void Track(IObservable<ReplicationProgress> progress)

@@ -1,4 +1,4 @@
-﻿using Wikiled.Common.Arguments;
+﻿using System;
 using Wikiled.Redis.Persistency;
 
 namespace Wikiled.Redis.Keys
@@ -7,17 +7,37 @@ namespace Wikiled.Redis.Keys
     {
         public HashIndexKey(string key, string hashKey)
         {
-            Guard.NotNullOrEmpty(() => key, key);
-            Guard.NotNullOrEmpty(() => hashKey, hashKey);
+            if (string.IsNullOrEmpty(key))
+            {
+                throw new ArgumentException("Value cannot be null or empty.", nameof(key));
+            }
+
+            if (string.IsNullOrEmpty(hashKey))
+            {
+                throw new ArgumentException("Value cannot be null or empty.", nameof(hashKey));
+            }
+
             Key = key;
             HashKey = hashKey;
         }
 
         public HashIndexKey(IRepository repository, string key, string hashKey)
         {
-            Guard.NotNullOrEmpty(() => key, key);
-            Guard.NotNullOrEmpty(() => hashKey, hashKey);
-            Guard.NotNull(() => repository, repository);
+            if (repository == null)
+            {
+                throw new ArgumentNullException(nameof(repository));
+            }
+
+            if (string.IsNullOrEmpty(key))
+            {
+                throw new ArgumentException("Value cannot be null or empty.", nameof(key));
+            }
+
+            if (string.IsNullOrEmpty(hashKey))
+            {
+                throw new ArgumentException("Value cannot be null or empty.", nameof(hashKey));
+            }
+
             Key = key;
             HashKey = hashKey;
             RepositoryKey = repository.Name;

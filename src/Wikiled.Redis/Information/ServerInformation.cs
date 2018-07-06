@@ -1,8 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using StackExchange.Redis;
-using Wikiled.Common.Arguments;
 
 namespace Wikiled.Redis.Information
 {
@@ -10,8 +10,16 @@ namespace Wikiled.Redis.Information
     {
         public ServerInformation(IServer server, IGrouping<string, KeyValuePair<string, string>>[] info)
         {
-            Guard.NotNull(() => server, server);
-            Guard.NotNull(() => info, info);
+            if (server == null)
+            {
+                throw new ArgumentNullException(nameof(server));
+            }
+
+            if (info == null)
+            {
+                throw new ArgumentNullException(nameof(info));
+            }
+
             Server = server.EndPoint;
             RawData = info.ToDictionary(item => item.Key, item => item.ToDictionary(x => x.Key, x => x.Value));
             Memory = new MemoryInfo(this);

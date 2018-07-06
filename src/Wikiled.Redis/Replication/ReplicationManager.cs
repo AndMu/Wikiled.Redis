@@ -4,7 +4,6 @@ using System.Linq;
 using System.Net;
 using System.Reactive.Linq;
 using NLog;
-using Wikiled.Common.Arguments;
 using Wikiled.Redis.Channels;
 using Wikiled.Redis.Information;
 using Wikiled.Redis.Logic;
@@ -27,11 +26,13 @@ namespace Wikiled.Redis.Replication
             IObservable<long> timer)
             : base("Replication")
         {
-            Guard.NotNull(() => slave, slave);
-            Guard.NotNull(() => master, master);
-            Guard.NotNull(() => timer, timer);
-            this.slave = slave;
-            this.master = master;
+            if (timer == null)
+            {
+                throw new ArgumentNullException(nameof(timer));
+            }
+
+            this.slave = slave ?? throw new ArgumentNullException(nameof(slave));
+            this.master = master ?? throw new ArgumentNullException(nameof(master));
             Progress = timer.Select(TimerEvent);
         }
 

@@ -1,4 +1,4 @@
-﻿using Wikiled.Common.Arguments;
+﻿using System;
 using Wikiled.Redis.Persistency;
 
 namespace Wikiled.Redis.Keys
@@ -8,8 +8,11 @@ namespace Wikiled.Redis.Keys
         public RepositoryKey(IRepository repository, ObjectKey key)
             : base(key.RecordId, $"{repository.Name}:{key.FullKey}")
         {
-            Guard.NotNull(() => repository, repository);
-            Guard.NotNull(() => key, key);
+            if (key == null)
+            {
+                throw new ArgumentNullException(nameof(key));
+            }
+
             Repository = repository;
         }
 
@@ -17,8 +20,11 @@ namespace Wikiled.Redis.Keys
 
         public override void AddIndex(IIndexKey key)
         {
-            Guard.NotNull(() => key, key);
-            Guard.NotNullOrEmpty(() => key.RepositoryKey, key.RepositoryKey);
+            if (key?.RepositoryKey == null)
+            {
+                throw new ArgumentNullException(nameof(key));
+            }
+
             base.AddIndex(key);
         }
     }

@@ -1,8 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using NLog;
 using StackExchange.Redis;
-using Wikiled.Common.Arguments;
 using Wikiled.Redis.Data;
 using Wikiled.Redis.Logic;
 
@@ -25,10 +25,8 @@ namespace Wikiled.Redis.Serialization
 
         public ObjectHashSetSerialization(IRedisLink link, IDataSerializer serializer)
         {
-            Guard.NotNull(() => link, link);
-            Guard.NotNull(() => serializer, serializer);
-            this.link = link;
-            this.serializer = serializer;
+            this.link = link ?? throw new ArgumentNullException(nameof(link));
+            this.serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
         }
 
         public string[] GetColumns<T>()
@@ -38,7 +36,11 @@ namespace Wikiled.Redis.Serialization
 
         public IEnumerable<HashEntry> GetEntries<T>(T instance)
         {
-            Guard.NotNull(() => instance, instance);
+            if (instance == null)
+            {
+                throw new ArgumentNullException(nameof(instance));
+            }
+
             var data = serializer.Serialize(instance);
             var definition = link.GetDefinition<T>();
             yield return new HashEntry(FieldConstants.Data, data);
@@ -51,7 +53,11 @@ namespace Wikiled.Redis.Serialization
 
         public IEnumerable<T> GetInstances<T>(RedisValue[] values)
         {
-            Guard.NotNull(() => values, values);
+            if (values == null)
+            {
+                throw new ArgumentNullException(nameof(values));
+            }
+
             var definition = link.GetDefinition<T>();
             for(int i = 0; i < values.Length; i += 3)
             {

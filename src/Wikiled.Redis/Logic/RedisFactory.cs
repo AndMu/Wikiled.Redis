@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using Wikiled.Common.Arguments;
 using Wikiled.Redis.Config;
 
 namespace Wikiled.Redis.Logic
@@ -24,13 +23,16 @@ namespace Wikiled.Redis.Logic
 
         public RedisFactory(IRedisFactory internalFactory)
         {
-            Guard.NotNull(() => internalFactory, internalFactory);
-            this.internalFactory = internalFactory;
+            this.internalFactory = internalFactory ?? throw new ArgumentNullException(nameof(internalFactory));
         }
 
         public IRedisMultiplexer Create(RedisConfiguration configuration)
         {
-            Guard.NotNull(() => configuration, configuration);
+            if (configuration == null)
+            {
+                throw new ArgumentNullException(nameof(configuration));
+            }
+
             if (!configuration.PoolConnection)
             {
                 return internalFactory.Create(configuration);
