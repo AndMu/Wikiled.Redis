@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>NET471</TargetFrameworks>
+    <TargetFrameworks>NET472</TargetFrameworks>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
 
@@ -9,18 +9,18 @@
     <PackageReference Include="Moq" version="4.9.0" />
     <PackageReference Include="NLog" Version="4.5.9" />
     <PackageReference Include="NUnit" version="3.10.1" />
-    <PackageReference Include="NUnit.ConsoleRunner" version="3.8.0" />
+    <PackageReference Include="NUnit.ConsoleRunner" version="3.9.0" />
     <PackageReference Include="NUnit.Extension.NUnitProjectLoader" version="3.6.0" />
     <PackageReference Include="NUnit.Extension.NUnitV2Driver" version="3.7.0" />
     <PackageReference Include="NUnit.Extension.NUnitV2ResultWriter" version="3.6.0" />
     <PackageReference Include="NUnit.Extension.TeamCityEventListener" version="1.0.4" />
     <PackageReference Include="NUnit.Extension.VSProjectLoader" version="3.8.0" />
-    <PackageReference Include="NUnit.Runners" version="3.8.0" />
+    <PackageReference Include="NUnit.Runners" version="3.9.0" />
     <PackageReference Include="NUnit3TestAdapter" Version="3.10.0" />
-    <PackageReference Include="protobuf-net" version="2.3.17" />
-    <PackageReference Include="StackExchange.Redis" version="1.2.6" />
+    <PackageReference Include="protobuf-net" version="2.4.0" />
+    <PackageReference Include="StackExchange.Redis" version="2.0.495" />
     <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.1" />
-    <PackageReference Include="Wikiled.RedisInside" Version="3.2.100.10" />
+    <PackageReference Include="Wikiled.RedisInside" Version="3.2.101.1" />
     <PackageReference Include="System.Reactive" version="4.1.0" />
   </ItemGroup>
 

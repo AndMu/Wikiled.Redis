@@ -92,7 +92,7 @@ namespace Wikiled.Redis.Logic
             CheckConnection();
             foreach (var server in GetServers())
             {
-                server.FlushAllDatabases(CommandFlags.HighPriority);
+                server.FlushAllDatabases();
             }
         }
 
@@ -133,7 +133,6 @@ namespace Wikiled.Redis.Logic
 
             log.Debug("Openning...");
             connection = ConnectionMultiplexer.Connect(Configuration.GetOptions());
-            connection.PreserveAsyncOrder = false;
             Database = connection.GetDatabase();
             connection.ConnectionFailed += OnConnectionFailed;
             connection.ConnectionRestored += OnConnectionRestored;

@@ -16,11 +16,11 @@ namespace Wikiled.Redis.Logic.Pool
 
         private Dictionary<string, RedisLink> links;
 
-        private bool isDispossed;
+        private bool isDisposed;
 
         public RedisLinksPool(RedisConfiguration[] configurations)
         {
-            configurations = configurations ?? throw new ArgumentNullException(nameof(configurations));
+            this.configurations = configurations ?? throw new ArgumentNullException(nameof(configurations));
             State = ChannelState.New;
             logger.Debug("Adding {0} services", configurations.Length);
         }
@@ -45,12 +45,12 @@ namespace Wikiled.Redis.Logic.Pool
 
         public void Dispose()
         {
-            if (isDispossed)
+            if (isDisposed)
             {
                 return;
             }
 
-            isDispossed = true;
+            isDisposed = true;
             if (links != null)
             {
                 foreach (var redisLink in links)
