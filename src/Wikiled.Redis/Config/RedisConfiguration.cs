@@ -133,7 +133,8 @@ namespace Wikiled.Redis.Config
                 SyncTimeout = SyncTimeout, // 5 sec
                 ServiceName = ServiceName, // sentinel service name
                 AllowAdmin = AllowAdmin,
-                ResponseTimeout = ResponseTimeout
+                ResponseTimeout = ResponseTimeout,
+                AbortOnConnectFail = false
             };
 
             foreach (var endpoint in Endpoints)
