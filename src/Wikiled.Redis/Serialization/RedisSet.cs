@@ -2,9 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using NLog;
+using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
 using Wikiled.Common.Helpers;
+using Wikiled.Common.Logging;
 using Wikiled.Redis.Keys;
 using Wikiled.Redis.Logic;
 
@@ -12,7 +13,7 @@ namespace Wikiled.Redis.Serialization
 {
     public class RedisSet : IRedisSetList
     {
-        private static readonly Logger log = LogManager.GetCurrentClassLogger();
+        private static readonly ILogger log = ApplicationLogging.CreateLogger<RedisSet>();
 
         private readonly IRedisLink link;
 
@@ -34,7 +35,7 @@ namespace Wikiled.Redis.Serialization
         public Task SaveItems(IDatabaseAsync database, IDataKey key, params RedisValue[] redisValues)
         {
             var redisKey = link.GetKey(key);
-            log.Debug("AddSet: <{0}>", key);
+            log.LogDebug("AddSet: <{0}>", key);
 
             var time = DateTime.UtcNow.ToUnixTime();
             var saveTask = database.SortedSetAddAsync(

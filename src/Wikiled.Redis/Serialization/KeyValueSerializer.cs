@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using NLog;
+using Microsoft.Extensions.Logging;
+using Wikiled.Common.Logging;
 using Wikiled.Common.Reflection;
 
 namespace Wikiled.Redis.Serialization
@@ -15,7 +16,7 @@ namespace Wikiled.Redis.Serialization
     {
         private readonly Func<T> factory;
 
-        private readonly Logger log = LogManager.GetLogger("TagSerializer");
+        private static readonly ILogger log = ApplicationLogging.CreateLogger("KeyValueSerializer");
 
         private readonly List<Func<T, KeyValuePair<string, string>>> readActions = new List<Func<T, KeyValuePair<string, string>>>();
 
@@ -58,7 +59,7 @@ namespace Wikiled.Redis.Serialization
                 }
                 else
                 {
-                    log.Error("Failed to find entry: {0} in instance: {1}", hashEntry.Key, typeof(T));
+                    log.LogError("Failed to find entry: {0} in instance: {1}", hashEntry.Key, typeof(T));
                 }
 
                 if (total == Properties.Length)

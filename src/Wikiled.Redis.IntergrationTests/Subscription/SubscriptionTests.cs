@@ -2,8 +2,9 @@
 using System.IO;
 using System.Threading;
 using System.Xml.Linq;
-using NLog;
+using Microsoft.Extensions.Logging;
 using NUnit.Framework;
+using Wikiled.Common.Logging;
 using Wikiled.Common.Serialization;
 using Wikiled.Redis.Channels;
 using Wikiled.Redis.Config;
@@ -16,7 +17,7 @@ namespace Wikiled.Redis.IntegrationTests.Subscription
     [TestFixture]
     public class SubscriptionTests
     {
-        private static readonly Logger log = LogManager.GetCurrentClassLogger();
+        private static readonly ILogger log = ApplicationLogging.CreateLogger<RedisClient>();
 
         private RedisInside.Redis redisInstance;
 
@@ -27,7 +28,7 @@ namespace Wikiled.Redis.IntegrationTests.Subscription
         [SetUp]
         public void Setup()
         {
-            redisInstance = new RedisInside.Redis(i => i.Port(6666).LogTo(item => log.Debug(item)));
+            redisInstance = new RedisInside.Redis(i => i.Port(6666).LogTo(item => log.LogDebug(item)));
             var config = XDocument.Load(Path.Combine(TestContext.CurrentContext.TestDirectory, @"Config\redis.config")).XmlDeserialize<RedisConfiguration>();
             redis = new RedisLink("IT", new RedisMultiplexer(config));
             redis.Open();

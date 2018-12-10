@@ -1,11 +1,12 @@
 ﻿using System;
-using NLog;
+using Microsoft.Extensions.Logging;
+using Wikiled.Common.Logging;
 
 namespace Wikiled.Redis.Channels
 {
     public abstract class BaseChannel : IChannel
     {
-        private static readonly Logger logger = LogManager.GetCurrentClassLogger();
+        private static readonly ILogger logger = ApplicationLogging.CreateLogger<BaseChannel>();
 
         private readonly object syncRoot = new object();
 
@@ -28,7 +29,7 @@ namespace Wikiled.Redis.Channels
                     return;
                 }
 
-                logger.Debug("State changed from <{0}> to <{1}>", state, value);
+                logger.LogDebug("State changed from <{0}> to <{1}>", state, value);
                 state = value;
             }
         }
@@ -39,7 +40,7 @@ namespace Wikiled.Redis.Channels
         {
             lock (syncRoot)
             {
-                logger.Debug("Closing {0}...", Name);
+                logger.LogDebug("Closing {0}...", Name);
                 if (State != ChannelState.Open && State != ChannelState.Opening)
                 {
                     return;
@@ -61,7 +62,7 @@ namespace Wikiled.Redis.Channels
                 return;
             }
 
-            logger.Debug("Disposing {0}", Name);
+            logger.LogDebug("Disposing {0}", Name);
             IsDisposed = true;
             Dispose(true);
             GC.SuppressFinalize(this);
@@ -69,7 +70,7 @@ namespace Wikiled.Redis.Channels
 
         public void Open()
         {
-            logger.Debug("Opening {0}...", Name);
+            logger.LogDebug("Opening {0}...", Name);
             lock (syncRoot)
             {
                 if (State == ChannelState.Open || State == ChannelState.Closing || State == ChannelState.Opening)

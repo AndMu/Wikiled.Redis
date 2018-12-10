@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using NLog;
+using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
+using Wikiled.Common.Logging;
 using Wikiled.Redis.Keys;
 using Wikiled.Redis.Logic;
 
@@ -14,7 +15,7 @@ namespace Wikiled.Redis.Serialization
     {
         private readonly IRedisLink link;
 
-        private static readonly Logger log = LogManager.GetCurrentClassLogger();
+        private static readonly ILogger log = ApplicationLogging.CreateLogger<SortedSetSerialization>();
 
         public SortedSetSerialization(IRedisLink link)
             : base(link)

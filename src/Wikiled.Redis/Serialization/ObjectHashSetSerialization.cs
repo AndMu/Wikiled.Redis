@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using NLog;
+using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
+using Wikiled.Common.Logging;
 using Wikiled.Redis.Data;
 using Wikiled.Redis.Logic;
 
@@ -19,7 +20,7 @@ namespace Wikiled.Redis.Serialization
 
         private readonly IRedisLink link;
 
-        private static readonly Logger log = LogManager.GetCurrentClassLogger();
+        private static readonly ILogger log = ApplicationLogging.CreateLogger<ObjectHashSetSerialization>();
 
         private readonly IDataSerializer serializer;
 
@@ -65,7 +66,7 @@ namespace Wikiled.Redis.Serialization
                 if((data == null) ||
                    (data.Length == 0))
                 {
-                    log.Warn("Not Data Found in redis record");
+                    log.LogWarning("Not Data Found in redis record");
                     continue;
                 }
 
@@ -78,7 +79,7 @@ namespace Wikiled.Redis.Serialization
                     var type = link.GetTypeByName(values[i + 2]);
                     if(type == null)
                     {
-                        log.Error("Type is not resolved");
+                        log.LogError("Type is not resolved");
                         continue;
                     }
 

@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Reactive.Linq;
-using NLog;
+using Microsoft.Extensions.Logging;
+using Wikiled.Common.Logging;
 using Wikiled.Redis.Channels;
 using Wikiled.Redis.Information;
 using Wikiled.Redis.Logic;
@@ -12,7 +13,7 @@ namespace Wikiled.Redis.Replication
 {
     public class ReplicationManager : BaseChannel, IReplicationManager
     {
-        private static readonly Logger log = LogManager.GetCurrentClassLogger();
+        private static readonly ILogger log = ApplicationLogging.CreateLogger<ReplicationManager>();
 
         private readonly IRedisMultiplexer master;
 
@@ -40,7 +41,7 @@ namespace Wikiled.Redis.Replication
 
         protected override void CloseInternal()
         {
-            log.Debug("Stopping Replication process");
+            log.LogDebug("Stopping Replication process");
             slave.SetupSlave(null);
             base.CloseInternal();
         }
@@ -64,7 +65,7 @@ namespace Wikiled.Redis.Replication
             }
 
             masterEndPoint = servers[0].EndPoint;
-            log.Debug("Making redis SLAVE OF {0}", servers[0].EndPoint);
+            log.LogDebug("Making redis SLAVE OF {0}", servers[0].EndPoint);
             slave.SetupSlave(servers[0].EndPoint);
             return base.OpenInternal();
         }
@@ -92,7 +93,7 @@ namespace Wikiled.Redis.Replication
             if (info.Length != 1)
             {
                 string message = "Do not support zero or multiple masters replication: " + info.Length;
-                log.Error(message);
+                log.LogError(message);
                 throw new InvalidOperationException(message);
             }
 
@@ -103,12 +104,12 @@ namespace Wikiled.Redis.Replication
                 information.Replication.Slaves == null ||
                 information.Replication.Slaves.Length < slave.GetServers().Count())
             {
-                log.Debug("Replication - Inactive");
+                log.LogDebug("Replication - Inactive");
                 return ReplicationProgress.CreateInActive();
             }
 
             var slaves = GetSlaveInformation(information);
-            log.Debug("Replication - Active");
+            log.LogDebug("Replication - Active");
             return ReplicationProgress.CreateActive(
                 new HostStatus(masterEndPoint, masterOffset.Value),
                 slaves.ToArray());

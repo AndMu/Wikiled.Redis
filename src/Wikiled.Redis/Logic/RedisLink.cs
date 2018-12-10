@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using NLog;
+using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
+using Wikiled.Common.Logging;
 using Wikiled.Common.Reflection;
 using Wikiled.Redis.Channels;
 using Wikiled.Redis.Keys;
@@ -15,7 +16,7 @@ namespace Wikiled.Redis.Logic
 {
     public class RedisLink : BaseChannel, IRedisLink
     {
-        private static readonly Logger log = LogManager.GetCurrentClassLogger();
+        private static readonly ILogger log = ApplicationLogging.CreateLogger<RedisLink>();
 
         private readonly ConcurrentDictionary<Type, ISpecificPersistency> addRecordActions = new ConcurrentDictionary<Type, ISpecificPersistency>();
         
@@ -58,7 +59,7 @@ namespace Wikiled.Redis.Logic
         public ISpecificPersistency GetSpecific<T>()
         {
             Type type = typeof(T);
-            log.Debug("GetSpecific<{0}>", type);
+            log.LogDebug("GetSpecific<{0}>", type);
             if (addRecordActions.TryGetValue(type, out var action))
             {
                 return action;
@@ -85,7 +86,7 @@ namespace Wikiled.Redis.Logic
                 action = definition.IsSingleInstance ? new SingleItemSerialization(this, serialization) : (ISpecificPersistency)new ObjectListSerialization(this, serialization, setList);
             }
 
-            log.Debug("GetSpecific<{0}> - Constructed - {1}", type, action);
+            log.LogDebug("GetSpecific<{0}> - Constructed - {1}", type, action);
             addRecordActions[type] = action;
             return action;
         }
@@ -100,7 +101,7 @@ namespace Wikiled.Redis.Logic
             Type type = null;
             if (string.IsNullOrEmpty(id) || !typeNameTable.TryGetValue(id, out type))
             {
-                log.Error("Type not found: {0}", id);
+                log.LogError("Type not found: {0}", id);
             }
 
             return type;
@@ -108,7 +109,7 @@ namespace Wikiled.Redis.Logic
 
         public string GetTypeID(Type type)
         {
-            log.Debug("Resolving {0}", type);
+            log.LogDebug("Resolving {0}", type);
             if (typeIdTable.TryGetValue(type, out var typeName))
             {
                 return typeName;
@@ -121,16 +122,16 @@ namespace Wikiled.Redis.Logic
             {
                 if (keys.Length > 1)
                 {
-                    log.Warn("Too many types found: {0} for type: {1}", keys.Length, type);
+                    log.LogWarning("Too many types found: {0} for type: {1}", keys.Length, type);
                 }
 
-                log.Debug("Type found in Redis [{0}:{1}]", type, keys[0]);
+                log.LogDebug("Type found in Redis [{0}:{1}]", type, keys[0]);
                 typeIdTable[type] = keys[0];
                 typeNameTable[keys[0]] = type;
                 return keys[0];
             }
 
-            log.Debug("Registering new type");
+            log.LogDebug("Registering new type");
             var counterKey = this.GetKey(new SimpleKey("Type", "Counter"));
 
             var id = Multiplexer.Database.StringIncrement(counterKey);
@@ -140,7 +141,7 @@ namespace Wikiled.Redis.Logic
             batch.SetAddAsync(this.GetKey(typeIdKey), typeName);
             batch.SetAddAsync(typeKey, typeIdKey.FullKey);
             batch.Execute();
-            log.Debug("Key added: {0} for type: {1}", typeName, type);
+            log.LogDebug("Key added: {0} for type: {1}", typeName, type);
             typeIdTable[type] = typeIdKey.FullKey;
             typeNameTable[typeIdKey.FullKey] = type;
             return typeIdKey.FullKey;
@@ -154,7 +155,7 @@ namespace Wikiled.Redis.Logic
 
         public IRedisTransaction StartTransaction()
         {
-            log.Debug("StartTransaction");
+            log.LogDebug("StartTransaction");
             Multiplexer.CheckConnection();
             return new RedisTransaction(this, Multiplexer.Database.CreateTransaction());
         }
@@ -185,7 +186,7 @@ namespace Wikiled.Redis.Logic
 
             if (!(GetSpecific<T>() is ObjectListSerialization persistency))
             {
-                log.Warn("Type persitency not supported");
+                log.LogWarning("Type persitency not supported");
                 return null;
             }
 
@@ -210,17 +211,17 @@ namespace Wikiled.Redis.Logic
 
         protected override ChannelState OpenInternal()
         {
-            log.Debug("OpenInternal: {0}", Multiplexer.Configuration);
+            log.LogDebug("OpenInternal: {0}", Multiplexer.Configuration);
             try
             {
                 Multiplexer.Open();
                 var key = this.GetKey(new SimpleKey("Connection", "Counter"));
                 LinkId = Multiplexer.Database.StringIncrement(key);
-                log.Debug("Link initialized with ID:{0}", LinkId);
+                log.LogDebug("Link initialized with ID:{0}", LinkId);
             }
             catch (Exception e)
             {
-                log.Error(e);
+                log.LogError(e, "Error");
                 throw;
             }
 

@@ -2,8 +2,9 @@
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using NLog;
+using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
+using Wikiled.Common.Logging;
 using Wikiled.Redis.Keys;
 using Wikiled.Redis.Logic;
 
@@ -11,7 +12,7 @@ namespace Wikiled.Redis.Indexing
 {
     public static class IndexManagerExtension
     {
-        private static readonly Logger log = LogManager.GetCurrentClassLogger();
+        private static readonly ILogger log = ApplicationLogging.CreateLogger("IndexManagerExtension");
 
         public static async Task Reindex(this IRedisLink link, IDataKey key)
         {
@@ -25,7 +26,7 @@ namespace Wikiled.Redis.Indexing
                 throw new ArgumentNullException(nameof(key));
             }
 
-            log.Debug("Redindex {0}", key);
+            log.LogDebug("Redindex {0}", key);
             IndexManagerFactory manager = new IndexManagerFactory(link, link.Database);
             var indexManagers = manager.Create(key.Indexes);
             List<Task> tasks = new List<Task>();
@@ -46,7 +47,7 @@ namespace Wikiled.Redis.Indexing
                 tasks.Add(indexManagers.AddRawIndex(rawId));
             }
 
-            log.Debug("Redindexed {0} {1}", key, total);
+            log.LogDebug("Redindexed {0} {1}", key, total);
             await Task.WhenAll(tasks).ConfigureAwait(false);
         }
     }

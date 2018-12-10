@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using NLog;
+using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
+using Wikiled.Common.Logging;
 using Wikiled.Redis.Data;
 using Wikiled.Redis.Keys;
 using Wikiled.Redis.Logic;
@@ -15,7 +16,7 @@ namespace Wikiled.Redis.Serialization
     {
         private readonly IRedisLink link;
 
-        private static readonly Logger log = LogManager.GetCurrentClassLogger();
+        private static readonly ILogger log = ApplicationLogging.CreateLogger<ListSerialization>();
 
         private readonly IRedisSetList redisSetList;
 
@@ -113,7 +114,7 @@ namespace Wikiled.Redis.Serialization
             {
                 if (!value.HasValue)
                 {
-                    log.Debug("{0} Redis value is null", key);
+                    log.LogDebug("{0} Redis value is null", key);
                     yield break;
                 }
 
@@ -127,7 +128,7 @@ namespace Wikiled.Redis.Serialization
                     if ((data == null) ||
                        (data.Length == 0))
                     {
-                        log.Debug("{0} Data length is zero", key);
+                        log.LogDebug("{0} Data length is zero", key);
                         yield break;
                     }
 

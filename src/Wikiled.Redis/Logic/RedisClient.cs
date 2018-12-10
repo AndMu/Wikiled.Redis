@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using NLog;
+using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
+using Wikiled.Common.Logging;
 using Wikiled.Redis.Helpers;
 using Wikiled.Redis.Indexing;
 using Wikiled.Redis.Keys;
@@ -16,7 +17,7 @@ namespace Wikiled.Redis.Logic
 
         private readonly IRedisLink link;
 
-        private static readonly Logger logger = LogManager.GetCurrentClassLogger();
+        private static readonly ILogger logger = ApplicationLogging.CreateLogger<RedisClient>();
 
         public RedisClient(IRedisLink link, IDatabaseAsync database = null)
         {
@@ -108,12 +109,12 @@ namespace Wikiled.Redis.Logic
                 throw new ArgumentNullException(nameof(index));
             }
 
-            logger.Debug($"GetRecords {start}-{end}");
+            logger.LogDebug($"GetRecords {start}-{end}");
             var indexManager = new IndexManagerFactory(link, GetDatabase()).Create(index);
             int batch = BatchSize;
             if (index.Length > 1)
             {
-                logger.Warn("Joined index batching is not supported");
+                logger.LogWarning("Joined index batching is not supported");
                 batch = int.MaxValue;
             }
 

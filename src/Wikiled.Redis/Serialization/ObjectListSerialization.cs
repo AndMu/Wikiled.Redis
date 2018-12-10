@@ -4,8 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using NLog;
+using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
+using Wikiled.Common.Logging;
 using Wikiled.Redis.Keys;
 using Wikiled.Redis.Logic;
 
@@ -17,7 +18,7 @@ namespace Wikiled.Redis.Serialization
 
         private readonly IRedisLink link;
 
-        private static readonly Logger log = LogManager.GetCurrentClassLogger();
+        private static readonly ILogger log = ApplicationLogging.CreateLogger<ObjectListSerialization>();
 
         private readonly IObjectSerialization objectSerialization;
 
@@ -82,7 +83,7 @@ namespace Wikiled.Redis.Serialization
                 throw new ArgumentNullException(nameof(key));
             }
 
-            log.Debug("DeleteAll: [{0}]", key);
+            log.LogDebug("DeleteAll: [{0}]", key);
             var keys = await GetAllKeys(database, key).ConfigureAwait(false);
             await database.KeyDeleteAsync(keys.ToArray()).ConfigureAwait(false);
         }
@@ -99,7 +100,7 @@ namespace Wikiled.Redis.Serialization
                 throw new ArgumentNullException(nameof(key));
             }
 
-            log.Debug("SetExpire: [{0}] - {1}", key, timeSpan);
+            log.LogDebug("SetExpire: [{0}] - {1}", key, timeSpan);
             var keys = await GetAllKeys(database, key).ConfigureAwait(false);
             var tasks = keys.Select(item => database.KeyExpireAsync(item, timeSpan));
             await Task.WhenAll(tasks).ConfigureAwait(false);
@@ -117,7 +118,7 @@ namespace Wikiled.Redis.Serialization
                 throw new ArgumentNullException(nameof(key));
             }
 
-            log.Debug("SetExpire: [{0}] - {1}", key, dateTime);
+            log.LogDebug("SetExpire: [{0}] - {1}", key, dateTime);
             var keys = await GetAllKeys(database, key).ConfigureAwait(false);
             var tasks = keys.Select(item => database.KeyExpireAsync(item, dateTime));
             await Task.WhenAll(tasks).ConfigureAwait(false);
@@ -150,7 +151,7 @@ namespace Wikiled.Redis.Serialization
             }
 
             var key = link.GetKey(dataKey);
-            log.Debug("GetRecords: {0} {1}:{2}", key, fromRecord, toRecord);
+            log.LogDebug("GetRecords: {0} {1}:{2}", key, fromRecord, toRecord);
             return Observable.Create<T>(
                 async observer =>
                 {
@@ -168,7 +169,7 @@ namespace Wikiled.Redis.Serialization
 
                     if (!exist)
                     {
-                        log.Debug("Key doesn't exist: {0}", key);
+                        log.LogDebug("Key doesn't exist: {0}", key);
                         observer.OnCompleted();
                         return;
                     }
@@ -185,7 +186,7 @@ namespace Wikiled.Redis.Serialization
                                         columns).ConfigureAwait(false);
                     if (result.Length % columns.Length != 0)
                     {
-                        log.Error(
+                        log.LogError(
                             "Result {0} mistmatched with requested number of columns {1}",
                             result.Length,
                             columns.Length);

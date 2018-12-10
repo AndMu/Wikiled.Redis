@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using NLog;
+using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
+using Wikiled.Common.Logging;
 using Wikiled.Redis.Keys;
 using Wikiled.Redis.Logic;
 
@@ -14,7 +15,7 @@ namespace Wikiled.Redis.Serialization
     {
         private readonly IRedisLink link;
 
-        private static readonly Logger log = LogManager.GetCurrentClassLogger();
+        private static readonly ILogger log = ApplicationLogging.CreateLogger<SingleItemSerialization>();
 
         private readonly IObjectSerialization objectSerialization;
 
@@ -42,7 +43,7 @@ namespace Wikiled.Redis.Serialization
                 throw new ArgumentNullException(nameof(instances));
             }
 
-            log.Debug("AddRecords: {0}", instances.Length);
+            log.LogDebug("AddRecords: {0}", instances.Length);
             if (instances.Length > 1)
             {
                 throw new ArgumentOutOfRangeException();
@@ -91,11 +92,11 @@ namespace Wikiled.Redis.Serialization
             }
 
             var key = link.GetKey(dataKey);
-            log.Debug("GetRecords: {0}", key);
+            log.LogDebug("GetRecords: {0}", key);
             if (fromRecord != 0 &&
                 toRecord != -1)
             {
-                log.Warn("Selecting index is not supported for single item");
+                log.LogWarning("Selecting index is not supported for single item");
             }
 
             return Observable.Create<T>(
@@ -104,7 +105,7 @@ namespace Wikiled.Redis.Serialization
                     var exist = await database.KeyExistsAsync(key).ConfigureAwait(false);
                     if (!exist)
                     {
-                        log.Debug("Key doesn't exist: {0}", key);
+                        log.LogDebug("Key doesn't exist: {0}", key);
                         observer.OnCompleted();
                         return;
                     }

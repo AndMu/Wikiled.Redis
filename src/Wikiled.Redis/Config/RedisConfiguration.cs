@@ -3,15 +3,16 @@ using System.Collections.Generic;
 using System.Net;
 using System.Text;
 using System.Xml.Serialization;
-using NLog;
+using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
+using Wikiled.Common.Logging;
 
 namespace Wikiled.Redis.Config
 {
     [XmlRoot("RedisConfig")]
     public class RedisConfiguration : IRedisConfiguration
     {
-        private readonly Logger logger = LogManager.GetCurrentClassLogger();
+        private static readonly ILogger logger = ApplicationLogging.CreateLogger<RedisConfiguration>();
 
         public RedisConfiguration()
         {
@@ -139,11 +140,11 @@ namespace Wikiled.Redis.Config
 
             foreach (var endpoint in Endpoints)
             {
-                logger.Info("Configure Host: {0}", endpoint);
+                logger.LogInformation("Configure Host: {0}", endpoint);
                 config.EndPoints.Add(endpoint.Host, endpoint.Port);
             }
 
-            logger.Info(
+            logger.LogInformation(
                 "Other configuration - KeepAlive:[{0}] ConnectTimeout:[{1}] SyncTimeout:[{2}] ServiceName:[{3}] AllowAdmin:[{4}]",
                 config.KeepAlive,
                 config.ConnectTimeout,

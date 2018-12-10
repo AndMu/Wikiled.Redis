@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using NLog;
+using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
+using Wikiled.Common.Logging;
 using Wikiled.Redis.Logic;
 
 namespace Wikiled.Redis.Serialization
@@ -11,7 +12,7 @@ namespace Wikiled.Redis.Serialization
     {
         private readonly IRedisLink link;
 
-        private static readonly Logger log = LogManager.GetCurrentClassLogger();
+        private static readonly ILogger log = ApplicationLogging.CreateLogger<HashSetSerialization>();
 
         public HashSetSerialization(IRedisLink link)
         {
@@ -23,7 +24,7 @@ namespace Wikiled.Redis.Serialization
             var definition = link.GetDefinition<T>();
             if(definition.Serializer == null)
             {
-                log.Error("Serialzer not found");
+                log.LogError("Serializer not found");
                 return new string[] {};
             }
 
@@ -40,7 +41,7 @@ namespace Wikiled.Redis.Serialization
             var definition = link.GetDefinition<T>();
             if(definition.Serializer == null)
             {
-                log.Error("Serializer not found");
+                log.LogError("Serializer not found");
                 yield break;
             }
 

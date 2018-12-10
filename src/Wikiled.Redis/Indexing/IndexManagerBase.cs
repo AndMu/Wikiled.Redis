@@ -2,8 +2,9 @@ using System;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using NLog;
+using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
+using Wikiled.Common.Logging;
 using Wikiled.Redis.Helpers;
 using Wikiled.Redis.Keys;
 using Wikiled.Redis.Logic;
@@ -14,7 +15,7 @@ namespace Wikiled.Redis.Indexing
     {
         private readonly IIndexKey[] indexes;
 
-        private static readonly Logger log = LogManager.GetCurrentClassLogger();
+        private static readonly ILogger log = ApplicationLogging.CreateLogger<IndexManagerBase>();
 
         private readonly string repository;
 
@@ -72,14 +73,14 @@ namespace Wikiled.Redis.Indexing
 
         public IObservable<IDataKey> GetKeys(long start = 0, long stop = -1)
         {
-            log.Debug("GetKeys {0}", indexes);
+            log.LogDebug("GetKeys {0}", indexes);
             var keys = GetIds(start, stop);
             return keys.Select(item => GetKey(item));
         }
 
         public Task Reset()
         {
-            log.Debug("Reset {0}", indexes);
+            log.LogDebug("Reset {0}", indexes);
             var tasks = indexes.Select(item => Database.KeyDeleteAsync(Link.GetIndexKey(item)));
             return Task.WhenAll(tasks);
         }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
-using NLog;
+using Microsoft.Extensions.Logging;
+using Wikiled.Common.Logging;
 using Wikiled.Redis.Channels;
 using Wikiled.Redis.Data;
 using Wikiled.Redis.Serialization;
@@ -9,7 +10,7 @@ namespace Wikiled.Redis.Logic
 {
     public class HandlingDefinition<T>
     {
-        private static readonly Logger log = LogManager.GetLogger($"HandlingDefinition<{typeof(T)}>");
+        private static readonly ILogger log = ApplicationLogging.CreateLogger($"HandlingDefinition<{typeof(T)}>");
 
         private long counter;
 
@@ -136,7 +137,7 @@ namespace Wikiled.Redis.Logic
                 throw new ArgumentOutOfRangeException("Redis link id invalid", nameof(redis));
             }
 
-            log.Debug("ConstructGeneric");
+            log.LogDebug("ConstructGeneric");
             if (RedisValueExtractor.IsPrimitive<T>() &&
                (serializer != null))
             {

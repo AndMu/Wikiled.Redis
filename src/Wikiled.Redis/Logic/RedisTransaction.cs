@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
-using NLog;
+using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
+using Wikiled.Common.Logging;
 using Wikiled.Redis.Channels;
 
 namespace Wikiled.Redis.Logic
@@ -10,7 +11,7 @@ namespace Wikiled.Redis.Logic
     {
         private readonly IRedisLink link;
 
-        private static readonly Logger log = LogManager.GetCurrentClassLogger();
+        private static readonly ILogger log = ApplicationLogging.CreateLogger<RedisTransaction>();
 
         private readonly ITransaction transaction;
 
@@ -27,11 +28,11 @@ namespace Wikiled.Redis.Logic
         {
             if(link.State != ChannelState.Open)
             {
-                log.Warn("Can't commit transaction with non open link");
+                log.LogWarning("Can't commit transaction with non open link");
                 return Task.CompletedTask;
             }
 
-            log.Debug("Commit");
+            log.LogDebug("Commit");
             return transaction.ExecuteAsync();
         }
     }

@@ -6,8 +6,9 @@ using System.Reactive.Threading.Tasks;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using NLog;
+using Microsoft.Extensions.Logging;
 using NUnit.Framework;
+using Wikiled.Common.Logging;
 using Wikiled.Common.Serialization;
 using Wikiled.Redis.Config;
 using Wikiled.Redis.Logic;
@@ -18,7 +19,7 @@ namespace Wikiled.Redis.IntegrationTests.Replication
     [TestFixture]
     public class RedisReplicationTests
     {
-        private static readonly Logger log = LogManager.GetCurrentClassLogger();
+        private static readonly ILogger log = ApplicationLogging.CreateLogger<RedisReplicationTests>();
 
         private RedisInside.Redis redisOne;
 
@@ -36,8 +37,8 @@ namespace Wikiled.Redis.IntegrationTests.Replication
         public async Task Setup()
         {
             factory = new ReplicationFactory(new SimpleRedisFactory(), TaskPoolScheduler.Default);
-            redisOne = new RedisInside.Redis(i => i.LogTo(item => log.Debug(item)).WithPersistence());
-            redisTwo = new RedisInside.Redis(i => i.LogTo(item => log.Debug(item)).WithPersistence());
+            redisOne = new RedisInside.Redis(i => i.LogTo(item => log.LogDebug(item)).WithPersistence());
+            redisTwo = new RedisInside.Redis(i => i.LogTo(item => log.LogDebug(item)).WithPersistence());
             
             await Task.Delay(500).ConfigureAwait(false);
             var config = XDocument.Load(Path.Combine(TestContext.CurrentContext.TestDirectory, @"Config\redis.config")).XmlDeserialize<RedisConfiguration>();

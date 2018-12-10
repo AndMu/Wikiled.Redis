@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using NLog;
+using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
+using Wikiled.Common.Logging;
 using Wikiled.Redis.Config;
 using Wikiled.Redis.Information;
 using Wikiled.Redis.Serialization.Subscription;
@@ -15,7 +16,7 @@ namespace Wikiled.Redis.Logic
     {
         private readonly RedisConfiguration configuration;
 
-        private static readonly Logger log = LogManager.GetCurrentClassLogger();
+        private static readonly ILogger log = ApplicationLogging.CreateLogger<RedisMultiplexer>();
 
         private ConnectionMultiplexer connection;
 
@@ -51,7 +52,7 @@ namespace Wikiled.Redis.Logic
 
         public void Configure(string key, string value)
         {
-            log.Warn("Configure");
+            log.LogWarning("Configure");
             CheckConnection();
             foreach (var server in GetServers())
             {
@@ -61,7 +62,7 @@ namespace Wikiled.Redis.Logic
 
         public Task DeleteKeys(string pattern)
         {
-            log.Warn("DeleteKeys: <{0}>", pattern);
+            log.LogWarning("DeleteKeys: <{0}>", pattern);
             int total = 0;
             List<Task> tasks = new List<Task>();
             foreach (var key in GetKeys(pattern))
@@ -70,7 +71,7 @@ namespace Wikiled.Redis.Logic
                 tasks.Add(Database.KeyDeleteAsync(key));
             }
 
-            log.Warn("Deleted Keys: <{0}> - {1} keys", pattern, total);
+            log.LogWarning("Deleted Keys: <{0}> - {1} keys", pattern, total);
             return Task.WhenAll(tasks);
         }
 
@@ -88,7 +89,7 @@ namespace Wikiled.Redis.Logic
 
         public void Flush()
         {
-            log.Warn("Flush");
+            log.LogWarning("Flush");
             CheckConnection();
             foreach (var server in GetServers())
             {
@@ -98,7 +99,7 @@ namespace Wikiled.Redis.Logic
 
         public void Shutdown()
         {
-            log.Warn("Shutdown");
+            log.LogWarning("Shutdown");
             CheckConnection();
             foreach (var server in GetServers())
             {
@@ -113,7 +114,7 @@ namespace Wikiled.Redis.Logic
 
         public IEnumerable<RedisKey> GetKeys(string pattern)
         {
-            log.Warn("GetKeys: <{0}>", pattern);
+            log.LogWarning("GetKeys: <{0}>", pattern);
             return GetServers().SelectMany(server => server.Keys(pattern: pattern));
         }
 
@@ -127,11 +128,11 @@ namespace Wikiled.Redis.Logic
         {
             if (connection != null)
             {
-                log.Info("Connection is already open");
+                log.LogInformation("Connection is already open");
                 return;
             }
 
-            log.Debug("Openning...");
+            log.LogDebug("Openning...");
             connection = ConnectionMultiplexer.Connect(Configuration.GetOptions());
             Database = connection.GetDatabase();
             connection.ConnectionFailed += OnConnectionFailed;
@@ -171,7 +172,7 @@ namespace Wikiled.Redis.Logic
 
         private void OnInternalError(object sender, InternalErrorEventArgs eventArgs)
         {
-            log.Error(
+            log.LogError(
                 "Redis Internal Error: EndPoint='{0}', Origin='{1}', Exception='{2}'",
                 eventArgs.EndPoint,
                 eventArgs.Origin,
@@ -180,19 +181,19 @@ namespace Wikiled.Redis.Logic
 
         private void OnErrorMessage(object sender, RedisErrorEventArgs eventArgs)
         {
-            log.Error("Redis Error Message: EndPoint='{0}', Message='{1}'.", eventArgs.EndPoint, eventArgs.Message);
+            log.LogError("Redis Error Message: EndPoint='{0}', Message='{1}'.", eventArgs.EndPoint, eventArgs.Message);
         }
 
         private void OnConnectionRestored(object sender, ConnectionFailedEventArgs eventArgs)
         {
-            log.Info(
+            log.LogInformation(
                 "Connection Restored: EndPoint='{0}'.",
                 eventArgs.EndPoint);
         }
 
         private void OnConnectionFailed(object sender, ConnectionFailedEventArgs eventArgs)
         {
-            log.Error(
+            log.LogError(
                 "Connection Failed: EndPoint='{0}', FailureType='{1}', Exception='{2}'.",
                 eventArgs.EndPoint,
                 eventArgs.FailureType,
