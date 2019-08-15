@@ -129,12 +129,11 @@ namespace Wikiled.Redis.Config
                                      "CLIENT"
                                  },
                                  false),
-                KeepAlive = KeepAlive, // 60 sec to ensure connection is alive
-                ConnectTimeout = ConnectTimeout, // 5 sec
-                SyncTimeout = SyncTimeout, // 5 sec
-                ServiceName = ServiceName, // sentinel service name
+                KeepAlive = KeepAlive,              // 60 sec to ensure connection is alive
+                ConnectTimeout = ConnectTimeout,    // 5 sec
+                SyncTimeout = SyncTimeout,          // 5 sec
+                ServiceName = ServiceName,          // sentinel service name
                 AllowAdmin = AllowAdmin,
-                ResponseTimeout = ResponseTimeout,
                 AbortOnConnectFail = false
             };
 

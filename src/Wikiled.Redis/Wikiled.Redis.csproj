@@ -16,13 +16,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Autofac" Version="4.8.1" />
-    <PackageReference Include="Polly" Version="6.1.2" />
+    <PackageReference Include="Autofac" Version="4.9.3" />
+    <PackageReference Include="Polly" Version="7.1.0" />
     <PackageReference Include="protobuf-net" version="2.4.0" />
     <PackageReference Include="Snappy.Standard" Version="0.2.0" />
-    <PackageReference Include="StackExchange.Redis" version="2.0.519" />
-    <PackageReference Include="System.Reactive" Version="4.1.2" />
-    <PackageReference Include="Wikiled.Common" Version="1.1.5" />
+    <PackageReference Include="StackExchange.Redis" version="2.0.601" />
+    <PackageReference Include="System.Reactive" Version="4.1.6" />
+    <PackageReference Include="Wikiled.Common" Version="1.1.9" />
   </ItemGroup>
 
   <ItemGroup>
