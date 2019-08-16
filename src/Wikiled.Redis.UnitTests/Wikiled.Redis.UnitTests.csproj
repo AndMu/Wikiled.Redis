@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>NET472</TargetFrameworks>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
 
@@ -10,6 +10,7 @@
     <PackageReference Include="Moq" version="4.12.0" />
     <PackageReference Include="NUnit" version="3.12.0" />
     <PackageReference Include="NUnit3TestAdapter" Version="3.14.0" />
+    <packagereference Include="Microsoft.NET.Test.Sdk" Version="16.2.0"></packagereference>
     <PackageReference Include="protobuf-net" version="2.4.0" />
     <PackageReference Include="StackExchange.Redis" version="2.0.601" />
   </ItemGroup>

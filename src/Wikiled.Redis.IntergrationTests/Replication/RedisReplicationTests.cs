@@ -56,7 +56,7 @@ namespace Wikiled.Redis.IntegrationTests.Replication
             var data = linkOne.Database.ListRange(key);
             Assert.AreEqual(0, data.Length);
 
-            // adding new recorrd
+            // adding new record
             linkOne.Database.ListLeftPush(key, "Test");
             data = linkOne.Database.ListRange(key);
             Assert.AreEqual(1, data.Length);

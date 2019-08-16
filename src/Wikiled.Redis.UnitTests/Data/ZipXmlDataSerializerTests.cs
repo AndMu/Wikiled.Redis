@@ -16,7 +16,7 @@ namespace Wikiled.Redis.UnitTests.Data
             var data = serializerTests.Serialize(order);
             var orderResult = serializerTests.Deserialize<MainDataOne>(data);
             Assert.AreNotSame(order, orderResult);
-            Assert.AreEqual(73, data.Length);
+            Assert.AreEqual(79, data.Length);
             Assert.AreEqual("Test", orderResult.Name);
         }
 
@@ -29,7 +29,7 @@ namespace Wikiled.Redis.UnitTests.Data
             var data = serializerTests.Serialize(order);
             var orderResult = (IMainData)serializerTests.Deserialize(typeof(MainDataOne), data);
             Assert.AreNotSame(order, orderResult);
-            Assert.AreEqual(73, data.Length);
+            Assert.AreEqual(79, data.Length);
             Assert.AreEqual("Test", orderResult.Name);
         }
     }
