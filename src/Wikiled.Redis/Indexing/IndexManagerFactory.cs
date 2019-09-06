@@ -26,18 +26,14 @@ namespace Wikiled.Redis.Indexing
                 throw new ArgumentException("Value cannot be an empty collection.", nameof(index));
             }
 
-            var indexKey = index[0] as IndexKey;
-            var hashIndex = index[0] as HashIndexKey;
-            if (indexKey != null)
+            switch (index[0])
             {
-                return indexKey.IsSet
-                           ? (IIndexManager)new SetIndexManager(link, database, index)
-                           : new ListIndexManager(link, database, index);
-            }
-
-            if (hashIndex != null)
-            {
-                return new HashIndexManager(link, database, index);
+                case IndexKey indexKey:
+                    return indexKey.IsSet
+                        ? (IIndexManager)new SetIndexManager(link, database, index)
+                        : new ListIndexManager(link, database, index);
+                case HashIndexKey indexKey:
+                    return new HashIndexManager(link, database, indexKey);
             }
 
             throw new NotSupportedException("Indexing type is not supported: " + index);
