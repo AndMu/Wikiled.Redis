@@ -1,4 +1,3 @@
-using Moq;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -11,11 +10,11 @@ using Wikiled.Redis.Replication;
 namespace Wikiled.Redis.UnitTests.Replication
 {
     [TestFixture]
-    public class LogginProgressTrackerTests : ReactiveTest
+    public class LoggingProgressTrackerTests : ReactiveTest
     {
         private TestScheduler scheduler;
 
-        private LogginProgressTracker instance;
+        private LoggingProgressTracker instance;
 
         private List<string> messages;
 
@@ -51,21 +50,21 @@ namespace Wikiled.Redis.UnitTests.Replication
         public void Construct()
         {
             Assert.Throws<ArgumentNullException>(
-                () => new LogginProgressTracker(
+                () => new LoggingProgressTracker(
                     null,
                     TimeSpan.FromMinutes(1),
                     s => { }));
 
             Assert.Throws<ArgumentNullException>(
-                () => new LogginProgressTracker(
+                () => new LoggingProgressTracker(
                     scheduler,
                     TimeSpan.FromMinutes(1),
                     null));
         }
 
-        private LogginProgressTracker CreateLogginProgressTracker()
+        private LoggingProgressTracker CreateLogginProgressTracker()
         {
-            return new LogginProgressTracker(
+            return new LoggingProgressTracker(
                 scheduler,
                 TimeSpan.FromSeconds(1),
                 item => messages.Add(item));

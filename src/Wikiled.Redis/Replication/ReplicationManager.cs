@@ -21,10 +21,7 @@ namespace Wikiled.Redis.Replication
 
         private EndPoint masterEndPoint;
 
-        public ReplicationManager(
-            IRedisMultiplexer master,
-            IRedisMultiplexer slave,
-            IObservable<long> timer)
+        public ReplicationManager(IRedisMultiplexer master, IRedisMultiplexer slave, IObservable<long> timer)
             : base("Replication")
         {
             if (timer == null)
@@ -72,7 +69,7 @@ namespace Wikiled.Redis.Replication
 
         private static HostStatus[] GetSlaveInformation(IServerInformation information)
         {
-            List<HostStatus> slaves = new List<HostStatus>(information.Replication.Slaves.Length);
+            var slaves = new List<HostStatus>(information.Replication.Slaves.Length);
             foreach (var slaveInformation in information.Replication.Slaves)
             {
                 slaves.Add(new HostStatus(slaveInformation.EndPoint, slaveInformation.Offset));

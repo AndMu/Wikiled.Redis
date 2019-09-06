@@ -16,9 +16,9 @@ namespace Wikiled.Redis.Replication
 
         private readonly IScheduler scheduler;
 
-        private readonly ILogginProgressTracker tracker;
+        private readonly ILoggingProgressTracker tracker;
 
-        public ReplicationFactory(IRedisFactory redisFactory, IScheduler scheduler, ILogginProgressTracker tracker = null)
+        public ReplicationFactory(IRedisFactory redisFactory, IScheduler scheduler, ILoggingProgressTracker tracker = null)
         {
             this.redisFactory = redisFactory ?? throw new ArgumentNullException(nameof(redisFactory));
             this.scheduler = scheduler ?? throw new ArgumentNullException(nameof(scheduler));

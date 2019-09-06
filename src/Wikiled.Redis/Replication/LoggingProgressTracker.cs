@@ -4,7 +4,7 @@ using System.Reactive.Linq;
 
 namespace Wikiled.Redis.Replication
 {
-    public class LogginProgressTracker : ILogginProgressTracker
+    public class LoggingProgressTracker : ILoggingProgressTracker
     {
         private readonly IScheduler scheduler;
 
@@ -12,7 +12,7 @@ namespace Wikiled.Redis.Replication
 
         private readonly Action<string> logging;
 
-        public LogginProgressTracker(IScheduler scheduler, TimeSpan frequency, Action<string> logging)
+        public LoggingProgressTracker(IScheduler scheduler, TimeSpan frequency, Action<string> logging)
         {
             this.scheduler = scheduler ?? throw new ArgumentNullException(nameof(scheduler));
             this.frequency = frequency;

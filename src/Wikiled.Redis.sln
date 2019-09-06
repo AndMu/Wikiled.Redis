@@ -1,23 +1,23 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26430.12
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29215.179
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Source", "Source", "{ED5468D9-B9AF-40C5-9F26-B4E82D1A2F7F}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{78D81A07-8B09-445D-AB7A-0FA8B3D7E734}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wikiled.Redis", "Wikiled.Redis\Wikiled.Redis.csproj", "{751548A8-9F5E-40E7-A50A-5BCAC239363F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wikiled.Redis", "Wikiled.Redis\Wikiled.Redis.csproj", "{751548A8-9F5E-40E7-A50A-5BCAC239363F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wikiled.Redis.IntegrationTests", "Wikiled.Redis.IntergrationTests\Wikiled.Redis.IntegrationTests.csproj", "{8DE13383-5B8F-4863-96FC-984CFAFC0919}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wikiled.Redis.IntegrationTests", "Wikiled.Redis.IntergrationTests\Wikiled.Redis.IntegrationTests.csproj", "{8DE13383-5B8F-4863-96FC-984CFAFC0919}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wikiled.Redis.UnitTests", "Wikiled.Redis.UnitTests\Wikiled.Redis.UnitTests.csproj", "{0A53B8F3-7C69-472C-8E2D-B9F69D63BDBB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wikiled.Redis.UnitTests", "Wikiled.Redis.UnitTests\Wikiled.Redis.UnitTests.csproj", "{0A53B8F3-7C69-472C-8E2D-B9F69D63BDBB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wikiled.FlatBuffers", "Wikiled.FlatBuffers\Wikiled.FlatBuffers.csproj", "{28C00774-1E73-4A75-AD8F-844CD21A064D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wikiled.FlatBuffers", "Wikiled.FlatBuffers\Wikiled.FlatBuffers.csproj", "{28C00774-1E73-4A75-AD8F-844CD21A064D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Utilities", "Utilities", "{7167019B-DD8F-400E-9199-FB4BB8B18FC8}"
 EndProject
 Global
-	GlobalSection(SubversionScc) = preSolution
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Debug|ARM = Debug|ARM
@@ -104,7 +104,10 @@ Global
 		{28C00774-1E73-4A75-AD8F-844CD21A064D} = {ED5468D9-B9AF-40C5-9F26-B4E82D1A2F7F}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {78BBFE11-823C-4553-94BC-001AE7246B67}
 		EnterpriseLibraryConfigurationToolBinariesPath = packages\TransientFaultHandling.Core.5.1.1209.1\lib\NET4
 		EnterpriseLibraryConfigurationToolBinariesPathV6 = packages\EnterpriseLibrary.TransientFaultHandling.6.0.1304.0\lib\portable-net45+win+wp8
+	EndGlobalSection
+	GlobalSection(SubversionScc) = preSolution
 	EndGlobalSection
 EndGlobal
