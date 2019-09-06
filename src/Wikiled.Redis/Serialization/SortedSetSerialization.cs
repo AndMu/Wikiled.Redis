@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
 using Wikiled.Common.Logging;
+using Wikiled.Redis.Indexing;
 using Wikiled.Redis.Keys;
 using Wikiled.Redis.Logic;
 
@@ -17,10 +18,13 @@ namespace Wikiled.Redis.Serialization
 
         private static readonly ILogger log = ApplicationLogging.CreateLogger<SortedSetSerialization>();
 
-        public SortedSetSerialization(IRedisLink link)
+        private readonly IMainIndexManager mainIndexManager;
+
+        public SortedSetSerialization(IRedisLink link, IMainIndexManager mainIndexManager)
             : base(link)
         {
             this.link = link ?? throw new ArgumentNullException(nameof(link));
+            this.mainIndexManager = mainIndexManager ?? throw new ArgumentNullException(nameof(mainIndexManager));
         }
 
         public Task AddRecord<T>(IDatabaseAsync database, IDataKey key, params T[] instances)
@@ -65,7 +69,7 @@ namespace Wikiled.Redis.Serialization
                 throw new ArgumentOutOfRangeException(nameof(T));
             }
 
-            List<Task> tasks = new List<Task>();
+            var tasks = new List<Task>();
             var entries = instances.Cast<SortedSetEntry>().ToArray();
             foreach (var key in keys)
             {
@@ -74,7 +78,7 @@ namespace Wikiled.Redis.Serialization
                     redisKey,
                     entries);
 
-                tasks.AddRange(link.Indexing(database, key));
+                tasks.AddRange(mainIndexManager.Add(database, key));
                 tasks.Add(saveTask);
             }
 

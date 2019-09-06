@@ -13,6 +13,8 @@ namespace Wikiled.Redis.Indexing
         /// <param name="key"></param>
         Task AddIndex(IDataKey key);
 
+        Task RemoveIndex(IDataKey key);
+
         /// <summary>
         ///     Add raw index
         /// </summary>
@@ -39,7 +41,7 @@ namespace Wikiled.Redis.Indexing
         IObservable<IDataKey> GetKeys(long start = 0, long stop = -1);
 
         /// <summary>
-        ///     Rset
+        ///    Reset
         /// </summary>
         Task Reset();
     }

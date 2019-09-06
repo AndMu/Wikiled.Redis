@@ -5,6 +5,7 @@ using Moq;
 using NUnit.Framework;
 using StackExchange.Redis;
 using Wikiled.Redis.Channels;
+using Wikiled.Redis.Indexing;
 
 namespace Wikiled.Redis.UnitTests.Logic
 {
@@ -17,19 +18,23 @@ namespace Wikiled.Redis.UnitTests.Logic
 
         private RedisTransaction instance;
 
+        private Mock<IMainIndexManager> mainIndexManager;
+
         [SetUp]
         public void Setup()
         {
+            mainIndexManager = new Mock<IMainIndexManager>();
             link = new Mock<IRedisLink>();
             transaction = new Mock<ITransaction>();
-            instance = new RedisTransaction(link.Object, transaction.Object);
+            instance = new RedisTransaction(link.Object, transaction.Object, mainIndexManager.Object);
         }
 
         [Test]
         public void Construct()
         {
-            Assert.Throws<ArgumentNullException>(() => new RedisTransaction(null, transaction.Object));
-            Assert.Throws<ArgumentNullException>(() => new RedisTransaction(link.Object, null));
+            Assert.Throws<ArgumentNullException>(() => new RedisTransaction(null, transaction.Object, mainIndexManager.Object));
+            Assert.Throws<ArgumentNullException>(() => new RedisTransaction(link.Object, null, mainIndexManager.Object));
+            Assert.Throws<ArgumentNullException>(() => new RedisTransaction(link.Object, transaction.Object, null));
             Assert.IsNotNull(instance.Client);
         }
 

@@ -9,6 +9,7 @@ using NUnit.Framework;
 using StackExchange.Redis;
 using Wikiled.Redis.Channels;
 using Wikiled.Redis.Config;
+using Wikiled.Redis.Indexing;
 
 namespace Wikiled.Redis.UnitTests.Serialization
 {
@@ -27,10 +28,13 @@ namespace Wikiled.Redis.UnitTests.Serialization
 
         private Mock<IObjectSerialization> objecMock;
 
+        private Mock<IMainIndexManager> mainIndexManager;
+
         [SetUp]
         public void Setup()
         {
-            RedisConfiguration configuration = new RedisConfiguration("Test");
+            mainIndexManager = new Mock<IMainIndexManager>();
+            var configuration = new RedisConfiguration("Test");
             link = new Mock<IRedisLink>();
             var multiplexer = new Mock<IRedisMultiplexer>();
             multiplexer.Setup(item => item.Configuration).Returns(configuration);
@@ -42,14 +46,15 @@ namespace Wikiled.Redis.UnitTests.Serialization
             database = new Mock<IDatabaseAsync>();
             objecMock = new Mock<IObjectSerialization>();
             link.Setup(item => item.GetDefinition<Identity>()).Returns(HandlingDefinition<Identity>.ConstructGeneric(link.Object));
-            instance = new SingleItemSerialization(link.Object, objecMock.Object);
+            instance = new SingleItemSerialization(link.Object, objecMock.Object, mainIndexManager.Object);
         }
 
         [Test]
         public void Construct()
         {
-            Assert.Throws<ArgumentNullException>(() => new SingleItemSerialization(null, objecMock.Object));
-            Assert.Throws<ArgumentNullException>(() => new SingleItemSerialization(link.Object, null));
+            Assert.Throws<ArgumentNullException>(() => new SingleItemSerialization(null, objecMock.Object, mainIndexManager.Object));
+            Assert.Throws<ArgumentNullException>(() => new SingleItemSerialization(link.Object, null, mainIndexManager.Object));
+            Assert.Throws<ArgumentNullException>(() => new SingleItemSerialization(link.Object, objecMock.Object, null));
         }
 
         [Test]
@@ -77,7 +82,7 @@ namespace Wikiled.Redis.UnitTests.Serialization
             key.AddIndex(new IndexKey("Test", false));
             await instance.AddRecord(database.Object, key, data).ConfigureAwait(false);
             database.Verify(item => item.HashSetAsync(It.IsAny<RedisKey>(), It.IsAny<HashEntry[]>(), CommandFlags.None), Times.Exactly(1));
-            database.Verify(item => item.ListLeftPushAsync(It.IsAny<RedisKey>(), It.IsAny<RedisValue>(), When.Always, CommandFlags.None), Times.Exactly(1));
+            mainIndexManager.Verify(item => item.Add(It.IsAny<IDatabaseAsync>(), It.IsAny<IDataKey>()));
         }
 
         [Test]
@@ -85,7 +90,8 @@ namespace Wikiled.Redis.UnitTests.Serialization
         {
             key.AddIndex(new HashIndexKey("Test", "Test2"));
             await instance.AddRecord(database.Object, key, data).ConfigureAwait(false);
-            database.Verify(item => item.HashSetAsync(It.IsAny<RedisKey>(), It.IsAny<HashEntry[]>(), CommandFlags.None), Times.Exactly(2));
+            mainIndexManager.Verify(item => item.Add(It.IsAny<IDatabaseAsync>(), It.IsAny<IDataKey>()));
+            database.Verify(item => item.HashSetAsync(It.IsAny<RedisKey>(), It.IsAny<HashEntry[]>(), CommandFlags.None));
             database.Verify(item => item.ListLeftPushAsync(It.IsAny<RedisKey>(), It.IsAny<RedisValue>(), When.Always, CommandFlags.None), Times.Exactly(0));
         }
 

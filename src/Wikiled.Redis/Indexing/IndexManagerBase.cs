@@ -52,6 +52,17 @@ namespace Wikiled.Redis.Indexing
             return Task.WhenAll(tasks);
         }
 
+        public Task RemoveIndex(IDataKey key)
+        {
+            if (key?.RecordId == null)
+            {
+                throw new ArgumentNullException(nameof(key));
+            }
+
+            var tasks = indexes.Select(index => RemoveRawIndex(index, key.RecordId));
+            return Task.WhenAll(tasks);
+        }
+
         public async Task<long> Count()
         {
             var tasks = indexes.Select(SingleCount);
@@ -73,17 +84,19 @@ namespace Wikiled.Redis.Indexing
 
         public IObservable<IDataKey> GetKeys(long start = 0, long stop = -1)
         {
-            log.LogDebug("GetKeys {0}", indexes);
+            log.LogDebug("GetKeys");
             var keys = GetIds(start, stop);
             return keys.Select(item => GetKey(item));
         }
 
         public Task Reset()
         {
-            log.LogDebug("Reset {0}", indexes);
+            log.LogDebug("Reset");
             var tasks = indexes.Select(item => Database.KeyDeleteAsync(Link.GetIndexKey(item)));
             return Task.WhenAll(tasks);
         }
+
+        protected abstract Task RemoveRawIndex(IIndexKey index, string rawKey);
 
         protected abstract Task AddRawIndex(IIndexKey index, string rawKey);
 

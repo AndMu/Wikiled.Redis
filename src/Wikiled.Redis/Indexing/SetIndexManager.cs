@@ -15,6 +15,11 @@ namespace Wikiled.Redis.Indexing
         {
         }
 
+        protected override Task RemoveRawIndex(IIndexKey index, string rawKey)
+        {
+            return Database.SortedSetRemoveAsync(Link.GetIndexKey(index), rawKey);
+        }
+
         protected override Task AddRawIndex(IIndexKey index, string rawKey)
         {
             return Database.SortedSetAddAsync(Link.GetIndexKey(index), rawKey, DateTime.UtcNow.ToUnixTime());

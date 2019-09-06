@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
 using Wikiled.Common.Logging;
+using Wikiled.Redis.Indexing;
 using Wikiled.Redis.Keys;
 using Wikiled.Redis.Logic;
 
@@ -19,10 +20,13 @@ namespace Wikiled.Redis.Serialization
 
         private readonly IObjectSerialization objectSerialization;
 
-        public SingleItemSerialization(IRedisLink link, IObjectSerialization objectSerialization)
+        private readonly IMainIndexManager mainIndexManager;
+
+        public SingleItemSerialization(IRedisLink link, IObjectSerialization objectSerialization, IMainIndexManager mainIndexManager)
             : base(link)
         {
             this.objectSerialization = objectSerialization ?? throw new ArgumentNullException(nameof(objectSerialization));
+            this.mainIndexManager = mainIndexManager ?? throw new ArgumentNullException(nameof(mainIndexManager));
             this.link = link ?? throw new ArgumentNullException(nameof(link));
         }
 
@@ -50,11 +54,11 @@ namespace Wikiled.Redis.Serialization
             }
 
             var instance = instances[0];
-            List<Task> tasks = new List<Task>();
+            var tasks = new List<Task>();
             var actualKey = link.GetKey(objectKey);
             var entries = objectSerialization.GetEntries(instance).ToArray();
             tasks.Add(database.HashSetAsync(actualKey, entries));
-            tasks.AddRange(link.Indexing(database, objectKey));
+            tasks.AddRange(mainIndexManager.Add(database, objectKey));
             return Task.WhenAll(tasks);
         }
 
@@ -132,10 +136,10 @@ namespace Wikiled.Redis.Serialization
         {
             var table = result.ToDictionary(item => item.Name, item => item.Value);
             var columns = objectSerialization.GetColumns<T>();
-            RedisValue[] values = new RedisValue[columns.Length];
-            for (int i = 0; i < columns.Length; i++)
+            var values = new RedisValue[columns.Length];
+            for (var i = 0; i < columns.Length; i++)
             {
-                if (table.TryGetValue(columns[i], out RedisValue value))
+                if (table.TryGetValue(columns[i], out var value))
                 {
                     values[i] = value;
                 }

@@ -1,28 +1,20 @@
-﻿namespace Wikiled.Common.Persistency
+﻿namespace Wikiled.Redis.Persistency
 {
     public class CachingStrategy
     {
-        private static readonly CachingStrategy nullInstance = new CachingStrategy();
-
         public CachingStrategy(bool isNew = false, bool disabled = false)
         {
             IsNew = isNew;
             DisableCaching = disabled;
         }
 
-        public static CachingStrategy Null
-        {
-            get
-            {
-                return nullInstance;
-            }
-        }
+        public static CachingStrategy Null { get; } = new CachingStrategy();
 
-        public bool DisableCaching { get; private set; }
+        public bool DisableCaching { get; }
 
         /// <summary>
         ///     Do we care only about latest versions caching
         /// </summary>
-        public bool IsNew { get; private set; }
+        public bool IsNew { get; }
     }
 }

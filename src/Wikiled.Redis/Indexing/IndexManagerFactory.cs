@@ -7,17 +7,14 @@ namespace Wikiled.Redis.Indexing
 {
     public class IndexManagerFactory : IIndexManagerFactory
     {
-        private readonly IDatabaseAsync database;
-
         private readonly IRedisLink link;
 
-        public IndexManagerFactory(IRedisLink link, IDatabaseAsync database)
+        public IndexManagerFactory(IRedisLink link)
         {
             this.link = link ?? throw new ArgumentNullException(nameof(link));
-            this.database = database ?? throw new ArgumentNullException(nameof(database));
         }
 
-        public IIndexManager Create(params IIndexKey[] index)
+        public IIndexManager Create(IDatabaseAsync database, params IIndexKey[] index)
         {
             if (index == null)
             {

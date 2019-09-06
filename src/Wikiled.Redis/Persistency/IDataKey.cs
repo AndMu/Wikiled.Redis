@@ -1,4 +1,4 @@
-﻿namespace Wikiled.Common.Persistency
+﻿namespace Wikiled.Redis.Persistency
 {
     public interface IDataKey
     {

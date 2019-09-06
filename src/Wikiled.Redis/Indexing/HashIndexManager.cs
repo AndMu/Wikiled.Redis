@@ -14,6 +14,12 @@ namespace Wikiled.Redis.Indexing
         {
         }
 
+        protected override Task RemoveRawIndex(IIndexKey index, string rawKey)
+        {
+            var hashIndex = (HashIndexKey)index;
+            return Database.HashDeleteAsync(Link.GetIndexKey(index), hashIndex.HashKey);
+        }
+
         protected override Task AddRawIndex(IIndexKey index, string rawKey)
         {
             var hashIndex = (HashIndexKey)index;

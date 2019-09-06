@@ -8,6 +8,7 @@ using Moq;
 using NUnit.Framework;
 using StackExchange.Redis;
 using Wikiled.Redis.Channels;
+using Wikiled.Redis.Indexing;
 
 namespace Wikiled.Redis.UnitTests.Logic
 {
@@ -24,25 +25,29 @@ namespace Wikiled.Redis.UnitTests.Logic
 
         private Mock<ISpecificPersistency> persistency;
 
+        private Mock<IMainIndexManager> mainIndexManager;
+
         private Identity data;
 
         [SetUp]
         public void Setup()
         {
+            mainIndexManager = new Mock<IMainIndexManager>();
             link = new Mock<IRedisLink>();
             persistency = new Mock<ISpecificPersistency>();
             link.Setup(item => item.GetSpecific<Identity>()).Returns(persistency.Object);
             database = new Mock<IDatabase>();
             link.Setup(item => item.Database).Returns(database.Object);
             key = new ObjectKey("Name");
-            client = new RedisClient(link.Object);
+            client = new RedisClient(link.Object, mainIndexManager.Object);
             data = new Identity();
         }
 
         [Test]
         public void Construct()
         {
-            Assert.Throws<ArgumentNullException>(() => new RedisClient(null));
+            Assert.Throws<ArgumentNullException>(() => new RedisClient(null, mainIndexManager.Object));
+            Assert.Throws<ArgumentNullException>(() => new RedisClient(link.Object, null));
         }
 
         [Test]
@@ -58,7 +63,7 @@ namespace Wikiled.Redis.UnitTests.Logic
         public async Task TestLink()
         {
             var local = new Mock<IDatabaseAsync>();
-            client = new RedisClient(link.Object, local.Object);
+            client = new RedisClient(link.Object, mainIndexManager.Object, local.Object);
             await client.AddRecord(key, data).ConfigureAwait(false);
             persistency.Verify(item => item.AddRecord(local.Object, key, data));
         }

@@ -6,11 +6,13 @@ using StackExchange.Redis;
 using Wikiled.Common.Logging;
 using Wikiled.Common.Reflection;
 using Wikiled.Redis.Channels;
+using Wikiled.Redis.Indexing;
 using Wikiled.Redis.Keys;
 using Wikiled.Redis.Persistency;
 using Wikiled.Redis.Scripts;
 using Wikiled.Redis.Serialization;
 using Wikiled.Redis.Serialization.Subscription;
+using IDataKey = Wikiled.Redis.Keys.IDataKey;
 
 namespace Wikiled.Redis.Logic
 {
@@ -26,12 +28,15 @@ namespace Wikiled.Redis.Logic
 
         private readonly ConcurrentDictionary<string, Type> typeNameTable = new ConcurrentDictionary<string, Type>();
 
+        private readonly IMainIndexManager mainIndexManager;
+
         public RedisLink(string name, IRedisMultiplexer multiplexer)
             : base(name)
         {
             Multiplexer = multiplexer ?? throw new ArgumentNullException(nameof(multiplexer));
             Generator = new ScriptGenerator();
-            Client = new RedisClient(this);
+            mainIndexManager = new MainIndexManager(new IndexManagerFactory(this));
+            Client = new RedisClient(this, mainIndexManager);
         }
 
         public IRedisClient Client { get; }
@@ -60,34 +65,45 @@ namespace Wikiled.Redis.Logic
         {
             Type type = typeof(T);
             log.LogDebug("GetSpecific<{0}>", type);
+
             if (addRecordActions.TryGetValue(type, out var action))
             {
                 return action;
             }
 
             var definition = GetDefinition<T>();
-            var setList = definition.IsSet ? (IRedisSetList)new RedisSet(this) : new RedisList(this);
+            var setList = definition.IsSet ? (IRedisSetList) new RedisSet(this, mainIndexManager) : new RedisList(this, mainIndexManager);
+
             if (typeof(T) == typeof(SortedSetEntry))
             {
-                action = new SortedSetSerialization(this);
+                action = new SortedSetSerialization(this, mainIndexManager);
             }
             else if (definition.Serializer != null)
             {
                 var serialization = new HashSetSerialization(this);
-                action = definition.IsSingleInstance ? (ISpecificPersistency)new SingleItemSerialization(this, serialization) : new ObjectListSerialization(this, serialization, setList);
+
+                action = definition.IsSingleInstance
+                    ? (ISpecificPersistency) new SingleItemSerialization(this, serialization, mainIndexManager)
+                    : new ObjectListSerialization(this, serialization, setList, mainIndexManager);
             }
-            else if (!definition.IsSingleInstance && !definition.ExtractType && !definition.IsNormalized)
+            else if (!definition.IsSingleInstance &&
+                     !definition.ExtractType &&
+                     !definition.IsNormalized)
             {
                 action = new ListSerialization(this, setList);
             }
             else
             {
                 var serialization = new ObjectHashSetSerialization(this, definition.DataSerializer);
-                action = definition.IsSingleInstance ? new SingleItemSerialization(this, serialization) : (ISpecificPersistency)new ObjectListSerialization(this, serialization, setList);
+
+                action = definition.IsSingleInstance
+                    ? new SingleItemSerialization(this, serialization, mainIndexManager)
+                    : (ISpecificPersistency) new ObjectListSerialization(this, serialization, setList, mainIndexManager);
             }
 
             log.LogDebug("GetSpecific<{0}> - Constructed - {1}", type, action);
             addRecordActions[type] = action;
+
             return action;
         }
 
@@ -157,7 +173,7 @@ namespace Wikiled.Redis.Logic
         {
             log.LogDebug("StartTransaction");
             Multiplexer.CheckConnection();
-            return new RedisTransaction(this, Multiplexer.Database.CreateTransaction());
+            return new RedisTransaction(this, Multiplexer.Database.CreateTransaction(), mainIndexManager);
         }
 
         public ISubscriber SubscribeKeyEvents(IDataKey key, Action<KeyspaceEvent> action)

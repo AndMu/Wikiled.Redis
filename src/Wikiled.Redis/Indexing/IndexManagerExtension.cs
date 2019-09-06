@@ -27,9 +27,9 @@ namespace Wikiled.Redis.Indexing
             }
 
             log.LogDebug("Redindex {0}", key);
-            IndexManagerFactory manager = new IndexManagerFactory(link, link.Database);
-            var indexManagers = manager.Create(key.Indexes);
-            List<Task> tasks = new List<Task>();
+            var manager = new IndexManagerFactory(link);
+            var indexManagers = manager.Create(link.Database, key.Indexes);
+            var tasks = new List<Task>();
 
             tasks.Add(indexManagers.Reset());
 
@@ -37,10 +37,10 @@ namespace Wikiled.Redis.Indexing
 
             var actualKey = (string)link.GetKey(key);
             var mask = Regex.Replace(actualKey, $"{FieldConstants.Object}:.*", $"{FieldConstants.Object}*", RegexOptions.IgnoreCase);
-            int total = 0;
+            var total = 0;
 
             tasks.Clear();
-            foreach (RedisKey redisKey in link.Multiplexer.GetKeys(mask))
+            foreach (var redisKey in link.Multiplexer.GetKeys(mask))
             {
                 total++;
                 var rawId = Regex.Replace(redisKey, $".*:{FieldConstants.Object}:", string.Empty, RegexOptions.IgnoreCase);

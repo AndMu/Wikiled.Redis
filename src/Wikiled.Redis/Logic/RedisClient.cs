@@ -17,11 +17,14 @@ namespace Wikiled.Redis.Logic
 
         private readonly IRedisLink link;
 
+        private readonly IMainIndexManager mainIndexManager;
+
         private static readonly ILogger logger = ApplicationLogging.CreateLogger<RedisClient>();
 
-        public RedisClient(IRedisLink link, IDatabaseAsync database = null)
+        public RedisClient(IRedisLink link, IMainIndexManager mainIndexManager, IDatabaseAsync database = null)
         {
             this.link = link ?? throw new ArgumentNullException(nameof(link));
+            this.mainIndexManager = mainIndexManager ?? throw new ArgumentNullException(nameof(mainIndexManager));
             this.database = database;
         }
 
@@ -110,7 +113,7 @@ namespace Wikiled.Redis.Logic
             }
 
             logger.LogDebug($"GetRecords {start}-{end}");
-            var indexManager = new IndexManagerFactory(link, GetDatabase()).Create(index);
+            var indexManager = mainIndexManager.GetManager(GetDatabase(), index);
             int batch = BatchSize;
             if (index.Length > 1)
             {

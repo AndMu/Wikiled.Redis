@@ -14,6 +14,12 @@ namespace Wikiled.Redis.Indexing
         {
         }
 
+        protected override Task RemoveRawIndex(IIndexKey index, string rawKey)
+        {
+            // not supported
+            return Task.CompletedTask;
+        }
+
         protected override Task AddRawIndex(IIndexKey index, string rawKey)
         {
             return Database.ListLeftPushAsync(Link.GetIndexKey(index), rawKey);

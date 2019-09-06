@@ -5,9 +5,11 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
 using Wikiled.Common.Logging;
+using Wikiled.Redis.Indexing;
 using Wikiled.Redis.Keys;
 using Wikiled.Redis.Logic;
 using Wikiled.Redis.Persistency;
+using IDataKey = Wikiled.Redis.Keys.IDataKey;
 
 namespace Wikiled.Redis.Serialization
 {
@@ -17,9 +19,12 @@ namespace Wikiled.Redis.Serialization
 
         private readonly IRedisLink link;
 
-        public RedisList(IRedisLink link)
+        private readonly IMainIndexManager mainIndexManager;
+
+        public RedisList(IRedisLink link, IMainIndexManager mainIndexManager)
         {
             this.link = link ?? throw new ArgumentNullException(nameof(link));
+            this.mainIndexManager = mainIndexManager ?? throw new ArgumentNullException(nameof(mainIndexManager));
         }
 
         public Task<long> GetLength(IDatabaseAsync database, RedisKey key)
@@ -48,7 +53,7 @@ namespace Wikiled.Redis.Serialization
                     list.ToArray());
             }
 
-            List<Task> tasks = new List<Task>(link.Indexing(database, key));
+            List<Task> tasks = new List<Task>(mainIndexManager.Add(database, key));
             tasks.Add(database.ListRightPushAsync(redisKey, redisValues));
             return Task.WhenAll(tasks);
         }

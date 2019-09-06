@@ -169,8 +169,8 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
             items = await redis.Client.GetRecords<Identity>(listAll, 3, 4).ToArray();
             Assert.AreEqual(0, items.Length);
 
-            IndexManagerFactory factory = new IndexManagerFactory(redis, redis.Database);
-            var manager = factory.Create(listAll);
+            IndexManagerFactory factory = new IndexManagerFactory(redis);
+            var manager = factory.Create(redis.Database, listAll);
             var count = await manager.Count().ConfigureAwait(false);
             Assert.AreEqual(3, count);
 

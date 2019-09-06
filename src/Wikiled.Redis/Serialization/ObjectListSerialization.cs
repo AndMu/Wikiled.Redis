@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
 using Wikiled.Common.Logging;
+using Wikiled.Redis.Indexing;
 using Wikiled.Redis.Keys;
 using Wikiled.Redis.Logic;
 
@@ -24,10 +25,13 @@ namespace Wikiled.Redis.Serialization
 
         private readonly IRedisSetList redisSetList;
 
-        public ObjectListSerialization(IRedisLink link, IObjectSerialization objectSerialization, IRedisSetList redisSetList)
+        private readonly IMainIndexManager mainIndexManager;
+
+        public ObjectListSerialization(IRedisLink link, IObjectSerialization objectSerialization, IRedisSetList redisSetList, IMainIndexManager mainIndexManager)
         {
             this.objectSerialization = objectSerialization ?? throw new ArgumentNullException(nameof(objectSerialization));
             this.redisSetList = redisSetList ?? throw new ArgumentNullException(nameof(redisSetList));
+            this.mainIndexManager = mainIndexManager ?? throw new ArgumentNullException(nameof(mainIndexManager));
             this.link = link ?? throw new ArgumentNullException(nameof(link));
         }
 
@@ -84,8 +88,11 @@ namespace Wikiled.Redis.Serialization
             }
 
             log.LogDebug("DeleteAll: [{0}]", key);
+
+            var deleteKeys = mainIndexManager.Delete(database, key);
             var keys = await GetAllKeys(database, key).ConfigureAwait(false);
             await database.KeyDeleteAsync(keys.ToArray()).ConfigureAwait(false);
+            await Task.WhenAll(deleteKeys).ConfigureAwait(false);
         }
 
         public async Task SetExpire(IDatabaseAsync database, IDataKey key, TimeSpan timeSpan)
@@ -220,7 +227,7 @@ namespace Wikiled.Redis.Serialization
             {
                 task = redisSetList.SaveItems(database, currentKey, objectKey.RecordId);
                 tasks.Add(task);
-                tasks.AddRange(link.Indexing(database, currentKey));
+                tasks.AddRange(mainIndexManager.Add(database, currentKey));
             }
 
             return Task.WhenAll(tasks);
