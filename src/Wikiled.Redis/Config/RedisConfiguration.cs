@@ -67,6 +67,7 @@ namespace Wikiled.Redis.Config
             ServiceName = redisSettings.ServiceName;
             WriteBuffer = redisSettings.WriteBuffer;
             SyncTimeout = redisSettings.SyncTimeout;
+            Password = redisSettings.Password;
             if (redisSettings.Endpoints != null)
             {
                 Endpoints = new RedisEndpoint[redisSettings.Endpoints.Length];
@@ -99,13 +100,15 @@ namespace Wikiled.Redis.Config
 
         public string ServiceName { get; set; }
 
+        public string Password { get; set; }
+
         public int SyncTimeout { get; set; }
 
         public int WriteBuffer { get; set; }
 
         public override string ToString()
         {
-            StringBuilder builder = new StringBuilder();
+            var builder = new StringBuilder();
             builder.Append($"[{ServiceName}] ");
             foreach (var redisEndpoint in Endpoints)
             {
@@ -136,6 +139,11 @@ namespace Wikiled.Redis.Config
                 AllowAdmin = AllowAdmin,
                 AbortOnConnectFail = false
             };
+
+            if (!string.IsNullOrEmpty(Password))
+            {
+                config.Password = Password;
+            }
 
             foreach (var endpoint in Endpoints)
             {
