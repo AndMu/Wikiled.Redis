@@ -132,9 +132,10 @@ namespace Wikiled.Redis.Logic
                 return;
             }
 
-            log.LogDebug("Openning...");
+            log.LogDebug("Opening...");
             connection = ConnectionMultiplexer.Connect(Configuration.GetOptions());
-            Database = connection.GetDatabase();
+            
+            Database = GetDatabase(connection);
             connection.ConnectionFailed += OnConnectionFailed;
             connection.ConnectionRestored += OnConnectionRestored;
             connection.ErrorMessage += OnErrorMessage;
@@ -198,6 +199,15 @@ namespace Wikiled.Redis.Logic
                 eventArgs.EndPoint,
                 eventArgs.FailureType,
                 eventArgs.Exception);
+        }
+
+        private IDatabase GetDatabase(ConnectionMultiplexer multiplexer)
+        {
+            return (from endPoint in multiplexer.GetEndPoints()
+                    select multiplexer.GetServer(endPoint) into server
+                    where !server.IsSlave
+                    select server.Multiplexer.GetDatabase())
+                .FirstOrDefault();
         }
     }
 }

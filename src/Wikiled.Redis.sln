@@ -15,8 +15,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wikiled.Redis.UnitTests", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wikiled.FlatBuffers", "Wikiled.FlatBuffers\Wikiled.FlatBuffers.csproj", "{28C00774-1E73-4A75-AD8F-844CD21A064D}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Utilities", "Utilities", "{7167019B-DD8F-400E-9199-FB4BB8B18FC8}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -104,9 +102,9 @@ Global
 		{28C00774-1E73-4A75-AD8F-844CD21A064D} = {ED5468D9-B9AF-40C5-9F26-B4E82D1A2F7F}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {78BBFE11-823C-4553-94BC-001AE7246B67}
-		EnterpriseLibraryConfigurationToolBinariesPath = packages\TransientFaultHandling.Core.5.1.1209.1\lib\NET4
 		EnterpriseLibraryConfigurationToolBinariesPathV6 = packages\EnterpriseLibrary.TransientFaultHandling.6.0.1304.0\lib\portable-net45+win+wp8
+		EnterpriseLibraryConfigurationToolBinariesPath = packages\TransientFaultHandling.Core.5.1.1209.1\lib\NET4
+		SolutionGuid = {78BBFE11-823C-4553-94BC-001AE7246B67}
 	EndGlobalSection
 	GlobalSection(SubversionScc) = preSolution
 	EndGlobalSection
