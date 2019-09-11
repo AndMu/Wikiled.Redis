@@ -219,6 +219,16 @@ namespace Wikiled.Redis.Logic
             foreach (var endPoint in multiplexer.GetEndPoints())
             {
                 var server = multiplexer.GetServer(endPoint);
+                if (server.ServerType == ServerType.Sentinel)
+                {
+                    log.LogInformation("Server is sentinel. Querying its masters");
+                    var master = server.SentinelMasters().FirstOrDefault();
+                    if (master == null)
+                    {
+                        throw new RedisConnectionException(ConnectionFailureType.UnableToConnect, "Failed to find MASTERS");
+                    }
+                }
+
                 log.LogInformation("Look for database: {0}", endPoint);
                 if (!server.IsSlave)
                 {
