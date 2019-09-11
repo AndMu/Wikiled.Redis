@@ -20,11 +20,36 @@ namespace Wikiled.Redis.Modules
 
         public RedisConfiguration RedisConfiguration { get; }
 
+        public bool IsSingleInstance { get; set; }
+
+        public bool OpenOnConstruction { get; set; } = true;
+
         public IServiceCollection ConfigureServices(IServiceCollection services)
         {
             logger.LogDebug("Using Redis cache");
             services.AddSingleton<IRedisConfiguration>(RedisConfiguration);
-            services.AddTransient<IRedisLink, RedisLink>();
+            services.AddTransient<RedisLink>();
+
+            IRedisLink ImplementationFactory(IServiceProvider ctx)
+            {
+                var link = ctx.GetService<RedisLink>();
+                if (OpenOnConstruction)
+                {
+                    link.Open();
+                }
+
+                return link;
+            }
+
+            if (IsSingleInstance)
+            {
+                services.AddSingleton(ImplementationFactory);
+            }
+            else
+            {
+                services.AddTransient(ImplementationFactory);
+            }
+            
             services.AddTransient<IRedisMultiplexer, RedisMultiplexer>();
             services.AddTransient<IReplicationFactory, ReplicationFactory>();
             
