@@ -219,7 +219,7 @@ namespace Wikiled.Redis.Logic
             foreach (var endPoint in multiplexer.GetEndPoints())
             {
                 var server = multiplexer.GetServer(endPoint);
-
+                log.LogInformation("Look for database: {0}", endPoint);
                 if (!server.IsSlave)
                 {
                     IDatabase database = server.Multiplexer.GetDatabase();
