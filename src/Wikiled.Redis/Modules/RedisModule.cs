@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
+using Polly;
 using Wikiled.Common.Utilities.Modules;
 using Wikiled.Redis.Config;
 using Wikiled.Redis.Logic;
@@ -29,13 +30,16 @@ namespace Wikiled.Redis.Modules
             logger.LogDebug("Using Redis cache");
             services.AddSingleton<IRedisConfiguration>(RedisConfiguration);
             services.AddTransient<RedisLink>();
+            var retryPolicy = Policy
+                .Handle<Exception>()
+                .Retry(3);
 
             IRedisLink ImplementationFactory(IServiceProvider ctx)
             {
                 var link = ctx.GetService<RedisLink>();
                 if (OpenOnConstruction)
                 {
-                    link.Open();
+                    retryPolicy.Execute(link.Open);
                 }
 
                 return link;
