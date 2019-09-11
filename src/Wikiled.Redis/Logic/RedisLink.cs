@@ -1,11 +1,11 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using StackExchange.Redis;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using Microsoft.Extensions.Logging;
-using StackExchange.Redis;
-using Wikiled.Common.Logging;
 using Wikiled.Common.Reflection;
 using Wikiled.Redis.Channels;
+using Wikiled.Redis.Config;
 using Wikiled.Redis.Indexing;
 using Wikiled.Redis.Keys;
 using Wikiled.Redis.Persistency;
@@ -18,7 +18,7 @@ namespace Wikiled.Redis.Logic
 {
     public class RedisLink : BaseChannel, IRedisLink
     {
-        private static readonly ILogger log = ApplicationLogging.CreateLogger<RedisLink>();
+        private readonly ILogger<RedisLink> log;
 
         private readonly ConcurrentDictionary<Type, ISpecificPersistency> addRecordActions = new ConcurrentDictionary<Type, ISpecificPersistency>();
         
@@ -30,10 +30,11 @@ namespace Wikiled.Redis.Logic
 
         private readonly IMainIndexManager mainIndexManager;
 
-        public RedisLink(string name, IRedisMultiplexer multiplexer)
-            : base(name)
+        public RedisLink(ILogger<RedisLink> log, IRedisConfiguration configuration, IRedisMultiplexer multiplexer)
+            : base(log, configuration?.ServiceName)
         {
             Multiplexer = multiplexer ?? throw new ArgumentNullException(nameof(multiplexer));
+            this.log = log ?? throw new ArgumentNullException(nameof(log));
             Generator = new ScriptGenerator();
             mainIndexManager = new MainIndexManager(new IndexManagerFactory(this));
             Client = new RedisClient(this, mainIndexManager);

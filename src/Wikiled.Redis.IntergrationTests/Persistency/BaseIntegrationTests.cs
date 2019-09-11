@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Moq;
 using NUnit.Framework;
 using System.IO;
@@ -7,6 +8,7 @@ using Wikiled.Common.Logging;
 using Wikiled.Common.Serialization;
 using Wikiled.Redis.Channels;
 using Wikiled.Redis.Config;
+using Wikiled.Redis.IntegrationTests.Helpers;
 using Wikiled.Redis.Keys;
 using Wikiled.Redis.Logic;
 using Wikiled.Redis.Persistency;
@@ -21,7 +23,7 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
 
         protected ObjectKey Key { get; private set; }
 
-        protected RedisLink Redis { get; private set; }
+        protected IRedisLink Redis { get; private set; }
 
         protected Mock<ILimitedSizeRepository> Repository { get; private set; }
 
@@ -38,11 +40,12 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
         {
             redisInstance = new RedisInside.Redis(i => i.Port(6666).LogTo(item => log.LogDebug(item)));
             var config = XDocument.Load(Path.Combine(TestContext.CurrentContext.TestDirectory, @"Config\redis.config")).XmlDeserialize<RedisConfiguration>();
-            Redis = new RedisLink("IT", new RedisMultiplexer(config));
+            var provider = new ModuleHelper(config).Provider;
+            Redis = provider.GetService<IRedisLink>();
             Redis.Open();
             Redis.Multiplexer.Flush();
 
-            var redis2 = new RedisLink("IT", new RedisMultiplexer(config));
+            var redis2 = provider.GetService<IRedisLink>();
             redis2.Open();
             Key = new ObjectKey("Key1");
             Routing = new Identity();

@@ -5,7 +5,6 @@ using System.Net;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
-using Wikiled.Common.Logging;
 using Wikiled.Redis.Config;
 using Wikiled.Redis.Information;
 using Wikiled.Redis.Serialization.Subscription;
@@ -14,17 +13,18 @@ namespace Wikiled.Redis.Logic
 {
     public class RedisMultiplexer : IRedisMultiplexer
     {
-        private readonly RedisConfiguration configuration;
+        private readonly IRedisConfiguration configuration;
 
-        private static readonly ILogger log = ApplicationLogging.CreateLogger<RedisMultiplexer>();
+        private readonly ILogger<RedisMultiplexer> log;
 
         private ConnectionMultiplexer connection;
 
         private bool enabledNotifications;
 
-        public RedisMultiplexer(RedisConfiguration configuration)
+        public RedisMultiplexer(ILogger<RedisMultiplexer> log, IRedisConfiguration configuration)
         {
             this.configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+            this.log = log ?? throw new ArgumentNullException(nameof(log));
         }
 
         public IRedisConfiguration Configuration => configuration;
@@ -133,8 +133,21 @@ namespace Wikiled.Redis.Logic
             }
 
             log.LogDebug("Opening...");
-            connection = ConnectionMultiplexer.Connect(Configuration.GetOptions());
-            
+            var options = Configuration.GetOptions();
+            foreach (var endpoint in options.EndPoints)
+            {
+                log.LogInformation("Host: {0}", endpoint);
+            }
+
+            log.LogInformation(
+                "Other configuration - KeepAlive:[{0}] ConnectTimeout:[{1}] SyncTimeout:[{2}] ServiceName:[{3}] AllowAdmin:[{4}]",
+                Configuration.KeepAlive,
+                Configuration.ConnectTimeout,
+                Configuration.SyncTimeout,
+                Configuration.ServiceName,
+                Configuration.AllowAdmin);
+
+            connection = ConnectionMultiplexer.Connect(options);
             Database = GetDatabase(connection);
             connection.ConnectionFailed += OnConnectionFailed;
             connection.ConnectionRestored += OnConnectionRestored;

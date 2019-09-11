@@ -2,12 +2,14 @@
 using System.IO;
 using System.Threading;
 using System.Xml.Linq;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NUnit.Framework;
 using Wikiled.Common.Logging;
 using Wikiled.Common.Serialization;
 using Wikiled.Redis.Channels;
 using Wikiled.Redis.Config;
+using Wikiled.Redis.IntegrationTests.Helpers;
 using Wikiled.Redis.Keys;
 using Wikiled.Redis.Logic;
 using Wikiled.Redis.Serialization.Subscription;
@@ -21,7 +23,7 @@ namespace Wikiled.Redis.IntegrationTests.Subscription
 
         private RedisInside.Redis redisInstance;
 
-        private RedisLink redis;
+        private IRedisLink redis;
 
         private ObjectKey key;
 
@@ -30,7 +32,8 @@ namespace Wikiled.Redis.IntegrationTests.Subscription
         {
             redisInstance = new RedisInside.Redis(i => i.Port(6666).LogTo(item => log.LogDebug(item)));
             var config = XDocument.Load(Path.Combine(TestContext.CurrentContext.TestDirectory, @"Config\redis.config")).XmlDeserialize<RedisConfiguration>();
-            redis = new RedisLink("IT", new RedisMultiplexer(config));
+            config.ServiceName = "IT";
+            redis = new ModuleHelper(config).Provider.GetService<IRedisLink>();
             redis.Open();
             redis.Multiplexer.Flush();
             key = new ObjectKey("Test", "Key");

@@ -1,20 +1,20 @@
 ﻿using System;
 using Microsoft.Extensions.Logging;
-using Wikiled.Common.Logging;
 
 namespace Wikiled.Redis.Channels
 {
     public abstract class BaseChannel : IChannel
     {
-        private static readonly ILogger logger = ApplicationLogging.CreateLogger<BaseChannel>();
+        private readonly ILogger logger;
 
         private readonly object syncRoot = new object();
 
         private ChannelState state;
 
-        protected BaseChannel(string name)
+        protected BaseChannel(ILogger logger, string name)
         {
             Name = name;
+            this.logger = logger;
         }
 
         public string Name { get; }

@@ -12,13 +12,13 @@ namespace Wikiled.Redis.Replication
 {
     public class ReplicationFactory : IReplicationFactory
     {
-        private readonly IRedisFactory redisFactory;
+        private readonly Func<IRedisConfiguration, IRedisMultiplexer> redisFactory;
 
         private readonly IScheduler scheduler;
 
         private readonly ILoggingProgressTracker tracker;
 
-        public ReplicationFactory(IRedisFactory redisFactory, IScheduler scheduler, ILoggingProgressTracker tracker = null)
+        public ReplicationFactory(Func<IRedisConfiguration, IRedisMultiplexer> redisFactory, IScheduler scheduler, ILoggingProgressTracker tracker = null)
         {
             this.redisFactory = redisFactory ?? throw new ArgumentNullException(nameof(redisFactory));
             this.scheduler = scheduler ?? throw new ArgumentNullException(nameof(scheduler));
@@ -46,8 +46,8 @@ namespace Wikiled.Redis.Replication
 
         public async Task<ReplicationProgress> Replicate(DnsEndPoint master, DnsEndPoint slave, CancellationToken token)
         {
-            using (var masterMultiplexer = redisFactory.Create(new RedisConfiguration(master)))
-            using (var slaveEMultiplexer = redisFactory.Create(new RedisConfiguration(slave)))
+            using (var masterMultiplexer = redisFactory(new RedisConfiguration(master)))
+            using (var slaveEMultiplexer = redisFactory(new RedisConfiguration(slave)))
             {
                 masterMultiplexer.Open();
                 slaveEMultiplexer.Open();

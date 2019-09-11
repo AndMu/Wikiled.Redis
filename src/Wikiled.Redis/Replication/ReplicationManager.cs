@@ -22,7 +22,7 @@ namespace Wikiled.Redis.Replication
         private EndPoint masterEndPoint;
 
         public ReplicationManager(IRedisMultiplexer master, IRedisMultiplexer slave, IObservable<long> timer)
-            : base("Replication")
+            : base(log, "Replication")
         {
             if (timer == null)
             {

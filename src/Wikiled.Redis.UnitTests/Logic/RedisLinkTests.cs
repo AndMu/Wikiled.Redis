@@ -1,4 +1,5 @@
 ﻿using System;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using NUnit.Framework;
 using StackExchange.Redis;
@@ -20,15 +21,18 @@ namespace Wikiled.Redis.UnitTests.Logic
 
         private RedisLink redisLink;
 
+        private RedisConfiguration configuration;
+
         [SetUp]
         public void Setup()
         {
-            RedisConfiguration configuration = new RedisConfiguration("Test");
+            configuration = new RedisConfiguration("Test");
+            configuration.ServiceName = "Redis";
             database = new Mock<IDatabase>();
             multiplexer = new Mock<IRedisMultiplexer>();
             multiplexer.Setup(item => item.Database).Returns(database.Object);
             multiplexer.Setup(item => item.Configuration).Returns(configuration);
-            redisLink = new RedisLink("Redis", multiplexer.Object);
+            redisLink = new RedisLink(new NullLogger<RedisLink>(), configuration, multiplexer.Object);
             redisLink.Open();
         }
 
@@ -132,7 +136,7 @@ namespace Wikiled.Redis.UnitTests.Logic
         [Test]
         public void Create()
         {
-            Assert.Throws<ArgumentNullException>(() => new RedisLink("Redis", null));
+            Assert.Throws<ArgumentNullException>(() => new RedisLink(new NullLogger<RedisLink>(), configuration, null));
             Assert.AreEqual("Redis", redisLink.Name);
             Assert.AreEqual(multiplexer.Object, redisLink.Multiplexer);
             Assert.NotNull(redisLink.Generator);
@@ -172,7 +176,7 @@ namespace Wikiled.Redis.UnitTests.Logic
         [Test]
         public void Open()
         {
-            redisLink = new RedisLink("Redis", multiplexer.Object);
+            redisLink = new RedisLink(new NullLogger<RedisLink>(), configuration, multiplexer.Object);
             redisLink.Open();
             multiplexer.Verify(item => item.Open());
         }
@@ -180,7 +184,7 @@ namespace Wikiled.Redis.UnitTests.Logic
         [Test]
         public void OpenFailed()
         {
-            redisLink = new RedisLink("Redis", multiplexer.Object);
+            redisLink = new RedisLink(new NullLogger<RedisLink>(), configuration, multiplexer.Object);
             multiplexer.Setup(item => item.Open()).Throws(new Exception());
             Assert.Throws<Exception>(() => redisLink.Open());
             Assert.AreEqual(ChannelState.Closed, redisLink.State);

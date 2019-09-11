@@ -1,4 +1,5 @@
 ﻿using System;
+using Microsoft.Extensions.Logging.Abstractions;
 using Wikiled.Redis.Config;
 using Wikiled.Redis.Logic;
 using NUnit.Framework;
@@ -17,13 +18,14 @@ namespace Wikiled.Redis.UnitTests.Logic
         {
             option = new RedisConfiguration("Test");
             option.Endpoints = new[] { new RedisEndpoint { Host = "localhost", Port = 7000 } };
-            multiplexer = new RedisMultiplexer(option);
+            multiplexer = new RedisMultiplexer(new NullLogger<RedisMultiplexer>(), option);
         }
 
         [Test]
         public void Construct()
         {
-            Assert.Throws<ArgumentNullException>(() => new RedisMultiplexer(null));
+            Assert.Throws<ArgumentNullException>(() => new RedisMultiplexer(new NullLogger<RedisMultiplexer>(), null));
+            Assert.Throws<ArgumentNullException>(() => new RedisMultiplexer(null, option));
             Assert.IsNotNull(multiplexer);
             Assert.IsNull(multiplexer.Database);
         }

@@ -1,19 +1,16 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using StackExchange.Redis;
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Text;
 using System.Xml.Serialization;
-using Microsoft.Extensions.Logging;
-using StackExchange.Redis;
-using Wikiled.Common.Logging;
 
 namespace Wikiled.Redis.Config
 {
     [XmlRoot("RedisConfig")]
     public class RedisConfiguration : IRedisConfiguration
     {
-        private static readonly ILogger logger = ApplicationLogging.CreateLogger<RedisConfiguration>();
-
         public RedisConfiguration()
         {
             KeepAlive = 60;
@@ -23,6 +20,30 @@ namespace Wikiled.Redis.Config
             ServiceName = "Wikiled";
             AllowAdmin = true;
         }
+
+        public bool AbortOnConnectFail { get; set; }
+
+        public bool AllowAdmin { get; set; }
+
+        public int ConnectRetry { get; set; }
+
+        public int ConnectTimeout { get; set; }
+
+        [XmlArray("Endpoints")]
+        [XmlArrayItem("Endpoint")]
+        public RedisEndpoint[] Endpoints { get; set; }
+
+        public int KeepAlive { get; set; }
+
+        public int ResponseTimeout { get; set; }
+
+        public string ServiceName { get; set; }
+
+        public string Password { get; set; }
+
+        public int SyncTimeout { get; set; }
+
+        public int WriteBuffer { get; set; }
 
         public RedisConfiguration(DnsEndPoint endPoint)
             : this()
@@ -57,7 +78,6 @@ namespace Wikiled.Redis.Config
                 throw new ArgumentNullException(nameof(redisSettings));
             }
 
-            PoolConnection = redisSettings.PoolConnection;
             AbortOnConnectFail = redisSettings.AbortOnConnectFail;
             ConnectRetry = redisSettings.ConnectRetry;
             AllowAdmin = redisSettings.AllowAdmin;
@@ -80,31 +100,7 @@ namespace Wikiled.Redis.Config
             }
         }
 
-        public bool AbortOnConnectFail { get; set; }
-
-        public bool AllowAdmin { get; set; }
-
-        public int ConnectRetry { get; set; }
-
-        public int ConnectTimeout { get; set; }
-
-        [XmlArray("Endpoints")]
-        [XmlArrayItem("Endpoint")]
-        public RedisEndpoint[] Endpoints { get; set; }
-
-        public int KeepAlive { get; set; }
-
-        public bool PoolConnection { get; set; }
-
-        public int ResponseTimeout { get; set; }
-
-        public string ServiceName { get; set; }
-
-        public string Password { get; set; }
-
-        public int SyncTimeout { get; set; }
-
-        public int WriteBuffer { get; set; }
+      
 
         public override string ToString()
         {
@@ -147,17 +143,9 @@ namespace Wikiled.Redis.Config
 
             foreach (var endpoint in Endpoints)
             {
-                logger.LogInformation("Configure Host: {0}", endpoint);
                 config.EndPoints.Add(endpoint.Host, endpoint.Port);
             }
 
-            logger.LogInformation(
-                "Other configuration - KeepAlive:[{0}] ConnectTimeout:[{1}] SyncTimeout:[{2}] ServiceName:[{3}] AllowAdmin:[{4}]",
-                config.KeepAlive,
-                config.ConnectTimeout,
-                config.SyncTimeout,
-                config.ServiceName,
-                config.AllowAdmin);
             return config;
         }
     }

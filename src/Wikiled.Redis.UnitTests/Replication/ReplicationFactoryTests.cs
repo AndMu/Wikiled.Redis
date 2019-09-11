@@ -15,19 +15,29 @@ namespace Wikiled.Redis.UnitTests.Replication
     [TestFixture]
     public class ReplicationFactoryTests : ReactiveTest
     {
-        private Mock<IRedisFactory> mockRedisFactory;
-
         private TestScheduler scheduler;
 
         private ReplicationFactory instance;
 
-        ReplicationTestManager testManager;
+        private ReplicationTestManager testManager;
+
+        private Func<IRedisConfiguration, IRedisMultiplexer> redisFactory;
+
+        private int counter;
 
         [SetUp]
         public void Setup()
         {
             testManager = new ReplicationTestManager();
-            mockRedisFactory = new Mock<IRedisFactory>();
+
+            redisFactory = configuration =>
+            {
+                var result = counter % 2 == 0 ? testManager.Master : testManager.Slave;
+                counter++;
+
+                return result.Object;
+            };
+
             scheduler = new TestScheduler();
             instance = CreateFactory();
         }
@@ -87,9 +97,6 @@ namespace Wikiled.Redis.UnitTests.Replication
         {
             var replicationInfo = testManager.SetupReplication();
             replicationInfo.Setup(item => item.MasterReplOffset).Returns(2000);
-            mockRedisFactory.SetupSequence(item => item.Create(It.IsAny<RedisConfiguration>()))
-                            .Returns(testManager.Master.Object)
-                            .Returns(testManager.Slave.Object);
             return replicationInfo;
         }
 
@@ -97,12 +104,12 @@ namespace Wikiled.Redis.UnitTests.Replication
         public void Construct()
         {
             Assert.Throws<ArgumentNullException>(() => new ReplicationFactory(null, scheduler));
-            Assert.Throws<ArgumentNullException>(() => new ReplicationFactory(mockRedisFactory.Object, null));
+            Assert.Throws<ArgumentNullException>(() => new ReplicationFactory(redisFactory, null));
         }
 
         private ReplicationFactory CreateFactory()
         {
-            return new ReplicationFactory(mockRedisFactory.Object, scheduler);
+            return new ReplicationFactory(redisFactory, scheduler);
         }
     }
 }

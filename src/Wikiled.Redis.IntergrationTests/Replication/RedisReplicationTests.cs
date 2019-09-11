@@ -7,10 +7,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Wikiled.Common.Logging;
 using Wikiled.Common.Serialization;
 using Wikiled.Redis.Config;
+using Wikiled.Redis.IntegrationTests.Helpers;
 using Wikiled.Redis.Logic;
 using Wikiled.Redis.Replication;
 
@@ -25,29 +27,32 @@ namespace Wikiled.Redis.IntegrationTests.Replication
 
         private RedisInside.Redis redisTwo;
 
-        private RedisLink linkOne;
+        private IRedisLink linkOne;
 
-        private RedisLink linkTwo;
+        private IRedisLink linkTwo;
 
         private string key = "TestData";
 
-        private ReplicationFactory factory;
+        private IReplicationFactory factory;
 
         [SetUp]
         public async Task Setup()
         {
-            factory = new ReplicationFactory(new SimpleRedisFactory(), TaskPoolScheduler.Default);
             redisOne = new RedisInside.Redis(i => i.LogTo(item => log.LogDebug(item)).WithPersistence());
             redisTwo = new RedisInside.Redis(i => i.LogTo(item => log.LogDebug(item)).WithPersistence());
-            
+
             await Task.Delay(500).ConfigureAwait(false);
             var config = XDocument.Load(Path.Combine(TestContext.CurrentContext.TestDirectory, @"Config\redis.config")).XmlDeserialize<RedisConfiguration>();
             config.Endpoints[0].Port = ((IPEndPoint)redisOne.Endpoint).Port;
-            linkOne = new RedisLink("RedisOne", new RedisMultiplexer(config));
+            linkOne = new ModuleHelper(config).Provider.GetService<IRedisLink>();
 
             config = XDocument.Load(Path.Combine(TestContext.CurrentContext.TestDirectory, @"Config\redis.config")).XmlDeserialize<RedisConfiguration>();
             config.Endpoints[0].Port = ((IPEndPoint)redisTwo.Endpoint).Port;
-            linkTwo = new RedisLink("RedisTwo", new RedisMultiplexer(config));
+            var provider = new ModuleHelper(config).Provider;
+            linkTwo = provider.GetService<IRedisLink>();
+
+            factory = provider.GetService<IReplicationFactory>();
+
             linkOne.Open();
             linkOne.Multiplexer.Flush();
             linkTwo.Open();
@@ -79,8 +84,8 @@ namespace Wikiled.Redis.IntegrationTests.Replication
         public async Task TestReplicationAsync()
         {
             var result = await factory.Replicate(
-                             new DnsEndPoint("localhost", ((IPEndPoint)redisOne.Endpoint).Port), 
-                             new DnsEndPoint("localhost", ((IPEndPoint)redisTwo.Endpoint).Port), 
+                             new DnsEndPoint("localhost", ((IPEndPoint)redisOne.Endpoint).Port),
+                             new DnsEndPoint("localhost", ((IPEndPoint)redisTwo.Endpoint).Port),
                              new CancellationTokenSource(10000).Token).ConfigureAwait(false);
             ValidateResultOn(result);
             ValidateOff(1);
