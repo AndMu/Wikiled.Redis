@@ -64,7 +64,7 @@ namespace Wikiled.Redis.Logic
         {
             log.LogWarning("DeleteKeys: <{0}>", pattern);
             int total = 0;
-            List<Task> tasks = new List<Task>();
+            var tasks = new List<Task>();
             foreach (var key in GetKeys(pattern))
             {
                 total++;
@@ -174,7 +174,7 @@ namespace Wikiled.Redis.Logic
             // in current implementation on DB 0 is supported. 
             var eventName = $"__keyspace@0__:{key}";
             ISubscriber subscriber = connection.GetSubscriber();
-            RedisChannel redisChannel = new RedisChannel(eventName, RedisChannel.PatternMode.Auto);
+            var redisChannel = new RedisChannel(eventName, RedisChannel.PatternMode.Auto);
             subscriber.Subscribe(redisChannel, (channel, value) => action(new KeyspaceEvent(key, channel, value)));
             return subscriber;
         }
@@ -216,11 +216,18 @@ namespace Wikiled.Redis.Logic
 
         private IDatabase GetDatabase(ConnectionMultiplexer multiplexer)
         {
-            return (from endPoint in multiplexer.GetEndPoints()
-                    select multiplexer.GetServer(endPoint) into server
-                    where !server.IsSlave
-                    select server.Multiplexer.GetDatabase())
-                .FirstOrDefault();
+            foreach (var endPoint in multiplexer.GetEndPoints())
+            {
+                var server = multiplexer.GetServer(endPoint);
+
+                if (!server.IsSlave)
+                {
+                    IDatabase database = server.Multiplexer.GetDatabase();
+                    return database;
+                }
+            }
+
+            throw new RedisConnectionException(ConnectionFailureType.UnableToConnect, "Failed to find MASTER server");
         }
     }
 }
