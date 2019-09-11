@@ -10,9 +10,9 @@ namespace Wikiled.Redis.Modules
 {
     public class RedisModule : IModule
     {
-        private readonly ILogger<RedisModule> logger;
+        private readonly ILogger logger;
 
-        public RedisModule(ILogger<RedisModule> logger, RedisConfiguration redisConfiguration)
+        public RedisModule(ILogger logger, RedisConfiguration redisConfiguration)
         {
             RedisConfiguration = redisConfiguration ?? throw new ArgumentNullException(nameof(redisConfiguration));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
