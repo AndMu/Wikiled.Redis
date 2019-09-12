@@ -13,8 +13,6 @@ namespace Wikiled.Redis.Logic
 {
     public class RedisMultiplexer : IRedisMultiplexer
     {
-        private readonly IRedisConfiguration configuration;
-
         private readonly ILogger<RedisMultiplexer> log;
 
         private ConnectionMultiplexer connection;
@@ -23,11 +21,11 @@ namespace Wikiled.Redis.Logic
 
         public RedisMultiplexer(ILogger<RedisMultiplexer> log, IRedisConfiguration configuration)
         {
-            this.configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+            Configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             this.log = log ?? throw new ArgumentNullException(nameof(log));
         }
 
-        public IRedisConfiguration Configuration => configuration;
+        public IRedisConfiguration Configuration { get; }
 
         public bool IsActive => connection != null;
 
@@ -43,11 +41,18 @@ namespace Wikiled.Redis.Logic
 
         public void Close()
         {
-            if (connection != null)
+            if (connection == null)
             {
-                connection.Close();
-                connection = null;
+                return;
             }
+
+            connection.ConnectionFailed -= OnConnectionFailed;
+            connection.ConnectionRestored -= OnConnectionRestored;
+            connection.ErrorMessage -= OnErrorMessage;
+            connection.InternalError -= OnInternalError;
+            connection.Dispose();
+            connection.Close();
+            connection = null;
         }
 
         public void Configure(string key, string value)
@@ -77,14 +82,9 @@ namespace Wikiled.Redis.Logic
 
         public void Dispose()
         {
-            if (connection != null)
-            {
-                connection.ConnectionFailed -= OnConnectionFailed;
-                connection.ConnectionRestored -= OnConnectionRestored;
-                connection.ErrorMessage -= OnErrorMessage;
-                connection.InternalError -= OnInternalError;
-                connection.Dispose();
-            }
+            var current = connection;
+            Close();
+            current?.Dispose();
         }
 
         public void Flush()
@@ -132,27 +132,36 @@ namespace Wikiled.Redis.Logic
                 return;
             }
 
-            log.LogDebug("Opening...");
-            var options = Configuration.GetOptions();
-            foreach (var endpoint in options.EndPoints)
+            try
             {
-                log.LogInformation("Host: {0}", endpoint);
+
+                log.LogDebug("Opening...");
+                var options = Configuration.GetOptions();
+                foreach (var endpoint in options.EndPoints)
+                {
+                    log.LogInformation("Host: {0}", endpoint);
+                }
+
+                log.LogInformation(
+                    "Other configuration - KeepAlive:[{0}] ConnectTimeout:[{1}] SyncTimeout:[{2}] ServiceName:[{3}] AllowAdmin:[{4}]",
+                    Configuration.KeepAlive,
+                    Configuration.ConnectTimeout,
+                    Configuration.SyncTimeout,
+                    Configuration.ServiceName,
+                    Configuration.AllowAdmin);
+
+                connection = ConnectionMultiplexer.Connect(options);
+                Database = GetDatabase(connection);
+                connection.ConnectionFailed += OnConnectionFailed;
+                connection.ConnectionRestored += OnConnectionRestored;
+                connection.ErrorMessage += OnErrorMessage;
+                connection.InternalError += OnInternalError;
             }
-
-            log.LogInformation(
-                "Other configuration - KeepAlive:[{0}] ConnectTimeout:[{1}] SyncTimeout:[{2}] ServiceName:[{3}] AllowAdmin:[{4}]",
-                Configuration.KeepAlive,
-                Configuration.ConnectTimeout,
-                Configuration.SyncTimeout,
-                Configuration.ServiceName,
-                Configuration.AllowAdmin);
-
-            connection = ConnectionMultiplexer.Connect(options);
-            Database = GetDatabase(connection);
-            connection.ConnectionFailed += OnConnectionFailed;
-            connection.ConnectionRestored += OnConnectionRestored;
-            connection.ErrorMessage += OnErrorMessage;
-            connection.InternalError += OnInternalError;
+            catch
+            {
+                connection = null;
+                throw;
+            }
         }
 
         public void SetupSlave(EndPoint master)
@@ -181,7 +190,7 @@ namespace Wikiled.Redis.Logic
 
         public IEnumerable<IServer> GetServers()
         {
-            return configuration.Endpoints.Select(endpoint => connection.GetServer(endpoint.Host, endpoint.Port));
+            return Configuration.Endpoints.Select(endpoint => connection.GetServer(endpoint.Host, endpoint.Port));
         }
 
         private void OnInternalError(object sender, InternalErrorEventArgs eventArgs)
@@ -219,7 +228,24 @@ namespace Wikiled.Redis.Logic
             foreach (var endPoint in multiplexer.GetEndPoints())
             {
                 var server = multiplexer.GetServer(endPoint);
-                log.LogInformation("Look for database: {0}", endPoint);
+                if (server.ServerType == ServerType.Sentinel)
+                {
+                    log.LogInformation("The server is sentinel. Querying its masters");
+                    var master = server.SentinelMasters().FirstOrDefault();
+                    if (master == null)
+                    {
+                        throw new RedisConnectionException(ConnectionFailureType.UnableToConnect, "Failed to find MASTERS");
+                    }
+
+                    var settings = master.ToDictionary();
+                    var name = settings["name"];
+                    var host = settings["ip"];
+                    var port = settings["port"];
+                    log.LogInformation("Found a master: {0}:{1} ({2})", name, host, port);
+                    server = multiplexer.GetServer(endPoint);
+                }
+
+                log.LogInformation("Looking for a database: {0}", endPoint);
                 if (!server.IsSlave)
                 {
                     IDatabase database = server.Multiplexer.GetDatabase();
