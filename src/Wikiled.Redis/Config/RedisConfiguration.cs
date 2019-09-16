@@ -98,9 +98,7 @@ namespace Wikiled.Redis.Config
                     Endpoints[i].Port = redisSettings.Endpoints[i].Port;
                 }
             }
-        }
-
-      
+        }     
 
         public override string ToString()
         {
