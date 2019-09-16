@@ -239,6 +239,7 @@ namespace Wikiled.Redis.Logic
             catch (Exception e)
             {
                 log.LogError(e, "Error");
+                Multiplexer.Close();
                 throw;
             }
 

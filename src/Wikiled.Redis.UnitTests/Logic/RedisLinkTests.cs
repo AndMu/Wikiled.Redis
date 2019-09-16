@@ -39,10 +39,10 @@ namespace Wikiled.Redis.UnitTests.Logic
         [Test]
         public void SubscribeKeyEvents()
         {
-            ObjectKey key = new ObjectKey("Test", "Id");
+            var key = new ObjectKey("Test", "Id");
             Assert.Throws<ArgumentNullException>(() => redisLink.SubscribeKeyEvents(null, @event => Console.WriteLine(@event.Key)));
             Assert.Throws<ArgumentNullException>(() => redisLink.SubscribeKeyEvents(key, null));
-            Mock<ISubscriber> subscriber = new Mock<ISubscriber>();
+            var subscriber = new Mock<ISubscriber>();
             multiplexer.Setup(item => item.SubscribeKeyEvents("Redis:object:Test:Id", It.IsAny<Action<KeyspaceEvent>>()))
                        .Returns(subscriber.Object);
             var result = redisLink.SubscribeKeyEvents(key, @event => Console.WriteLine(@event.Key));
@@ -54,7 +54,7 @@ namespace Wikiled.Redis.UnitTests.Logic
         {
             redisLink.RegisterHashType<Identity>();
             Assert.Throws<ArgumentNullException>(() => redisLink.SubscribeTypeEvents<Identity>(null));
-            Mock<ISubscriber> subscriber = new Mock<ISubscriber>();
+            var subscriber = new Mock<ISubscriber>();
             multiplexer.Setup(item => item.SubscribeKeyEvents("Redis:object:Identity:*", It.IsAny<Action<KeyspaceEvent>>()))
                        .Returns(subscriber.Object);
             var result = redisLink.SubscribeTypeEvents<Identity>(@event => Console.WriteLine(@event.Key));
@@ -120,7 +120,7 @@ namespace Wikiled.Redis.UnitTests.Logic
         [Test]
         public void GetTypeIDNew()
         {
-            Mock<IBatch> batch = new Mock<IBatch>();
+            var batch = new Mock<IBatch>();
             database.Setup(item => item.CreateBatch(null)).Returns(batch.Object);
             database.Setup(item => item.StringIncrement("Redis:Type:Counter", 1, CommandFlags.None)).Returns(2);
             var id = redisLink.GetTypeID(typeof(Identity));
@@ -179,6 +179,18 @@ namespace Wikiled.Redis.UnitTests.Logic
             redisLink = new RedisLink(new NullLogger<RedisLink>(), configuration, multiplexer.Object);
             redisLink.Open();
             multiplexer.Verify(item => item.Open());
+        }
+
+        [Test]
+        public void OpenRetry()
+        {
+            multiplexer = new Mock<IRedisMultiplexer>();
+            multiplexer.Setup(item => item.Open()).Throws(new Exception());
+            redisLink = new RedisLink(new NullLogger<RedisLink>(), configuration, multiplexer.Object);
+            Assert.Throws<Exception>(() => redisLink.Open());
+            Assert.Throws<Exception>(() => redisLink.Open());
+            multiplexer.Verify(item => item.Open(), Times.Exactly(2));
+            multiplexer.Verify(item => item.Close(), Times.Exactly(2));
         }
 
         [Test]

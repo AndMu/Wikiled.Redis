@@ -46,13 +46,20 @@ namespace Wikiled.Redis.Logic
                 return;
             }
 
-            connection.ConnectionFailed -= OnConnectionFailed;
-            connection.ConnectionRestored -= OnConnectionRestored;
-            connection.ErrorMessage -= OnErrorMessage;
-            connection.InternalError -= OnInternalError;
-            connection.Dispose();
-            connection.Close();
-            connection = null;
+            try
+            {
+                connection.ConnectionFailed -= OnConnectionFailed;
+                connection.ConnectionRestored -= OnConnectionRestored;
+                connection.ErrorMessage -= OnErrorMessage;
+                connection.InternalError -= OnInternalError;
+                connection.Dispose();
+                connection.Close();
+                connection = null;
+            }
+            catch (Exception e)
+            {
+                log.LogError(e, "Close failure");
+            }
         }
 
         public void Configure(string key, string value)
@@ -245,7 +252,7 @@ namespace Wikiled.Redis.Logic
                     server = multiplexer.GetServer(endPoint);
                 }
 
-                log.LogInformation("Looking for a database: {0}", endPoint);
+                log.LogInformation("Looking for a database: {0} [{1}]", endPoint, server.ServerType);
                 if (!server.IsSlave)
                 {
                     IDatabase database = server.Multiplexer.GetDatabase();
