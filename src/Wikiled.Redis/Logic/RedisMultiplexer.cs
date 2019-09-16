@@ -249,7 +249,7 @@ namespace Wikiled.Redis.Logic
                     var host = settings["ip"];
                     var port = settings["port"];
                     log.LogInformation("Found a master: {0}:{1} ({2})", name, host, port);
-                    server = multiplexer.GetServer(endPoint);
+                    server = multiplexer.GetServer(new DnsEndPoint(host, int.Parse(port)));
                 }
 
                 log.LogInformation("Looking for a database: {0} [{1}]", endPoint, server.ServerType);

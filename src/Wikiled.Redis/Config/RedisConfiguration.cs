@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
-using StackExchange.Redis;
+﻿using StackExchange.Redis;
 using System;
 using System.Collections.Generic;
 using System.Net;
@@ -44,6 +43,15 @@ namespace Wikiled.Redis.Config
         public int SyncTimeout { get; set; }
 
         public int WriteBuffer { get; set; }
+
+        public HashSet<string> ExcludedCommands { get; } = new HashSet<string>
+        {
+            // EXCLUDE a few commands (to work with data-flow-related mode only)
+            "CLUSTER",
+            "PING",
+            "ECHO",
+            "CLIENT"
+        };
 
         public RedisConfiguration(DnsEndPoint endPoint)
             : this()
@@ -98,7 +106,7 @@ namespace Wikiled.Redis.Config
                     Endpoints[i].Port = redisSettings.Endpoints[i].Port;
                 }
             }
-        }     
+        }
 
         public override string ToString()
         {
@@ -108,7 +116,7 @@ namespace Wikiled.Redis.Config
             {
                 builder.Append($"[{redisEndpoint.Host}:{redisEndpoint.Port}]");
             }
-            
+
             return builder.ToString();
         }
 
@@ -116,16 +124,7 @@ namespace Wikiled.Redis.Config
         {
             var config = new ConfigurationOptions
             {
-                CommandMap = CommandMap.Create(
-                                 new HashSet<string>
-                                 {
-                                     // EXCLUDE a few commands (to work with data-flow-related mode only)
-                                     "CLUSTER",
-                                     "PING",
-                                     "ECHO",
-                                     "CLIENT"
-                                 },
-                                 false),
+                CommandMap = CommandMap.Create(ExcludedCommands),
                 KeepAlive = KeepAlive,              // 60 sec to ensure connection is alive
                 ConnectTimeout = ConnectTimeout,    // 5 sec
                 SyncTimeout = SyncTimeout,          // 5 sec

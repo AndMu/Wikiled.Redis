@@ -51,7 +51,9 @@ namespace Wikiled.Redis.Modules
             {
                 services.AddTransient(ImplementationFactory);
             }
-            
+
+            services.AddFactory<IRedisLink>();
+
             services.AddTransient<IRedisMultiplexer, RedisMultiplexer>();
             services.AddTransient<IReplicationFactory, ReplicationFactory>();
             
