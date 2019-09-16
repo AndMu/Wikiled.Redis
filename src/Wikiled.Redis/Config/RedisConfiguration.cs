@@ -48,7 +48,7 @@ namespace Wikiled.Redis.Config
         {
             // EXCLUDE a few commands (to work with data-flow-related mode only)
             "CLUSTER",
-            "PING",
+            "TIME",
             "ECHO",
             "CLIENT"
         };
