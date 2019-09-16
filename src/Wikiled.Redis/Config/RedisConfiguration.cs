@@ -124,7 +124,7 @@ namespace Wikiled.Redis.Config
         {
             var config = new ConfigurationOptions
             {
-                CommandMap = CommandMap.Create(ExcludedCommands),
+                CommandMap = CommandMap.Create(ExcludedCommands, false),
                 KeepAlive = KeepAlive,              // 60 sec to ensure connection is alive
                 ConnectTimeout = ConnectTimeout,    // 5 sec
                 SyncTimeout = SyncTimeout,          // 5 sec
