@@ -25,6 +25,8 @@ namespace Wikiled.Redis.Logic
             this.log = log ?? throw new ArgumentNullException(nameof(log));
         }
 
+        public bool UsingSentinel { get; private set; }
+
         public IRedisConfiguration Configuration { get; }
 
         public bool IsActive => connection != null;
@@ -143,32 +145,38 @@ namespace Wikiled.Redis.Logic
             {
 
                 log.LogDebug("Opening...");
-                var options = Configuration.GetOptions();
-                foreach (var endpoint in options.EndPoints)
-                {
-                    log.LogInformation("Host: {0}", endpoint);
-                }
-
-                log.LogInformation(
-                    "Other configuration - KeepAlive:[{0}] ConnectTimeout:[{1}] SyncTimeout:[{2}] ServiceName:[{3}] AllowAdmin:[{4}]",
-                    Configuration.KeepAlive,
-                    Configuration.ConnectTimeout,
-                    Configuration.SyncTimeout,
-                    Configuration.ServiceName,
-                    Configuration.AllowAdmin);
-
-                connection = ConnectionMultiplexer.Connect(options);
-                Database = GetDatabase(connection);
-                connection.ConnectionFailed += OnConnectionFailed;
-                connection.ConnectionRestored += OnConnectionRestored;
-                connection.ErrorMessage += OnErrorMessage;
-                connection.InternalError += OnInternalError;
+                Database = ResolveDatabase();
             }
             catch
             {
                 connection = null;
                 throw;
             }
+        }
+
+        private IDatabase ResolveDatabase()
+        {
+            var options = Configuration.GetOptions();
+
+            foreach (var endpoint in options.EndPoints)
+            {
+                log.LogInformation("Host: {0}", endpoint);
+            }
+
+            log.LogInformation(
+                "Other configuration - KeepAlive:[{0}] ConnectTimeout:[{1}] SyncTimeout:[{2}] ServiceName:[{3}] AllowAdmin:[{4}]",
+                Configuration.KeepAlive,
+                Configuration.ConnectTimeout,
+                Configuration.SyncTimeout,
+                Configuration.ServiceName,
+                Configuration.AllowAdmin);
+
+            connection = ConnectionMultiplexer.Connect(options);
+            connection.ConnectionFailed += OnConnectionFailed;
+            connection.ConnectionRestored += OnConnectionRestored;
+            connection.ErrorMessage += OnErrorMessage;
+            connection.InternalError += OnInternalError;
+            return GetDatabaseFromMultiplexer(connection);
         }
 
         public void SetupSlave(EndPoint master)
@@ -230,13 +238,19 @@ namespace Wikiled.Redis.Logic
                 eventArgs.Exception);
         }
 
-        private IDatabase GetDatabase(ConnectionMultiplexer multiplexer)
+        private IDatabase GetDatabaseFromMultiplexer(IConnectionMultiplexer multiplexer)
         {
             foreach (var endPoint in multiplexer.GetEndPoints())
             {
                 var server = multiplexer.GetServer(endPoint);
                 if (server.ServerType == ServerType.Sentinel)
                 {
+                    if (UsingSentinel)
+                    {
+                        throw new RedisConnectionException(ConnectionFailureType.UnableToConnect, "Circular sentinel dependency detected");
+                    }
+
+                    UsingSentinel = true;
                     log.LogInformation("The server is sentinel. Querying its masters");
                     var master = server.SentinelMasters().FirstOrDefault();
                     if (master == null)
@@ -248,8 +262,19 @@ namespace Wikiled.Redis.Logic
                     var name = settings["name"];
                     var host = settings["ip"];
                     var port = settings["port"];
-                    log.LogInformation("Found a master: {0}:{1} ({2})", name, host, port);
-                    server = multiplexer.GetServer(host, int.Parse(port));
+                    Close();
+
+                    log.LogInformation("Switching to the master: {0}:{1} ({2})", name, host, port);
+                    Configuration.Endpoints = new[]
+                    {
+                        new RedisEndpoint
+                        {
+                            Host = host,
+                            Port = int.Parse(port)
+                        }
+                    };
+
+                    return ResolveDatabase();
                 }
 
                 log.LogInformation("Looking for a database: {0} [{1}]", server.EndPoint, server.ServerType);
