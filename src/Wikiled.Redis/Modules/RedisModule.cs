@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
+using StackExchange.Redis;
 using Wikiled.Common.Utilities.Modules;
 using Wikiled.Redis.Config;
 using Wikiled.Redis.Logic;
@@ -62,7 +63,9 @@ namespace Wikiled.Redis.Modules
                 {
                     IRedisMultiplexer Construct(IRedisConfiguration config)
                     {
-                        return new RedisMultiplexer(x.GetService<ILogger<RedisMultiplexer>>(), config);
+                        return new RedisMultiplexer(x.GetService<ILogger<RedisMultiplexer>>(),
+                                                    config,
+                                                    options => ConnectionMultiplexer.Connect(options));
                     }
 
                     return Construct;

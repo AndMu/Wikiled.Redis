@@ -15,13 +15,16 @@ namespace Wikiled.Redis.Logic
     {
         private readonly ILogger<RedisMultiplexer> log;
 
-        private ConnectionMultiplexer connection;
+        private IConnectionMultiplexer connection;
 
         private bool enabledNotifications;
 
-        public RedisMultiplexer(ILogger<RedisMultiplexer> log, IRedisConfiguration configuration)
+        private readonly Func<ConfigurationOptions, IConnectionMultiplexer> multiplexerFactory;
+
+        public RedisMultiplexer(ILogger<RedisMultiplexer> log, IRedisConfiguration configuration, Func<ConfigurationOptions, IConnectionMultiplexer> multiplexerFactory)
         {
             Configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+            this.multiplexerFactory = multiplexerFactory ?? throw new ArgumentNullException(nameof(multiplexerFactory));
             this.log = log ?? throw new ArgumentNullException(nameof(log));
         }
 
@@ -171,7 +174,7 @@ namespace Wikiled.Redis.Logic
                 Configuration.ServiceName,
                 Configuration.AllowAdmin);
 
-            connection = ConnectionMultiplexer.Connect(options);
+            connection = multiplexerFactory(options);
             connection.ConnectionFailed += OnConnectionFailed;
             connection.ConnectionRestored += OnConnectionRestored;
             connection.ErrorMessage += OnErrorMessage;
