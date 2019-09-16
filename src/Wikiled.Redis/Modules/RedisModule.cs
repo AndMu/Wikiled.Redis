@@ -56,6 +56,7 @@ namespace Wikiled.Redis.Modules
             services.AddFactory<IRedisLink>();
 
             services.AddTransient<IRedisMultiplexer, RedisMultiplexer>();
+            services.AddSingleton<Func<ConfigurationOptions, IConnectionMultiplexer>>(ctx => option => ConnectionMultiplexer.Connect(option) as IConnectionMultiplexer);
             services.AddTransient<IReplicationFactory, ReplicationFactory>();
             
             services.AddSingleton<Func<IRedisConfiguration, IRedisMultiplexer>>(
