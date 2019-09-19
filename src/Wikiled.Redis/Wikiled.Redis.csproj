@@ -22,7 +22,7 @@
     <PackageReference Include="StackExchange.Redis" version="2.0.601" />
     <PackageReference Include="System.Reactive" Version="4.1.6" />
     <PackageReference Include="Wikiled.Common" Version="1.1.9" />
-    <PackageReference Include="Wikiled.Common.Utilities" Version="1.2.9" />
+    <PackageReference Include="Wikiled.Common.Utilities" Version="1.2.11" />
   </ItemGroup>
 
   <ItemGroup>
