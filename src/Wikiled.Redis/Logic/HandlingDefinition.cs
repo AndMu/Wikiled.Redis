@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Threading;
-using Microsoft.Extensions.Logging;
-using Wikiled.Common.Logging;
-using Wikiled.Redis.Channels;
 using Wikiled.Redis.Data;
 using Wikiled.Redis.Serialization;
 
@@ -10,15 +7,13 @@ namespace Wikiled.Redis.Logic
 {
     public class HandlingDefinition<T>
     {
-        private static readonly ILogger log = ApplicationLogging.CreateLogger($"HandlingDefinition<{typeof(T)}>");
-
         private long counter;
 
         private bool extractType;
 
         private bool isSingleInstance;
 
-        private long linkId;
+        private readonly long linkId;
 
         private bool isWellKnown;
 
@@ -26,11 +21,13 @@ namespace Wikiled.Redis.Logic
 
         private bool isNormalized;
 
-        private HandlingDefinition()
+        public HandlingDefinition(long linkId, IDataSerializer dataSerializer)
         {
+            this.linkId = linkId;
+            DataSerializer = dataSerializer ?? throw new ArgumentNullException(nameof(dataSerializer));
         }
 
-        public IDataSerializer DataSerializer { get; private set; }
+        public IDataSerializer DataSerializer { get; }
 
         public bool ExtractType
         {
@@ -118,43 +115,6 @@ namespace Wikiled.Redis.Logic
 
                 serializer = value;
             }
-        }
-
-        public static HandlingDefinition<T> ConstructGeneric(IRedisLink redis, IDataSerializer serializer = null)
-        {
-            if (redis == null)
-            {
-                throw new ArgumentNullException(nameof(redis));
-            }
-
-            if (redis.State != ChannelState.Open)
-            {
-                throw new ArgumentOutOfRangeException("Redis link is not open", nameof(redis));
-            }
-
-            if (redis.LinkId < 0)
-            {
-                throw new ArgumentOutOfRangeException("Redis link id invalid", nameof(redis));
-            }
-
-            log.LogDebug("ConstructGeneric");
-            if (RedisValueExtractor.IsPrimitive<T>() &&
-               (serializer != null))
-            {
-                throw new ArgumentOutOfRangeException(nameof(T), "Primitive type can't have serializer");
-            }
-
-            if ((serializer == null) &&
-               !RedisValueExtractor.IsPrimitive<T>())
-            {
-                serializer = new FlatProtoDataSerializer(false);
-            }
-
-            var instance = new HandlingDefinition<T>();
-            instance.IsWellKnown = false;
-            instance.linkId = redis.LinkId;
-            instance.DataSerializer = serializer;
-            return instance;
         }
 
         /// <summary>
