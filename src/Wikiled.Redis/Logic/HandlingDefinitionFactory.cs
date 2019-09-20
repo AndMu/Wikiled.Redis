@@ -53,48 +53,5 @@ namespace Wikiled.Redis.Logic
             instance.IsWellKnown = false;
             return instance;
         }
-
-        public HandlingDefinition<T> RegisterNormalized<T>(IRedisLink link, IDataSerializer serializer = null)
-            where T : class
-        {
-            log.LogInformation("RegisterNormalized<{0}>", typeof(T));
-            var definition = ConstructGeneric<T>(link, serializer);
-            definition.IsNormalized = true;
-            definition.IsWellKnown = true;
-            link.RegisterDefinition(definition);
-            return definition;
-        }
-
-        public HandlingDefinition<T> RegisterKnownType<T>(IRedisLink link, IDataSerializer serializer = null)
-            where T : class
-        {
-            log.LogInformation("RegisterKnownType<{0}>", typeof(T));
-            var definition = ConstructGeneric<T>(link, serializer);
-            definition.IsWellKnown = true;
-            link.RegisterDefinition(definition);
-            return definition;
-        }
-
-        public HandlingDefinition<T> RegisterHashType<T>(IRedisLink link, IKeyValueSerializer<T> serializer = null)
-            where T : class, new()
-        {
-            log.LogInformation("RegisterHashType<{0}>", typeof(T));
-            serializer = serializer ?? new KeyValueSerializer<T>(() => new T());
-            var definition = ConstructGeneric<T>(link);
-            definition.Serializer = serializer;
-            definition.IsWellKnown = true;
-            definition.IsNormalized = true;
-            link.RegisterDefinition(definition);
-            return definition;
-        }
-
-        public HandlingDefinition<T> RegisterGeneric<T>(IRedisLink link, IDataSerializer serializer = null)
-            where T : class
-        {
-            log.LogInformation("ConstructGeneric<{0}>", typeof(T));
-            var definition = ConstructGeneric<T>(link, serializer);
-            link.RegisterDefinition(definition);
-            return definition;
-        }
     }
 }
