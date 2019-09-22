@@ -45,7 +45,7 @@ namespace Wikiled.Redis.UnitTests.Serialization
             data = new Identity();
             database = new Mock<IDatabaseAsync>();
             objecMock = new Mock<IObjectSerialization>();
-            link.Setup(item => item.GetDefinition<Identity>()).Returns(HandlingDefinition<Identity>.ConstructGeneric(link.Object));
+            link.Setup(item => item.GetDefinition<Identity>()).Returns(Global.HandlingDefinitionFactory.ConstructGeneric<Identity>(link.Object));
             instance = new SingleItemSerialization(link.Object, objecMock.Object, mainIndexManager.Object);
         }
 

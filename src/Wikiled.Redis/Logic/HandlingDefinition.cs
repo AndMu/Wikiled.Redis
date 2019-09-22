@@ -24,7 +24,7 @@ namespace Wikiled.Redis.Logic
         public HandlingDefinition(long linkId, IDataSerializer dataSerializer)
         {
             this.linkId = linkId;
-            DataSerializer = dataSerializer ?? throw new ArgumentNullException(nameof(dataSerializer));
+            DataSerializer = dataSerializer;
         }
 
         public IDataSerializer DataSerializer { get; }
@@ -35,7 +35,7 @@ namespace Wikiled.Redis.Logic
             set
             {
                 if (value &&
-                   RedisValueExtractor.IsPrimitive<T>())
+                    RedisValueExtractor.IsPrimitive<T>())
                 {
                     throw new ArgumentOutOfRangeException(nameof(value), "Primitive type can't extract type");
                 }

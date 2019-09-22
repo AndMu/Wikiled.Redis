@@ -3,7 +3,6 @@ using Microsoft.IO;
 using System;
 using Wikiled.Redis.Channels;
 using Wikiled.Redis.Data;
-using Wikiled.Redis.Serialization;
 
 namespace Wikiled.Redis.Logic
 {
@@ -43,7 +42,7 @@ namespace Wikiled.Redis.Logic
                 throw new ArgumentOutOfRangeException(nameof(T), "Primitive type can't have serializer");
             }
 
-            if ((serializer == null) &&
+            if (serializer == null &&
                 !RedisValueExtractor.IsPrimitive<T>())
             {
                 serializer = new FlatProtoDataSerializer(false, memoryStreamManager);

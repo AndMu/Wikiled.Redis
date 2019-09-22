@@ -30,8 +30,6 @@ namespace Wikiled.Redis.Logic
 
         private readonly IMainIndexManager mainIndexManager;
 
-        private readonly IHandlingDefinitionFactory handlingDefinitionFactory;
-
         public RedisLink(ILogger<RedisLink> log,
                          IRedisConfiguration configuration,
                          IRedisMultiplexer multiplexer,
@@ -40,7 +38,7 @@ namespace Wikiled.Redis.Logic
         {
             Multiplexer = multiplexer ?? throw new ArgumentNullException(nameof(multiplexer));
 
-            this.handlingDefinitionFactory = handlingDefinitionFactory ?? throw new ArgumentNullException(nameof(handlingDefinitionFactory));
+            DefinitionFactory = handlingDefinitionFactory ?? throw new ArgumentNullException(nameof(handlingDefinitionFactory));
             this.log = log ?? throw new ArgumentNullException(nameof(log));
             Generator = new ScriptGenerator();
             mainIndexManager = new MainIndexManager(new IndexManagerFactory(this));
@@ -48,6 +46,8 @@ namespace Wikiled.Redis.Logic
         }
 
         public IRedisClient Client { get; }
+
+        public IHandlingDefinitionFactory DefinitionFactory { get; }
 
         public IDatabase Database => Multiplexer.Database;
 
@@ -62,7 +62,7 @@ namespace Wikiled.Redis.Logic
             Type type = typeof(T);
             if (!typeHandler.TryGetValue(type, out var definition))
             {
-                definition = handlingDefinitionFactory.ConstructGeneric<T>(this);
+                definition = DefinitionFactory.ConstructGeneric<T>(this);
                 typeHandler[type] = definition;
             }
 

@@ -23,14 +23,14 @@ namespace Wikiled.Redis.UnitTests.Serialization
             link = new Mock<IRedisLink>();
             link.Setup(item => item.State).Returns(ChannelState.Open);
             link.Setup(item => item.LinkId).Returns(0);
-            link.Setup(item => item.GetDefinition<MainDataOne>()).Returns(HandlingDefinition<MainDataOne>.ConstructGeneric(link.Object));
-            instance = new ObjectHashSetSerialization(link.Object, new FlatProtoDataSerializer(true));
+            link.Setup(item => item.GetDefinition<MainDataOne>()).Returns(Global.HandlingDefinitionFactory.ConstructGeneric<MainDataOne>(link.Object));
+            instance = new ObjectHashSetSerialization(link.Object, new FlatProtoDataSerializer(true, Global.Stream));
         }
 
         [Test]
         public void Construct()
         {
-            Assert.Throws<ArgumentNullException>(() => new ObjectHashSetSerialization(null, new FlatProtoDataSerializer(true)));
+            Assert.Throws<ArgumentNullException>(() => new ObjectHashSetSerialization(null, new FlatProtoDataSerializer(true, Global.Stream)));
             Assert.Throws<ArgumentNullException>(() => new ObjectHashSetSerialization(link.Object, null));
         }
 
