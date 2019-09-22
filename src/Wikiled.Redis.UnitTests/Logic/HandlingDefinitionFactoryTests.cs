@@ -9,11 +9,12 @@ using Wikiled.Redis.Serialization;
 namespace Wikiled.Redis.UnitTests.Logic
 {
     [TestFixture]
-    public class HandlingDefinitionTests
+    public class HandlingDefinitionFactoryTests
     {
         private Mock<IDataSerializer> dataSerializer;
 
         private Mock<IRedisLink> link;
+
 
         [SetUp]
         public void Setup()
@@ -25,15 +26,15 @@ namespace Wikiled.Redis.UnitTests.Logic
         [Test]
         public void ConstructGeneric()
         {
-            Assert.Throws<ArgumentOutOfRangeException>(() => HandlingDefinition<Identity>.ConstructGeneric(link.Object));
+            Assert.Throws<ArgumentOutOfRangeException>(() => Global.HandlingDefinitionFactory.ConstructGeneric<Identity>(link.Object));
             link.Setup(item => item.State).Returns(ChannelState.Open);
             link.Setup(item => item.LinkId).Returns(-1);
-            Assert.Throws<ArgumentOutOfRangeException>(() => HandlingDefinition<Identity>.ConstructGeneric(link.Object));
+            Assert.Throws<ArgumentOutOfRangeException>(() => Global.HandlingDefinitionFactory.ConstructGeneric<Identity>(link.Object));
 
             link.Setup(item => item.LinkId).Returns(10);
 
-            Assert.Throws<ArgumentOutOfRangeException>(() => HandlingDefinition<int>.ConstructGeneric(link.Object, dataSerializer.Object));
-            var instance = HandlingDefinition<Identity>.ConstructGeneric(link.Object);
+            Assert.Throws<ArgumentOutOfRangeException>(() => Global.HandlingDefinitionFactory.ConstructGeneric<int>(link.Object, dataSerializer.Object));
+            var instance = Global.HandlingDefinitionFactory.ConstructGeneric<Identity>(link.Object);
             Assert.IsFalse(instance.IsWellKnown);
             Assert.IsNull(instance.Serializer);
             Assert.AreEqual("L10:1", instance.GetNextId());
@@ -45,7 +46,7 @@ namespace Wikiled.Redis.UnitTests.Logic
             link.Setup(item => item.State).Returns(ChannelState.Open);
             link.Setup(item => item.LinkId).Returns(-1);
             link.Setup(item => item.LinkId).Returns(10);
-            var definition = HandlingDefinition<Identity>.ConstructGeneric(link.Object);
+            var definition = Global.HandlingDefinitionFactory.ConstructGeneric<Identity>(link.Object);
             Assert.IsFalse(definition.IsNormalized);
             Assert.IsFalse(definition.IsSingleInstance);
             Assert.IsFalse(definition.IsWellKnown);
@@ -54,7 +55,7 @@ namespace Wikiled.Redis.UnitTests.Logic
             definition.IsSingleInstance = true;
             definition.IsWellKnown = true;
 
-            Mock<IKeyValueSerializer<Identity>> serializer = new Mock<IKeyValueSerializer<Identity>>();
+            var serializer = new Mock<IKeyValueSerializer<Identity>>();
             definition.Serializer = serializer.Object;
             Assert.IsTrue(definition.IsNormalized);
             Assert.IsTrue(definition.IsSingleInstance);
@@ -68,7 +69,7 @@ namespace Wikiled.Redis.UnitTests.Logic
             link.Setup(item => item.State).Returns(ChannelState.Open);
             link.Setup(item => item.LinkId).Returns(-1);
             link.Setup(item => item.LinkId).Returns(10);
-            var definition = HandlingDefinition<int>.ConstructGeneric(link.Object);
+            var definition = Global.HandlingDefinitionFactory.ConstructGeneric<int>(link.Object);
             Assert.Throws<ArgumentOutOfRangeException>(() => definition.IsNormalized = true);
             Assert.Throws<ArgumentOutOfRangeException>(() => definition.IsSingleInstance = true);
             Assert.Throws<ArgumentOutOfRangeException>(() => definition.IsWellKnown = true);

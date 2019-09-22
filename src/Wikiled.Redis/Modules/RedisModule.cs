@@ -30,6 +30,7 @@ namespace Wikiled.Redis.Modules
             logger.LogDebug("Using Redis cache");
             services.AddSingleton<IRedisConfiguration>(RedisConfiguration);
             services.AddSingleton<IResilience, ResilienceHandler>();
+            services.AddSingleton<IHandlingDefinitionFactory, HandlingDefinitionFactory>();
             
             services.AddTransient<RedisLink>();
 

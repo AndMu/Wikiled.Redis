@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using Microsoft.IO;
 using Wikiled.Common.Reflection;
 using Wikiled.FlatBuffers;
 using Wikiled.Redis.Helpers;
@@ -10,9 +11,12 @@ namespace Wikiled.Redis.Data
     {
         private readonly bool isWellKnown;
 
-        public FlatProtoDataSerializer(bool isWellKnown)
+        private readonly RecyclableMemoryStreamManager memoryStreamManager;
+
+        public FlatProtoDataSerializer(bool isWellKnown, RecyclableMemoryStreamManager memoryStreamManager)
         {
             this.isWellKnown = isWellKnown;
+            this.memoryStreamManager = memoryStreamManager ?? throw new ArgumentNullException(nameof(memoryStreamManager));
         }
 
         public T Deserialize<T>(byte[] data)
@@ -56,7 +60,7 @@ namespace Wikiled.Redis.Data
             }
 
             var data = instance.SmartSerializeCompress(out bool compressed);
-            FlatBufferBuilder builder = new FlatBufferBuilder(data.Length + 255);
+            var builder = new FlatBufferBuilder(data.Length + 255);
 
             // allocate payload
             var payload = RedisData.CreatePayloadVector(builder, data);
@@ -68,7 +72,7 @@ namespace Wikiled.Redis.Data
             int message = RedisData.EndRedisData(builder);
             RedisData.FinishRedisDataBuffer(builder, message);
 
-            using (var memoryStream = new MemoryStream(builder.DataBuffer.Data, builder.DataBuffer.Position, builder.Offset))
+            using (var memoryStream = memoryStreamManager.GetStream("Redis.FlatBuffers", builder.DataBuffer.Data, builder.DataBuffer.Position, builder.Offset))
             {
                 return memoryStream.ToArray();
             }

@@ -15,6 +15,8 @@ namespace Wikiled.Redis.Logic
         /// </summary>
         IRedisClient Client { get; }
 
+        IHandlingDefinitionFactory DefinitionFactory { get; }
+
         /// <summary>
         ///     Redis database
         /// </summary>

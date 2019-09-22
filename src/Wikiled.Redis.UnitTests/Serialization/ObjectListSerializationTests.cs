@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.IO;
 using Wikiled.Redis.Keys;
 using Wikiled.Redis.Logic;
 using Wikiled.Redis.Serialization;
@@ -36,7 +38,7 @@ namespace Wikiled.Redis.UnitTests.Serialization
         public void Setup()
         {
             mainIndexManager = new Mock<IMainIndexManager>();
-            RedisConfiguration configuration = new RedisConfiguration("Test");
+            var configuration = new RedisConfiguration("Test");
             link = new Mock<IRedisLink>();
             var multiplexer = new Mock<IRedisMultiplexer>();
             link.Setup(item => item.Multiplexer).Returns(multiplexer.Object);
@@ -45,7 +47,7 @@ namespace Wikiled.Redis.UnitTests.Serialization
             link.Setup(item => item.State).Returns(ChannelState.Open);
             link.Setup(item => item.LinkId).Returns(0);
             objecMock = new Mock<IObjectSerialization>();
-            link.Setup(item => item.GetDefinition<Identity>()).Returns(HandlingDefinition<Identity>.ConstructGeneric(link.Object));
+            link.Setup(item => item.GetDefinition<Identity>()).Returns(Global.HandlingDefinitionFactory.ConstructGeneric<Identity>(link.Object));
             database = new Mock<IDatabaseAsync>();
             key = new ObjectKey("Test");
             data = new Identity();

@@ -21,7 +21,7 @@ namespace Wikiled.Redis.UnitTests.Serialization
             link = new Mock<IRedisLink>();
             link.Setup(item => item.State).Returns(ChannelState.Open);
             link.Setup(item => item.LinkId).Returns(0);
-            var definition = HandlingDefinition<Identity>.ConstructGeneric(link.Object);
+            var definition = Global.HandlingDefinitionFactory.ConstructGeneric<Identity>(link.Object);
             definition.Serializer = new KeyValueSerializer<Identity>(() => new Identity());
             link.Setup(item => item.GetDefinition<Identity>())
                 .Returns(definition);

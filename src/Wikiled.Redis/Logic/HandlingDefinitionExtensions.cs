@@ -1,21 +1,22 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System;
+using Microsoft.Extensions.Logging;
 using Wikiled.Common.Logging;
 using Wikiled.Redis.Data;
 using Wikiled.Redis.Serialization;
 
 namespace Wikiled.Redis.Logic
 {
-    public static class RedisLinkExtensions
+    public static class HandlingDefinitionExtensions
     {
-        private static readonly ILogger log = ApplicationLogging.CreateLogger("RedisLinkExtensions");
+        private static ILogger log = ApplicationLogging.LoggerFactory.CreateLogger("HandlingDefinitionExtensions");
 
         public static HandlingDefinition<T> RegisterNormalized<T>(this IRedisLink link, IDataSerializer serializer = null)
             where T : class
         {
             log.LogInformation("RegisterNormalized<{0}>", typeof(T));
-            var definition = HandlingDefinition<T>.ConstructGeneric(link, serializer);
+            var definition = link.DefinitionFactory.ConstructGeneric<T>(link, serializer);
             definition.IsNormalized = true;
-			definition.IsWellKnown = true;
+            definition.IsWellKnown = true;
             link.RegisterDefinition(definition);
             return definition;
         }
@@ -24,7 +25,7 @@ namespace Wikiled.Redis.Logic
             where T : class
         {
             log.LogInformation("RegisterKnownType<{0}>", typeof(T));
-            var definition = HandlingDefinition<T>.ConstructGeneric(link, serializer);
+            var definition = link.DefinitionFactory.ConstructGeneric<T>(link, serializer);
             definition.IsWellKnown = true;
             link.RegisterDefinition(definition);
             return definition;
@@ -35,7 +36,7 @@ namespace Wikiled.Redis.Logic
         {
             log.LogInformation("RegisterHashType<{0}>", typeof(T));
             serializer = serializer ?? new KeyValueSerializer<T>(() => new T());
-            var definition = HandlingDefinition<T>.ConstructGeneric(link);
+            var definition = link.DefinitionFactory.ConstructGeneric<T>(link);
             definition.Serializer = serializer;
             definition.IsWellKnown = true;
             definition.IsNormalized = true;
@@ -47,7 +48,7 @@ namespace Wikiled.Redis.Logic
             where T : class
         {
             log.LogInformation("ConstructGeneric<{0}>", typeof(T));
-            var definition = HandlingDefinition<T>.ConstructGeneric(link, serializer);
+            var definition = link.DefinitionFactory.ConstructGeneric<T>(link, serializer);
             link.RegisterDefinition(definition);
             return definition;
         }

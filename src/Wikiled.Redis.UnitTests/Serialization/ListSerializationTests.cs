@@ -43,7 +43,7 @@ namespace Wikiled.Redis.UnitTests.Serialization
             redis.Setup(item => item.LinkId).Returns(0);
             redis.Setup(item => item.Generator).Returns(new ScriptGenerator());
             serializer = new Mock<IDataSerializer>();
-            redis.Setup(item => item.GetDefinition<MainDataOne>()).Returns(HandlingDefinition<MainDataOne>.ConstructGeneric(redis.Object, serializer.Object));
+            redis.Setup(item => item.GetDefinition<MainDataOne>()).Returns(Global.HandlingDefinitionFactory.ConstructGeneric<MainDataOne>(redis.Object, serializer.Object));
             database = new Mock<IDatabaseAsync>();
             instance = new ListSerialization(redis.Object, redisSetList.Object);
         }
