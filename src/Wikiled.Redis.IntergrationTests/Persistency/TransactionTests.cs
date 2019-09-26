@@ -38,6 +38,5 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
             rawResult = await Redis.Client.GetRecords<string>(Key).LastOrDefaultAsync();
             Assert.AreEqual("Test", rawResult);
         }
-
     }
 }

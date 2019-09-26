@@ -1,8 +1,7 @@
-﻿using System;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
-using Wikiled.Common.Logging;
+using System;
+using System.Threading.Tasks;
 using Wikiled.Redis.Channels;
 using Wikiled.Redis.Indexing;
 
@@ -12,15 +11,21 @@ namespace Wikiled.Redis.Logic
     {
         private readonly IRedisLink link;
 
-        private static readonly ILogger log = ApplicationLogging.CreateLogger<RedisTransaction>();
+        private readonly ILogger<RedisTransaction> log;
 
         private readonly ITransaction transaction;
 
-        public RedisTransaction(IRedisLink link, ITransaction transaction, IMainIndexManager indexManager)
+        public RedisTransaction(ILoggerFactory loggerFactory, IRedisLink link, ITransaction transaction, IMainIndexManager indexManager)
         {
+            if (loggerFactory == null)
+            {
+                throw new ArgumentNullException(nameof(loggerFactory));
+            }
+
             this.transaction = transaction ?? throw new ArgumentNullException(nameof(transaction));
             this.link = link ?? throw new ArgumentNullException(nameof(link));
-            Client = new RedisClient(link, indexManager, transaction);
+            log = loggerFactory.CreateLogger<RedisTransaction>();
+            Client = new RedisClient(loggerFactory.CreateLogger<RedisClient>(), link, indexManager, transaction);
         }
 
         public IRedisClient Client { get; }

@@ -18,6 +18,8 @@ namespace Wikiled.Redis.Logic
 {
     public class RedisLink : BaseChannel, IRedisLink
     {
+        private readonly ILoggerFactory loggerFactory;
+
         private readonly ILogger<RedisLink> log;
 
         private readonly ConcurrentDictionary<Type, ISpecificPersistency> addRecordActions = new ConcurrentDictionary<Type, ISpecificPersistency>();
@@ -30,19 +32,20 @@ namespace Wikiled.Redis.Logic
 
         private readonly IMainIndexManager mainIndexManager;
 
-        public RedisLink(ILogger<RedisLink> log,
+        public RedisLink(ILoggerFactory loggerFactory,
                          IRedisConfiguration configuration,
                          IRedisMultiplexer multiplexer,
                          IHandlingDefinitionFactory handlingDefinitionFactory)
-            : base(log, configuration?.ServiceName)
+            : base(configuration?.ServiceName)
         {
+            this.loggerFactory = loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory));
             Multiplexer = multiplexer ?? throw new ArgumentNullException(nameof(multiplexer));
 
             DefinitionFactory = handlingDefinitionFactory ?? throw new ArgumentNullException(nameof(handlingDefinitionFactory));
-            this.log = log ?? throw new ArgumentNullException(nameof(log));
+            log = loggerFactory.CreateLogger<RedisLink>();
             Generator = new ScriptGenerator();
             mainIndexManager = new MainIndexManager(new IndexManagerFactory(this));
-            Client = new RedisClient(this, mainIndexManager);
+            Client = new RedisClient(loggerFactory?.CreateLogger<RedisClient>(), this, mainIndexManager);
         }
 
         public IRedisClient Client { get; }
@@ -56,6 +59,8 @@ namespace Wikiled.Redis.Logic
         public long LinkId { get; private set; }
 
         public IRedisMultiplexer Multiplexer { get; }
+
+        protected override ILogger Logger => log;
 
         public HandlingDefinition<T> GetDefinition<T>()
         {
@@ -181,7 +186,7 @@ namespace Wikiled.Redis.Logic
         {
             log.LogDebug("StartTransaction");
             Multiplexer.CheckConnection();
-            return new RedisTransaction(this, Multiplexer.Database.CreateTransaction(), mainIndexManager);
+            return new RedisTransaction(loggerFactory, this, Multiplexer.Database.CreateTransaction(), mainIndexManager);
         }
 
         public ISubscriber SubscribeKeyEvents(IDataKey key, Action<KeyspaceEvent> action)

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging.Abstractions;
 using Wikiled.Redis.Keys;
 using Wikiled.Redis.Logic;
 using Wikiled.Redis.Serialization;
@@ -39,15 +40,16 @@ namespace Wikiled.Redis.UnitTests.Logic
             database = new Mock<IDatabase>();
             link.Setup(item => item.Database).Returns(database.Object);
             key = new ObjectKey("Name");
-            client = new RedisClient(link.Object, mainIndexManager.Object);
+            client = new RedisClient(new NullLogger<RedisClient>(), link.Object, mainIndexManager.Object);
             data = new Identity();
         }
 
         [Test]
         public void Construct()
         {
-            Assert.Throws<ArgumentNullException>(() => new RedisClient(null, mainIndexManager.Object));
-            Assert.Throws<ArgumentNullException>(() => new RedisClient(link.Object, null));
+            Assert.Throws<ArgumentNullException>(() => new RedisClient(new NullLogger<RedisClient>(), null, mainIndexManager.Object));
+            Assert.Throws<ArgumentNullException>(() => new RedisClient(new NullLogger<RedisClient>(), link.Object, null));
+            Assert.Throws<ArgumentNullException>(() => new RedisClient(null, link.Object, mainIndexManager.Object));
         }
 
         [Test]
@@ -63,7 +65,7 @@ namespace Wikiled.Redis.UnitTests.Logic
         public async Task TestLink()
         {
             var local = new Mock<IDatabaseAsync>();
-            client = new RedisClient(link.Object, mainIndexManager.Object, local.Object);
+            client = new RedisClient(new NullLogger<RedisClient>(), link.Object, mainIndexManager.Object, local.Object);
             await client.AddRecord(key, data).ConfigureAwait(false);
             persistency.Verify(item => item.AddRecord(local.Object, key, data));
         }

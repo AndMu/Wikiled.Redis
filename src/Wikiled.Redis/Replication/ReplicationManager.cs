@@ -13,28 +13,31 @@ namespace Wikiled.Redis.Replication
 {
     public class ReplicationManager : BaseChannel, IReplicationManager
     {
-        private static readonly ILogger log = ApplicationLogging.CreateLogger<ReplicationManager>();
-
         private readonly IRedisMultiplexer master;
+
+        private readonly ILogger<ReplicationManager> log;
 
         private readonly IRedisMultiplexer slave;
 
         private EndPoint masterEndPoint;
 
-        public ReplicationManager(IRedisMultiplexer master, IRedisMultiplexer slave, IObservable<long> timer)
-            : base(log, "Replication")
+        public ReplicationManager(ILogger<ReplicationManager> log, IRedisMultiplexer master, IRedisMultiplexer slave, IObservable<long> timer)
+            : base("Replication")
         {
             if (timer == null)
             {
                 throw new ArgumentNullException(nameof(timer));
             }
 
+            this.log = log ?? throw new ArgumentNullException(nameof(log));
             this.slave = slave ?? throw new ArgumentNullException(nameof(slave));
             this.master = master ?? throw new ArgumentNullException(nameof(master));
             Progress = timer.Select(TimerEvent);
         }
 
         public IObservable<ReplicationProgress> Progress { get; }
+
+        protected override ILogger Logger => log;
 
         protected override void CloseInternal()
         {

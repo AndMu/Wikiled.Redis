@@ -75,6 +75,20 @@ namespace Wikiled.Redis.Logic
         IObservable<T> GetRecords<T>(IDataKey dataKey);
 
         /// <summary>
+        /// Count records
+        /// </summary>
+        /// <param name="dataKey"></param>
+        /// <returns></returns>
+        Task<long> Count<T>(IDataKey dataKey);
+
+        /// <summary>
+        /// Count index
+        /// </summary>
+        /// <param name="indexKey"></param>
+        /// <returns></returns>
+        Task<long> Count(IIndexKey indexKey);
+
+        /// <summary>
         ///     Get records by index
         /// </summary>
         /// <typeparam name="T"></typeparam>

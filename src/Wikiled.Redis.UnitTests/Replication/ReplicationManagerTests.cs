@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Reactive.Subjects;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using NUnit.Framework;
 using StackExchange.Redis;
@@ -25,7 +27,7 @@ namespace Wikiled.Redis.UnitTests.Replication
         {
             timer = new Subject<long>();
             testManager = new ReplicationTestManager();
-            manager = new ReplicationManager(testManager.Master.Object, testManager.Slave.Object, timer);
+            manager = new ReplicationManager(new NullLogger<ReplicationManager>(), testManager.Master.Object, testManager.Slave.Object, timer);
         }
 
         [Test]
@@ -40,9 +42,10 @@ namespace Wikiled.Redis.UnitTests.Replication
         [Test]
         public void Construct()
         {
-            Assert.Throws<ArgumentNullException>(() => new ReplicationManager(null, testManager.Slave.Object, timer));
-            Assert.Throws<ArgumentNullException>(() => new ReplicationManager(testManager.Master.Object, null, timer));
-            Assert.Throws<ArgumentNullException>(() => new ReplicationManager(testManager.Master.Object, testManager.Slave.Object, null));
+            Assert.Throws<ArgumentNullException>(() => new ReplicationManager(new NullLogger<ReplicationManager>(), null, testManager.Slave.Object, timer));
+            Assert.Throws<ArgumentNullException>(() => new ReplicationManager(new NullLogger<ReplicationManager>(), testManager.Master.Object, null, timer));
+            Assert.Throws<ArgumentNullException>(() => new ReplicationManager(new NullLogger<ReplicationManager>(), testManager.Master.Object, testManager.Slave.Object, null));
+            Assert.Throws<ArgumentNullException>(() => new ReplicationManager(null, testManager.Master.Object, testManager.Slave.Object, timer));
         }
 
         [Test]

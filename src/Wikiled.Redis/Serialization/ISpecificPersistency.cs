@@ -64,5 +64,13 @@ namespace Wikiled.Redis.Serialization
         /// <param name="toRecord"></param>
         /// <returns></returns>
         IObservable<T> GetRecords<T>(IDatabaseAsync database, IDataKey dataKey, long fromRecord = 0, long toRecord = -1);
+
+        /// <summary>
+        /// Count records
+        /// </summary>
+        /// <param name="database"></param>
+        /// <param name="dataKey"></param>
+        /// <returns></returns>
+        Task<long> Count(IDatabaseAsync database, IDataKey dataKey);
     }
 }

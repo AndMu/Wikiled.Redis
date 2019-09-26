@@ -131,15 +131,6 @@ namespace Wikiled.Redis.Serialization
             await Task.WhenAll(tasks).ConfigureAwait(false);
         }
 
-        private async Task<List<RedisKey>> GetAllKeys(IDatabaseAsync database, IDataKey key)
-        {
-            var actualKey = link.GetKey(key);
-            var allKeys = await redisSetList.GetRedisValues(database, actualKey, 0, -1).ConfigureAwait(false);
-            var keys = allKeys.Select(item => (RedisKey)item.ToString()).ToList();
-            keys.Add(actualKey);
-            return keys;
-        }
-
         public string GetKeyPrefix<T>()
         {
             return typeof(T).Name;
@@ -211,6 +202,12 @@ namespace Wikiled.Redis.Serialization
                 });
         }
 
+        public Task<long> Count(IDatabaseAsync database, IDataKey dataKey)
+        {
+            var key = link.GetKey(dataKey);
+            return redisSetList.GetLength(database, key);
+        }
+
         private Task AddSingleRecord<T>(IDatabaseAsync database, IEnumerable<IDataKey> keys, T instance)
         {
             var definition = link.GetDefinition<T>();
@@ -231,6 +228,15 @@ namespace Wikiled.Redis.Serialization
             }
 
             return Task.WhenAll(tasks);
+        }
+
+        private async Task<List<RedisKey>> GetAllKeys(IDatabaseAsync database, IDataKey key)
+        {
+            var actualKey = link.GetKey(key);
+            var allKeys = await redisSetList.GetRedisValues(database, actualKey, 0, -1).ConfigureAwait(false);
+            var keys = allKeys.Select(item => (RedisKey)item.ToString()).ToList();
+            keys.Add(actualKey);
+            return keys;
         }
     }
 }

@@ -116,5 +116,11 @@ namespace Wikiled.Redis.Serialization
                     observer.OnCompleted();
                 });
         }
+
+        public Task<long> Count(IDatabaseAsync database, IDataKey dataKey)
+        {
+            var key = link.GetKey(dataKey);
+            return database.SortedSetLengthAsync(key);
+        }
     }
 }

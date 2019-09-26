@@ -93,6 +93,9 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
             items = Redis.Client.GetRecords<Identity>(ListAll).ToEnumerable().ToArray();
             Assert.AreEqual(2, items.Length);
             Assert.AreEqual("Ev", items[0].Environment);
+
+            var count = await Redis.Client.Count(ListAll).ConfigureAwait(false);
+            Assert.AreEqual(2, count);
         }
 
         [Test]

@@ -5,17 +5,16 @@ namespace Wikiled.Redis.Channels
 {
     public abstract class BaseChannel : IChannel
     {
-        private readonly ILogger logger;
-
         private readonly object syncRoot = new object();
 
         private ChannelState state;
 
-        protected BaseChannel(ILogger logger, string name)
+        protected BaseChannel(string name)
         {
             Name = name;
-            this.logger = logger;
         }
+
+        protected abstract ILogger Logger { get; }
 
         public string Name { get; }
 
@@ -29,7 +28,7 @@ namespace Wikiled.Redis.Channels
                     return;
                 }
 
-                logger.LogDebug("State changed from <{0}> to <{1}>", state, value);
+                Logger.LogDebug("State changed from <{0}> to <{1}>", state, value);
                 state = value;
             }
         }
@@ -40,7 +39,7 @@ namespace Wikiled.Redis.Channels
         {
             lock (syncRoot)
             {
-                logger.LogDebug("Closing {0}...", Name);
+                Logger.LogDebug("Closing {0}...", Name);
                 if (State != ChannelState.Open && State != ChannelState.Opening)
                 {
                     return;
@@ -62,7 +61,7 @@ namespace Wikiled.Redis.Channels
                 return;
             }
 
-            logger.LogDebug("Disposing {0}", Name);
+            Logger.LogDebug("Disposing {0}", Name);
             IsDisposed = true;
             Dispose(true);
             GC.SuppressFinalize(this);
@@ -70,7 +69,7 @@ namespace Wikiled.Redis.Channels
 
         public void Open()
         {
-            logger.LogDebug("Opening {0}...", Name);
+            Logger.LogDebug("Opening {0}...", Name);
             lock (syncRoot)
             {
                 if (State == ChannelState.Open || State == ChannelState.Closing || State == ChannelState.Opening)

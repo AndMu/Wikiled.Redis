@@ -96,6 +96,12 @@ namespace Wikiled.Redis.Serialization
                 });
         }
 
+        public Task<long> Count(IDatabaseAsync database, IDataKey dataKey)
+        {
+            var key = link.GetKey(dataKey);
+            return redisSetList.GetLength(database, key);
+        }
+
         private RedisValue GetValue<T>(T instance)
         {
             if (!RedisValueExtractor.TryParsePrimitive(instance, out RedisValue redisValue))

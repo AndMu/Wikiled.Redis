@@ -28,6 +28,9 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
             await Redis.Client.AddRecord(RepositoryKey, "Test2").ConfigureAwait(false);
             await Redis.Client.AddRecord(RepositoryKey, "Test3").ConfigureAwait(false);
             var value = await Redis.Client.GetRecords<string>(RepositoryKey).ToArray();
+            var count = await Redis.Client.Count<string>(RepositoryKey).ConfigureAwait(false);
+            Assert.AreEqual(2, count);
+            Assert.AreEqual(2, value.Length);
             Assert.AreEqual(2, value.Length);
             Assert.AreEqual("Test2", value[0]);
             Assert.AreEqual("Test3", value[1]);
@@ -116,6 +119,9 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
             var count = await manager.Count().ConfigureAwait(false);
             Assert.AreEqual(3, count);
 
+            count = await Redis.Client.Count(ListAll).ConfigureAwait(false);
+            Assert.AreEqual(3, count);
+
             count = (await manager.GetIds().ToArray()).Length;
             Assert.AreEqual(3, count);
 
@@ -148,6 +154,9 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
             Assert.AreEqual("Fine", (string)result[0].Element);
             Assert.AreEqual("One", (string)result[1].Element);
             Assert.AreEqual("Two", (string)result[2].Element);
+            
+            var count = await Redis.Client.Count<SortedSetEntry>(RepositoryKey).ConfigureAwait(false);
+            Assert.AreEqual(3, count);
         }
        
         [Test]

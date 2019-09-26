@@ -5,6 +5,7 @@ using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Wikiled.Redis.Config;
 using Wikiled.Redis.Logic;
 
@@ -18,10 +19,13 @@ namespace Wikiled.Redis.Replication
 
         private readonly ILoggingProgressTracker tracker;
 
-        public ReplicationFactory(Func<IRedisConfiguration, IRedisMultiplexer> redisFactory, IScheduler scheduler, ILoggingProgressTracker tracker = null)
+        private readonly ILoggerFactory loggerFactory;
+
+        public ReplicationFactory(ILoggerFactory loggerFactory, Func<IRedisConfiguration, IRedisMultiplexer> redisFactory, IScheduler scheduler, ILoggingProgressTracker tracker = null)
         {
             this.redisFactory = redisFactory ?? throw new ArgumentNullException(nameof(redisFactory));
             this.scheduler = scheduler ?? throw new ArgumentNullException(nameof(scheduler));
+            this.loggerFactory = loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory));
             this.tracker = tracker;
         }
 
@@ -38,7 +42,7 @@ namespace Wikiled.Redis.Replication
             }
 
             var timer = Observable.Interval(TimeSpan.FromSeconds(1), scheduler);
-            var manager = new ReplicationManager(master, slave, timer);
+            var manager = new ReplicationManager(loggerFactory.CreateLogger<ReplicationManager>(), master, slave, timer);
             tracker?.Track(manager.Progress);
             manager.Open();
             return manager;
@@ -54,7 +58,7 @@ namespace Wikiled.Redis.Replication
 
                 var timer = Observable.Interval(TimeSpan.FromSeconds(1), scheduler);
                 ReplicationProgress result;
-                using (var manager = new ReplicationManager(masterMultiplexer, slaveEMultiplexer, timer))
+                using (var manager = new ReplicationManager(loggerFactory.CreateLogger<ReplicationManager>(), masterMultiplexer, slaveEMultiplexer, timer))
                 {
                     tracker?.Track(manager.Progress);
                     manager.Open();

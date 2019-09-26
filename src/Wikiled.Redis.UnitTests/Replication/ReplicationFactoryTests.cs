@@ -4,6 +4,7 @@ using System;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Reactive.Testing;
 using Wikiled.Redis.Config;
 using Wikiled.Redis.Information;
@@ -103,13 +104,14 @@ namespace Wikiled.Redis.UnitTests.Replication
         [Test]
         public void Construct()
         {
-            Assert.Throws<ArgumentNullException>(() => new ReplicationFactory(null, scheduler));
-            Assert.Throws<ArgumentNullException>(() => new ReplicationFactory(redisFactory, null));
+            Assert.Throws<ArgumentNullException>(() => new ReplicationFactory(new NullLoggerFactory(), null, scheduler));
+            Assert.Throws<ArgumentNullException>(() => new ReplicationFactory(new NullLoggerFactory(), redisFactory, null));
+            Assert.Throws<ArgumentNullException>(() => new ReplicationFactory(null, redisFactory, scheduler));
         }
 
         private ReplicationFactory CreateFactory()
         {
-            return new ReplicationFactory(redisFactory, scheduler);
+            return new ReplicationFactory(new NullLoggerFactory(), redisFactory, scheduler);
         }
     }
 }

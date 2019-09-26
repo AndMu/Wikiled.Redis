@@ -1,9 +1,8 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using StackExchange.Redis;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
-using StackExchange.Redis;
-using Wikiled.Common.Logging;
 using Wikiled.Redis.Helpers;
 using Wikiled.Redis.Indexing;
 using Wikiled.Redis.Keys;
@@ -19,12 +18,13 @@ namespace Wikiled.Redis.Logic
 
         private readonly IMainIndexManager mainIndexManager;
 
-        private static readonly ILogger logger = ApplicationLogging.CreateLogger<RedisClient>();
+        private readonly ILogger<RedisClient> logger;
 
-        public RedisClient(IRedisLink link, IMainIndexManager mainIndexManager, IDatabaseAsync database = null)
+        public RedisClient(ILogger<RedisClient> logger, IRedisLink link, IMainIndexManager mainIndexManager,IDatabaseAsync database = null)
         {
             this.link = link ?? throw new ArgumentNullException(nameof(link));
             this.mainIndexManager = mainIndexManager ?? throw new ArgumentNullException(nameof(mainIndexManager));
+            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
             this.database = database;
         }
 
@@ -100,6 +100,17 @@ namespace Wikiled.Redis.Logic
             return link.GetSpecific<T>().SetExpire(GetDatabase(), key, dateTime);
         }
 
+        public Task<long> Count(IIndexKey index)
+        {
+            if (index == null)
+            {
+                throw new ArgumentNullException(nameof(index));
+            }
+
+            var indexManager = mainIndexManager.GetManager(GetDatabase(), index);
+            return indexManager?.Count();
+        }
+
         public IObservable<T> GetRecords<T>(IIndexKey index, long start = 0, long end = -1)
         {
             return GetRecords<T>(new[] { index }, start, end);
@@ -138,6 +149,11 @@ namespace Wikiled.Redis.Logic
             }
 
             return link.GetSpecific<T>().GetRecords<T>(GetDatabase(), dataKey);
+        }
+
+        public Task<long> Count<T>(IDataKey dataKey)
+        {
+            return link.GetSpecific<T>().Count(GetDatabase(), dataKey);
         }
 
         private IDatabaseAsync GetDatabase()

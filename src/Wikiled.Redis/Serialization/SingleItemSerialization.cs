@@ -115,7 +115,7 @@ namespace Wikiled.Redis.Serialization
                     }
 
                     var result = await database.HashGetAllAsync(key).ConfigureAwait(false);
-                    var actualValues = ContructActualValues<T>(result);
+                    var actualValues = ConstructActualValues<T>(result);
                     foreach (var value in actualValues)
                     {
                         observer.OnNext(value);
@@ -125,7 +125,13 @@ namespace Wikiled.Redis.Serialization
                 });
         }
 
-        private IEnumerable<T> ContructActualValues<T>(HashEntry[] result)
+        public Task<long> Count(IDatabaseAsync database, IDataKey dataKey)
+        {
+            var key = link.GetKey(dataKey);
+            return database.HashLengthAsync(key);
+        }
+
+        private IEnumerable<T> ConstructActualValues<T>(HashEntry[] result)
         {
             var values = GetRedisValues<T>(result);
             var actualValues = objectSerialization.GetInstances<T>(values);

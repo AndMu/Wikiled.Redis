@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging.Abstractions;
 using Wikiled.Redis.Logic;
 using Moq;
 using NUnit.Framework;
@@ -26,15 +27,16 @@ namespace Wikiled.Redis.UnitTests.Logic
             mainIndexManager = new Mock<IMainIndexManager>();
             link = new Mock<IRedisLink>();
             transaction = new Mock<ITransaction>();
-            instance = new RedisTransaction(link.Object, transaction.Object, mainIndexManager.Object);
+            instance = new RedisTransaction(new NullLoggerFactory(), link.Object, transaction.Object, mainIndexManager.Object);
         }
 
         [Test]
         public void Construct()
         {
-            Assert.Throws<ArgumentNullException>(() => new RedisTransaction(null, transaction.Object, mainIndexManager.Object));
-            Assert.Throws<ArgumentNullException>(() => new RedisTransaction(link.Object, null, mainIndexManager.Object));
-            Assert.Throws<ArgumentNullException>(() => new RedisTransaction(link.Object, transaction.Object, null));
+            Assert.Throws<ArgumentNullException>(() => new RedisTransaction(new NullLoggerFactory(), null, transaction.Object, mainIndexManager.Object));
+            Assert.Throws<ArgumentNullException>(() => new RedisTransaction(new NullLoggerFactory(), link.Object, null, mainIndexManager.Object));
+            Assert.Throws<ArgumentNullException>(() => new RedisTransaction(new NullLoggerFactory(), link.Object, transaction.Object, null));
+            Assert.Throws<ArgumentNullException>(() => new RedisTransaction(null, link.Object, transaction.Object, mainIndexManager.Object));
             Assert.IsNotNull(instance.Client);
         }
 
