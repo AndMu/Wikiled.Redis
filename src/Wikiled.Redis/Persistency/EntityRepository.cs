@@ -21,17 +21,22 @@ namespace Wikiled.Redis.Persistency
 
         public string Name { get; }
 
-        protected EntityKey Entity { get; }
+        public EntityKey Entity { get; }
 
         protected ILogger<EntityRepository<T>> Log { get; }
 
         protected IRedisLink Redis { get; }
 
-        public async Task Save(T entity)
+        public async Task Save(T entity, params IIndexKey[] indexes)
         {
             if (entity == null)
             {
                 throw new ArgumentNullException(nameof(entity));
+            }
+
+            if (indexes == null)
+            {
+                throw new ArgumentNullException(nameof(indexes));
             }
 
             var id = GetRecordId(entity);
@@ -39,25 +44,31 @@ namespace Wikiled.Redis.Persistency
 
             var key = Entity.GetKey(id);
             key.AddIndex(Entity.AllIndex);
+            foreach (var index in indexes)
+            {
+                key.AddIndex(index);
+            }
 
-            await BeforeSaving(key).ConfigureAwait(false);
-
-            await Redis.Client.AddRecord(key, entity).ConfigureAwait(false);
+            var transaction = Redis.StartTransaction();
+            await BeforeSaving(transaction, key).ConfigureAwait(false);
+            
+            await transaction.Client.AddRecord(key, entity).ConfigureAwait(false);
+            await transaction.Commit();
+        }
+        
+        public Task<long> Count(IIndexKey key)
+        {
+            return Redis.Client.Count(key);
         }
 
-        public Task<long> Count()
+        public async Task<T[]> LoadPage(IIndexKey key, int start = 0, int end = 1)
         {
-            return Redis.Client.Count(Entity.AllIndex);
+            return await Redis.Client.GetRecords<T>(key, start, end).ToArray();
         }
 
-        public async Task<T[]> LoadPage(int start = 0, int end = 1)
+        public IObservable<T> LoadAll(IIndexKey key)
         {
-            return await Redis.Client.GetRecords<T>(Entity.AllIndex, start, end).ToArray();
-        }
-
-        public IObservable<T> LoadAll()
-        {
-            return Redis.Client.GetRecords<T>(Entity.AllIndex);
+            return Redis.Client.GetRecords<T>(key);
         }
 
         public async Task<T> LoadSingle(string id)
@@ -73,6 +84,6 @@ namespace Wikiled.Redis.Persistency
 
         protected abstract string GetRecordId(T instance);
 
-        protected abstract Task BeforeSaving(IDataKey key);
+        protected abstract Task BeforeSaving(IRedisTransaction transaction, IDataKey key);
     }
 }
