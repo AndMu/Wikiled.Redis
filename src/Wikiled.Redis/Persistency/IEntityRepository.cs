@@ -5,8 +5,6 @@ namespace Wikiled.Redis.Persistency
 {
     public interface IEntityRepository<T> : IRepository where T : class, new()
     {
-        string Name { get; }
-
         Task Save(T entity);
 
         Task<long> Count();

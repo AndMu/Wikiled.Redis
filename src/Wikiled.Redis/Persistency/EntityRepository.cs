@@ -40,7 +40,7 @@ namespace Wikiled.Redis.Persistency
             var key = Entity.GetKey(id);
             key.AddIndex(Entity.AllIndex);
 
-            await CheckExisting(key).ConfigureAwait(false);
+            await BeforeSaving(key).ConfigureAwait(false);
 
             await Redis.Client.AddRecord(key, entity).ConfigureAwait(false);
         }
@@ -73,13 +73,6 @@ namespace Wikiled.Redis.Persistency
 
         protected abstract string GetRecordId(T instance);
 
-        protected virtual async Task CheckExisting(IDataKey key)
-        {
-            var contains = await Redis.Client.ContainsRecord<T>(key).ConfigureAwait(false);
-            if (contains)
-            {
-                await Redis.Client.DeleteAll<T>(key).ConfigureAwait(false);
-            }
-        }
+        protected abstract Task BeforeSaving(IDataKey key);
     }
 }
