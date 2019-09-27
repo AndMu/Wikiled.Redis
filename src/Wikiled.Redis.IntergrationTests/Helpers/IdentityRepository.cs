@@ -9,7 +9,7 @@ namespace Wikiled.Redis.IntegrationTests.Helpers
 {
     public class IdentityRepository : EntityRepository<Identity>
     {
-        public IdentityRepository(ILogger<EntityRepository<Identity>> log, IRedisLink redis)
+        public IdentityRepository(ILogger<IdentityRepository> log, IRedisLink redis)
             : base(log, redis, "Identity")
         {
         }

@@ -40,7 +40,7 @@ namespace Wikiled.Redis.Helpers
                 return null;
             }
 
-            using (MemoryStream memoryStream = new MemoryStream(data))
+            using (var memoryStream = new MemoryStream(data))
             {
                 return Serializer.Deserialize<T>(memoryStream);
             }

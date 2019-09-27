@@ -107,8 +107,9 @@ namespace Wikiled.Redis.Persistency
             if (sharedTransaction == null)
             {
                 await transaction.Commit().ConfigureAwait(false);
-                await Task.WhenAll(beforeTask, addTask).ConfigureAwait(false);
             }
+
+            await Task.WhenAll(beforeTask, addTask).ConfigureAwait(false);
         }
     }
 }

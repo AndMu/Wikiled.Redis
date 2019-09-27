@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging.Abstractions;
 using Wikiled.Redis.Channels;
 using Wikiled.Redis.IntegrationTests.Helpers;
+using Wikiled.Redis.IntegrationTests.MockData;
 using Wikiled.Redis.Persistency;
 
 namespace Wikiled.Redis.IntegrationTests.Persistency
@@ -47,14 +48,29 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
         }
 
         [Test]
-        public async Task Repository()
+        public async Task TestRepository()
         {
-            var repository = new IdentityRepository(new NullLogger<EntityRepository<Identity>>(), Redis);
+            var repository = new IdentityRepository(new NullLogger<IdentityRepository>(), Redis);
 
             var tasks = new List<Task>();
             for (int i = 0; i < 2; i++)
             {
                 tasks.Add(repository.Save(new Identity { InstanceId = i.ToString() }, repository.Entity.AllIndex));
+            }
+
+            await Task.WhenAll(tasks).ConfigureAwait(false);
+        }
+
+        [Test]
+        public async Task TestNestedRepository()
+        {
+            var repositoryInner = new IdentityRepository(new NullLogger<IdentityRepository>(), Redis);
+            var repository = new SimpleItemRepository(new NullLogger<SimpleItemRepository>(), Redis, repositoryInner);
+
+            var tasks = new List<Task>();
+            for (int i = 0; i < 2; i++)
+            {
+                tasks.Add(repository.Save(new SimpleItem { Id = i }, repository.Entity.AllIndex));
             }
 
             await Task.WhenAll(tasks).ConfigureAwait(false);
