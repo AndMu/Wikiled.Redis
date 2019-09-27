@@ -50,10 +50,12 @@ namespace Wikiled.Redis.Persistency
             }
 
             var transaction = Redis.StartTransaction();
-            await BeforeSaving(transaction, key).ConfigureAwait(false);
+            var beforeTask = BeforeSaving(transaction, key);
             
-            await transaction.Client.AddRecord(key, entity).ConfigureAwait(false);
-            await transaction.Commit();
+            var addTask = transaction.Client.AddRecord(key, entity);
+            await transaction.Commit().ConfigureAwait(false);
+
+            await Task.WhenAll(beforeTask, addTask).ConfigureAwait(false);
         }
         
         public Task<long> Count(IIndexKey key)
