@@ -84,6 +84,15 @@ namespace Wikiled.Redis.Persistency
             return await Redis.Client.GetRecords<T>(key).LastOrDefaultAsync();
         }
 
+        public async Task Delete(string id)
+        {
+            var contains = await Redis.Client.ContainsRecord<T>(Entity.GetKey(id)).ConfigureAwait(false);
+            if (contains)
+            {
+                await Redis.Client.DeleteAll<T>(Entity.GetKey(id)).ConfigureAwait(false);
+            }
+        }
+
         protected abstract string GetRecordId(T instance);
 
         protected abstract Task BeforeSaving(IRedisTransaction transaction, IDataKey key);

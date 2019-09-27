@@ -25,5 +25,10 @@ namespace Wikiled.Redis.Keys
             string[] key = { EntityName, id.ToLower() };
             return new RepositoryKey(repository, new ObjectKey(key));
         }
+
+        public IIndexKey GenerateIndex(string name)
+        {
+            return new IndexKey(repository, $"{EntityName}:{name}", true);
+        }
     }
 }
