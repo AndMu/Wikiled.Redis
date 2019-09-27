@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Wikiled.Redis.Keys;
+using Wikiled.Redis.Logic;
 
 namespace Wikiled.Redis.Persistency
 {
@@ -9,6 +10,8 @@ namespace Wikiled.Redis.Persistency
         EntityKey Entity { get; }
          
         Task Save(T entity, params IIndexKey[] indexes);
+
+        Task Save(T entity, IRedisTransaction transaction, params IIndexKey[] indexes);
 
         Task<long> Count(IIndexKey key);
 

@@ -2,6 +2,7 @@
 using System;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using StackExchange.Redis;
 using Wikiled.Redis.Keys;
 using Wikiled.Redis.Logic;
 
@@ -26,37 +27,6 @@ namespace Wikiled.Redis.Persistency
         protected ILogger<EntityRepository<T>> Log { get; }
 
         protected IRedisLink Redis { get; }
-
-        public async Task Save(T entity, params IIndexKey[] indexes)
-        {
-            if (entity == null)
-            {
-                throw new ArgumentNullException(nameof(entity));
-            }
-
-            if (indexes == null)
-            {
-                throw new ArgumentNullException(nameof(indexes));
-            }
-
-            var id = GetRecordId(entity);
-            Log.LogDebug("Saving: {0}", id);
-
-            var key = Entity.GetKey(id);
-            key.AddIndex(Entity.AllIndex);
-            foreach (var index in indexes)
-            {
-                key.AddIndex(index);
-            }
-
-            var transaction = Redis.StartTransaction();
-            var beforeTask = BeforeSaving(transaction, key);
-            
-            var addTask = transaction.Client.AddRecord(key, entity);
-            await transaction.Commit().ConfigureAwait(false);
-
-            await Task.WhenAll(beforeTask, addTask).ConfigureAwait(false);
-        }
         
         public Task<long> Count(IIndexKey key)
         {
@@ -67,6 +37,17 @@ namespace Wikiled.Redis.Persistency
         {
             return await Redis.Client.GetRecords<T>(key, start, end).ToArray();
         }
+
+        public Task Save(T entity, params IIndexKey[] indexes)
+        {
+            return SaveInternal(entity, null, indexes);
+        }
+
+        public Task Save(T entity, IRedisTransaction transaction, params IIndexKey[] indexes)
+        {
+            return SaveInternal(entity, transaction, indexes);
+        }
+
 
         public IObservable<T> LoadAll(IIndexKey key)
         {
@@ -96,5 +77,39 @@ namespace Wikiled.Redis.Persistency
         protected abstract string GetRecordId(T instance);
 
         protected abstract Task BeforeSaving(IRedisTransaction transaction, IDataKey key);
+
+        private async Task SaveInternal(T entity, IRedisTransaction sharedTransaction = null, params IIndexKey[] indexes)
+        {
+            if (entity == null)
+            {
+                throw new ArgumentNullException(nameof(entity));
+            }
+
+            if (indexes == null)
+            {
+                throw new ArgumentNullException(nameof(indexes));
+            }
+
+            var id = GetRecordId(entity);
+            Log.LogDebug("Saving: {0}", id);
+
+            var key = Entity.GetKey(id);
+            key.AddIndex(Entity.AllIndex);
+            foreach (var index in indexes)
+            {
+                key.AddIndex(index);
+            }
+
+            var transaction = sharedTransaction ?? Redis.StartTransaction();
+            var beforeTask = BeforeSaving(transaction, key);
+
+            var addTask = transaction.Client.AddRecord(key, entity);
+
+            if (sharedTransaction == null)
+            {
+                await transaction.Commit().ConfigureAwait(false);
+                await Task.WhenAll(beforeTask, addTask).ConfigureAwait(false);
+            }
+        }
     }
 }

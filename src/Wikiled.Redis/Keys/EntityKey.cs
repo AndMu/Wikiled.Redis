@@ -22,12 +22,22 @@ namespace Wikiled.Redis.Keys
 
         public IDataKey GetKey(string id)
         {
+            if (string.IsNullOrEmpty(id))
+            {
+                throw new ArgumentNullException(nameof(id), "Id can't be null'");
+            }
+
             string[] key = { EntityName, id.ToLower() };
             return new RepositoryKey(repository, new ObjectKey(key));
         }
 
         public IIndexKey GenerateIndex(string name)
         {
+            if (string.IsNullOrEmpty(name))
+            {
+                throw new ArgumentNullException(nameof(name), "Index name can't be null'");
+            }
+
             return new IndexKey(repository, name, true);
         }
     }
