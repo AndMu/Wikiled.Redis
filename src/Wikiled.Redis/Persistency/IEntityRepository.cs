@@ -17,5 +17,7 @@ namespace Wikiled.Redis.Persistency
         IObservable<T> LoadAll(IIndexKey key);
 
         Task<T> LoadSingle(string id);
+
+        Task Delete(string id);
     }
 }
