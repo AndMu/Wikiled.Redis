@@ -32,7 +32,7 @@ namespace Wikiled.Redis.Logic
 
         public Task Commit()
         {
-            if(link.State != ChannelState.Open)
+            if (link.State != ChannelState.Open)
             {
                 log.LogWarning("Can't commit transaction with non open link");
                 return Task.CompletedTask;

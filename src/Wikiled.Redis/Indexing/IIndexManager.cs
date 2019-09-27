@@ -11,38 +11,38 @@ namespace Wikiled.Redis.Indexing
         ///     Add index
         /// </summary>
         /// <param name="key"></param>
-        Task AddIndex(IDataKey key);
+        Task AddIndex(IDatabaseAsync database, IDataKey key);
 
-        Task RemoveIndex(IDataKey key);
+        Task RemoveIndex(IDatabaseAsync database, IDataKey key);
 
         /// <summary>
         ///     Add raw index
         /// </summary>
         /// <param name="rawKey"></param>
         /// <returns></returns>
-        Task AddRawIndex(string rawKey);
+        Task AddRawIndex(IDatabaseAsync database, string rawKey);
 
         /// <summary>
         ///     Count records in index
         /// </summary>
         /// <returns></returns>
-        Task<long> Count();
+        Task<long> Count(IDatabaseAsync database);
 
         /// <summary>
         ///     Get ids in index
         /// </summary>
         /// <returns></returns>
-        IObservable<RedisValue> GetIds(long start = 0, long stop = -1);
+        IObservable<RedisValue> GetIds(IDatabaseAsync database, long start = 0, long stop = -1);
 
         /// <summary>
         ///     Get Keys
         /// </summary>
         /// <returns></returns>
-        IObservable<IDataKey> GetKeys(long start = 0, long stop = -1);
+        IObservable<IDataKey> GetKeys(IDatabaseAsync database, long start = 0, long stop = -1);
 
         /// <summary>
         ///    Reset
         /// </summary>
-        Task Reset();
+        Task Reset(IDatabaseAsync database);
     }
 }

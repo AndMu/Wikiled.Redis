@@ -115,27 +115,27 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
             Assert.AreEqual(0, items.Length);
 
             var factory = new IndexManagerFactory(Redis);
-            var manager = factory.Create(Redis.Database, ListAll);
-            var count = await manager.Count().ConfigureAwait(false);
+            var manager = factory.Create(ListAll);
+            var count = await manager.Count(Redis.Database).ConfigureAwait(false);
             Assert.AreEqual(3, count);
 
             count = await Redis.Client.Count(ListAll).ConfigureAwait(false);
             Assert.AreEqual(3, count);
 
-            count = (await manager.GetIds().ToArray()).Length;
+            count = (await manager.GetIds(Redis.Database).ToArray()).Length;
             Assert.AreEqual(3, count);
 
-            var result = await manager.GetIds(1, 2).ToArray();
+            var result = await manager.GetIds(Redis.Database, 1, 2).ToArray();
             Assert.AreEqual("Test2", (string)result[0]);
-            result = await manager.GetIds(0, 1).ToArray();
+            result = await manager.GetIds(Redis.Database, 0, 1).ToArray();
             Assert.AreEqual("Test3", (string)result[0]);
 
-            await manager.Reset().ConfigureAwait(false);
-            count = await manager.Count().ConfigureAwait(false);
+            await manager.Reset(Redis.Database).ConfigureAwait(false);
+            count = await manager.Count(Redis.Database).ConfigureAwait(false);
             Assert.AreEqual(0, count);
 
             await Redis.Reindex(key2).ConfigureAwait(false);
-            count = await manager.Count().ConfigureAwait(false);
+            count = await manager.Count(Redis.Database).ConfigureAwait(false);
             Assert.AreEqual(3, count);
         }
 

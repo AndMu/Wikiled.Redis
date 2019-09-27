@@ -14,7 +14,7 @@ namespace Wikiled.Redis.Indexing
             this.link = link ?? throw new ArgumentNullException(nameof(link));
         }
 
-        public IIndexManager Create(IDatabaseAsync database, params IIndexKey[] index)
+        public IIndexManager Create(params IIndexKey[] index)
         {
             if (index == null)
             {
@@ -30,10 +30,10 @@ namespace Wikiled.Redis.Indexing
             {
                 case IndexKey indexKey:
                     return indexKey.IsSet
-                        ? (IIndexManager)new SetIndexManager(link, database, index)
-                        : new ListIndexManager(link, database, index);
+                        ? (IIndexManager)new SetIndexManager(link, index)
+                        : new ListIndexManager(link, index);
                 case HashIndexKey indexKey:
-                    return new HashIndexManager(link, database, indexKey);
+                    return new HashIndexManager(link, indexKey);
             }
 
             throw new NotSupportedException("Indexing type is not supported: " + index);

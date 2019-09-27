@@ -1,6 +1,11 @@
-﻿using NUnit.Framework;
+﻿using System.Collections.Generic;
+using NUnit.Framework;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging.Abstractions;
+using Wikiled.Redis.Channels;
+using Wikiled.Redis.IntegrationTests.Helpers;
+using Wikiled.Redis.Persistency;
 
 namespace Wikiled.Redis.IntegrationTests.Persistency
 {
@@ -11,6 +16,7 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
         public async Task AddToLimitedListTransaction()
         {
             var transaction = Redis.StartTransaction();
+            RepositoryKey.AddIndex(ListAll);
             var result = await Redis.Client.ContainsRecord<string>(RepositoryKey).ConfigureAwait(false);
             Assert.IsFalse(result);
             var task1 = transaction.Client.AddRecord(RepositoryKey, "Test1");
@@ -29,6 +35,7 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
         [Test]
         public async Task Transaction()
         {
+            Key.AddIndex(ListAll);
             var transaction = Redis.StartTransaction();
             var task1 = transaction.Client.AddRecord(Key, "Test");
             var rawResult = await Redis.Client.GetRecords<string>(Key).LastOrDefaultAsync();
@@ -37,6 +44,20 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
             await task1.ConfigureAwait(false);
             rawResult = await Redis.Client.GetRecords<string>(Key).LastOrDefaultAsync();
             Assert.AreEqual("Test", rawResult);
+        }
+
+        [Test]
+        public async Task Repository()
+        {
+            var repository = new IdentityRepository(new NullLogger<EntityRepository<Identity>>(), Redis);
+
+            var tasks = new List<Task>();
+            for (int i = 0; i < 2; i++)
+            {
+                tasks.Add(repository.Save(new Identity { InstanceId = i.ToString() }, repository.Entity.AllIndex));
+            }
+
+            await Task.WhenAll(tasks).ConfigureAwait(false);
         }
     }
 }

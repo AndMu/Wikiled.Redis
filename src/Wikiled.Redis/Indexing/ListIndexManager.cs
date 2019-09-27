@@ -9,33 +9,33 @@ namespace Wikiled.Redis.Indexing
 {
     public class ListIndexManager : IndexManagerBase
     {
-        public ListIndexManager(IRedisLink link, IDatabaseAsync database, params IIndexKey[] indexes)
-            : base(link, database, indexes)
+        public ListIndexManager(IRedisLink link, params IIndexKey[] indexes)
+            : base(link, indexes)
         {
         }
 
-        protected override Task RemoveRawIndex(IIndexKey index, string rawKey)
+        protected override Task RemoveRawIndex(IDatabaseAsync database, IIndexKey index, string rawKey)
         {
             // not supported
             return Task.CompletedTask;
         }
 
-        protected override Task AddRawIndex(IIndexKey index, string rawKey)
+        protected override Task AddRawIndex(IDatabaseAsync database, IIndexKey index, string rawKey)
         {
-            return Database.ListLeftPushAsync(Link.GetIndexKey(index), rawKey);
+            return database.ListLeftPushAsync(Link.GetIndexKey(index), rawKey);
         }
 
-        protected override Task<long> SingleCount(IIndexKey index)
+        protected override Task<long> SingleCount(IDatabaseAsync database, IIndexKey index)
         {
-            return Database.ListLengthAsync(Link.GetIndexKey(index));
+            return database.ListLengthAsync(Link.GetIndexKey(index));
         }
 
-        protected override IObservable<RedisValue> GetIdsSingle(IIndexKey index, long start = 0, long stop = -1)
+        protected override IObservable<RedisValue> GetIdsSingle(IDatabaseAsync database, IIndexKey index, long start = 0, long stop = -1)
         {
             return Observable.Create<RedisValue>(
                 async observer =>
                 {
-                    var keys = await Database.ListRangeAsync(Link.GetIndexKey(index), start, stop).ConfigureAwait(false);
+                    var keys = await database.ListRangeAsync(Link.GetIndexKey(index), start, stop).ConfigureAwait(false);
                     foreach(var key in keys)
                     {
                         observer.OnNext(key);

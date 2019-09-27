@@ -7,18 +7,18 @@ namespace Wikiled.Redis.Keys
     {
         private readonly IRepository repository;
 
+        private const string allEntitiesTag = "All";
+
         public EntityKey(string entityName, IRepository repository)
         {
             EntityName = entityName ?? throw new ArgumentNullException(nameof(entityName));
             this.repository = repository ?? throw new ArgumentNullException(nameof(repository));
-            AllIndex = new IndexKey(repository, AllEntitiesTag, true);
+            AllIndex = new IndexKey(repository, allEntitiesTag, true);
         }
 
         public string EntityName { get; }
 
         public IndexKey AllIndex { get; }
-
-        protected string AllEntitiesTag => $"All.{EntityName}s";
 
         public IDataKey GetKey(string id)
         {
@@ -28,7 +28,7 @@ namespace Wikiled.Redis.Keys
 
         public IIndexKey GenerateIndex(string name)
         {
-            return new IndexKey(repository, $"{EntityName}:{name}", true);
+            return new IndexKey(repository, name, true);
         }
     }
 }

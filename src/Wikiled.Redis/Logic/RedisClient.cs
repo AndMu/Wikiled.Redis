@@ -107,8 +107,8 @@ namespace Wikiled.Redis.Logic
                 throw new ArgumentNullException(nameof(index));
             }
 
-            var indexManager = mainIndexManager.GetManager(GetDatabase(), index);
-            return indexManager?.Count();
+            var indexManager = mainIndexManager.GetManager(index);
+            return indexManager?.Count(GetDatabase());
         }
 
         public IObservable<T> GetRecords<T>(IIndexKey index, long start = 0, long end = -1)
@@ -124,7 +124,7 @@ namespace Wikiled.Redis.Logic
             }
 
             logger.LogDebug($"GetRecords {start}-{end}");
-            var indexManager = mainIndexManager.GetManager(GetDatabase(), index);
+            var indexManager = mainIndexManager.GetManager(index);
             int batch = BatchSize;
             if (index.Length > 1)
             {
@@ -133,8 +133,8 @@ namespace Wikiled.Redis.Logic
             }
 
             return ObserverHelpers.Batch(
-                indexManager.Count(),
-                (fromIndex, toIndex) => indexManager.GetKeys(fromIndex, toIndex),
+                indexManager.Count(GetDatabase()),
+                (fromIndex, toIndex) => indexManager.GetKeys(GetDatabase(), fromIndex, toIndex),
                 GetRecords<T>,
                 batch,
                 start,

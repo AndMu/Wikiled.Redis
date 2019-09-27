@@ -23,9 +23,9 @@ namespace Wikiled.Redis.Indexing
         public Task[] Add(IDatabaseAsync database, IDataKey dataKey)
         {
             var tasks = new List<Task>(dataKey.Indexes.Length);
-            foreach (var indexManager in GetManagers(database, dataKey))
+            foreach (var indexManager in GetManagers(dataKey))
             {
-                tasks.Add(indexManager.AddIndex(dataKey));
+                tasks.Add(indexManager.AddIndex(database, dataKey));
             }
 
             return tasks.ToArray();
@@ -34,27 +34,22 @@ namespace Wikiled.Redis.Indexing
         public Task[] Delete(IDatabaseAsync database, IDataKey dataKey)
         {
             var tasks = new List<Task>(dataKey.Indexes.Length);
-            foreach (var indexManager in GetManagers(database, dataKey))
+            foreach (var indexManager in GetManagers(dataKey))
             {
-                tasks.Add(indexManager.RemoveIndex(dataKey));
+                tasks.Add(indexManager.RemoveIndex(database, dataKey));
             }
 
             return tasks.ToArray();
         }
 
-        public IIndexManager GetManager(IDatabaseAsync database, params IIndexKey[] index)
+        public IIndexManager GetManager(params IIndexKey[] index)
         {
             string indexKey = index.Length == 1 ? index[0].Key : index.Select(item => item.Key).AccumulateItems(":");
-            return manager.GetOrAdd(indexKey, key => factory.Create(database, index));
+            return manager.GetOrAdd(indexKey, key => factory.Create(index));
         }
 
-        private IEnumerable<IIndexManager> GetManagers(IDatabaseAsync database, IDataKey dataKey)
+        private IEnumerable<IIndexManager> GetManagers(IDataKey dataKey)
         {
-            if (database == null)
-            {
-                throw new ArgumentNullException(nameof(database));
-            }
-
             if (dataKey == null)
             {
                 throw new ArgumentNullException(nameof(dataKey));
@@ -62,7 +57,7 @@ namespace Wikiled.Redis.Indexing
 
             foreach (var index in dataKey.Indexes)
             {
-                yield return GetManager(database, index);
+                yield return GetManager(index);
             }
         }
     }
