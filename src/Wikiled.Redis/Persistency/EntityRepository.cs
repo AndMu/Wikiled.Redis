@@ -2,7 +2,6 @@
 using System;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using StackExchange.Redis;
 using Wikiled.Redis.Keys;
 using Wikiled.Redis.Logic;
 
@@ -76,7 +75,7 @@ namespace Wikiled.Redis.Persistency
 
         protected abstract string GetRecordId(T instance);
 
-        protected abstract Task BeforeSaving(IRedisTransaction transaction, IDataKey key);
+        protected abstract Task BeforeSaving(IRedisTransaction transaction, IDataKey key, T entity);
 
         private async Task SaveInternal(T entity, IRedisTransaction sharedTransaction = null, params IIndexKey[] indexes)
         {
@@ -101,7 +100,7 @@ namespace Wikiled.Redis.Persistency
             }
 
             var transaction = sharedTransaction ?? Redis.StartTransaction();
-            var beforeTask = BeforeSaving(transaction, key);
+            var beforeTask = BeforeSaving(transaction, key, entity);
 
             var addTask = transaction.Client.AddRecord(key, entity);
 

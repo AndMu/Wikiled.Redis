@@ -19,7 +19,7 @@ namespace Wikiled.Redis.IntegrationTests.Helpers
             return instance.InstanceId;
         }
 
-        protected override Task BeforeSaving(IRedisTransaction transaction, IDataKey key)
+        protected override Task BeforeSaving(IRedisTransaction transaction, IDataKey key, Identity entity)
         {
             return Task.CompletedTask;
         }
