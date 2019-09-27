@@ -77,7 +77,7 @@ namespace Wikiled.Redis.Persistency
 
         protected abstract Task BeforeSaving(IRedisTransaction transaction, IDataKey key, T entity);
 
-        private async Task SaveInternal(T entity, IRedisTransaction sharedTransaction = null, params IIndexKey[] indexes)
+        protected async Task SaveInternal(T entity, IRedisTransaction sharedTransaction = null, params IIndexKey[] indexes)
         {
             if (entity == null)
             {
