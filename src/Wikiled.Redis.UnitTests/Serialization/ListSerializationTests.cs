@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging.Abstractions;
 using Wikiled.Redis.Keys;
 using Wikiled.Redis.Logic;
 using Wikiled.Redis.Scripts;
@@ -11,6 +12,7 @@ using NUnit.Framework;
 using StackExchange.Redis;
 using Wikiled.Redis.Channels;
 using Wikiled.Redis.Data;
+using Wikiled.Redis.Logic.Resilience;
 using Wikiled.Redis.UnitTests.MockData;
 
 namespace Wikiled.Redis.UnitTests.Serialization
@@ -39,6 +41,7 @@ namespace Wikiled.Redis.UnitTests.Serialization
             redisSetList = new Mock<IRedisSetList>();
             key = new ObjectKey("Test");
             redis = new Mock<IRedisLink>();
+            redis.Setup(item => item.Resilience).Returns(new ResilienceHandler(new NullLogger<ResilienceHandler>(), new ResilienceConfig()));
             redis.Setup(item => item.State).Returns(ChannelState.Open);
             redis.Setup(item => item.LinkId).Returns(0);
             redis.Setup(item => item.Generator).Returns(new ScriptGenerator());

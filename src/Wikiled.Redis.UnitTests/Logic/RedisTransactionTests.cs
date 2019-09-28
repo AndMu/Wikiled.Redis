@@ -7,6 +7,7 @@ using NUnit.Framework;
 using StackExchange.Redis;
 using Wikiled.Redis.Channels;
 using Wikiled.Redis.Indexing;
+using Wikiled.Redis.Logic.Resilience;
 
 namespace Wikiled.Redis.UnitTests.Logic
 {
@@ -26,6 +27,7 @@ namespace Wikiled.Redis.UnitTests.Logic
         {
             mainIndexManager = new Mock<IMainIndexManager>();
             link = new Mock<IRedisLink>();
+            link.Setup(item => item.Resilience).Returns(new ResilienceHandler(new NullLogger<ResilienceHandler>(), new ResilienceConfig()));
             transaction = new Mock<ITransaction>();
             instance = new RedisTransaction(new NullLoggerFactory(), link.Object, transaction.Object, mainIndexManager.Object);
         }
