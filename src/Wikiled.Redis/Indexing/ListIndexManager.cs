@@ -4,12 +4,13 @@ using System.Threading.Tasks;
 using StackExchange.Redis;
 using Wikiled.Redis.Keys;
 using Wikiled.Redis.Logic;
+using Wikiled.Redis.Logic.Resilience;
 
 namespace Wikiled.Redis.Indexing
 {
     public class ListIndexManager : IndexManagerBase
     {
-        public ListIndexManager(IRedisLink link, params IIndexKey[] indexes)
+        public ListIndexManager(IRedisLink link,  params IIndexKey[] indexes)
             : base(link, indexes)
         {
         }
@@ -35,7 +36,11 @@ namespace Wikiled.Redis.Indexing
             return Observable.Create<RedisValue>(
                 async observer =>
                 {
-                    var keys = await database.ListRangeAsync(Link.GetIndexKey(index), start, stop).ConfigureAwait(false);
+
+                    var keys = await Link.Resilience.AsyncRetryPolicy
+                                                 .ExecuteAsync(async () => await database.ListRangeAsync(Link.GetIndexKey(index), start, stop).ConfigureAwait(false))
+                                                 .ConfigureAwait(false);
+
                     foreach(var key in keys)
                     {
                         observer.OnNext(key);

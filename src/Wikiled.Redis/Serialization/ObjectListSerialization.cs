@@ -156,14 +156,15 @@ namespace Wikiled.Redis.Serialization
                     if (!columnsCache.TryGetValue(typeof(T), out RedisValue[] columns))
                     {
                         var subKey = link.GetKey("object");
-                        columns =
-                            objectSerialization.GetColumns<T>()
+                        columns = objectSerialization.GetColumns<T>()
                                                .Select(item => (RedisValue)($"{subKey}:*->" + item))
                                                .ToArray();
                         columnsCache[typeof(T)] = columns;
                     }
 
-                    var exist = await database.KeyExistsAsync(key).ConfigureAwait(false);
+                    var exist = await link.Resilience.AsyncRetryPolicy.ExecuteAsync(
+                                    async () =>
+                                        await database.KeyExistsAsync(key).ConfigureAwait(false)).ConfigureAwait(false);
 
                     if (!exist)
                     {
@@ -172,20 +173,21 @@ namespace Wikiled.Redis.Serialization
                         return;
                     }
 
-                    var result =
-                        await
-                            database.SortAsync(
-                                        key,
-                                        fromRecord,
-                                        toRecord,
-                                        Order.Ascending,
-                                        SortType.Numeric,
-                                        "nosort",
-                                        columns).ConfigureAwait(false);
+                    var result = await link.Resilience.AsyncRetryPolicy.ExecuteAsync(
+                                     async () => await
+                                                     database.SortAsync(
+                                                         key,
+                                                         fromRecord,
+                                                         toRecord,
+                                                         Order.Ascending,
+                                                         SortType.Numeric,
+                                                         "nosort",
+                                                         columns).ConfigureAwait(false))
+                                           .ConfigureAwait(false);
                     if (result.Length % columns.Length != 0)
                     {
                         log.LogError(
-                            "Result {0} mistmatched with requested number of columns {1}",
+                            "Result {0} mismatched with requested number of columns {1}",
                             result.Length,
                             columns.Length);
                         observer.OnCompleted();

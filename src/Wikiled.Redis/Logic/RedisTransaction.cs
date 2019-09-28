@@ -39,7 +39,9 @@ namespace Wikiled.Redis.Logic
             }
 
             log.LogDebug("Commit");
-            return transaction.ExecuteAsync();
+            return link.Resilience
+                       .AsyncRetryPolicy
+                       .ExecuteAsync(async () => await transaction.ExecuteAsync().ConfigureAwait(false));
         }
     }
 }

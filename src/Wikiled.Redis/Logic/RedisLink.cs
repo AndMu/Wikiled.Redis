@@ -8,6 +8,7 @@ using Wikiled.Redis.Channels;
 using Wikiled.Redis.Config;
 using Wikiled.Redis.Indexing;
 using Wikiled.Redis.Keys;
+using Wikiled.Redis.Logic.Resilience;
 using Wikiled.Redis.Persistency;
 using Wikiled.Redis.Scripts;
 using Wikiled.Redis.Serialization;
@@ -35,13 +36,15 @@ namespace Wikiled.Redis.Logic
         public RedisLink(ILoggerFactory loggerFactory,
                          IRedisConfiguration configuration,
                          IRedisMultiplexer multiplexer,
-                         IHandlingDefinitionFactory handlingDefinitionFactory)
+                         IHandlingDefinitionFactory handlingDefinitionFactory,
+                         IResilience resilience)
             : base(configuration?.ServiceName)
         {
             this.loggerFactory = loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory));
             Multiplexer = multiplexer ?? throw new ArgumentNullException(nameof(multiplexer));
 
             DefinitionFactory = handlingDefinitionFactory ?? throw new ArgumentNullException(nameof(handlingDefinitionFactory));
+            Resilience = resilience ?? throw new ArgumentNullException(nameof(resilience));
             log = loggerFactory.CreateLogger<RedisLink>();
             Generator = new ScriptGenerator();
             mainIndexManager = new MainIndexManager(new IndexManagerFactory(this));
@@ -49,6 +52,8 @@ namespace Wikiled.Redis.Logic
         }
 
         public IRedisClient Client { get; }
+
+        public IResilience Resilience { get; }
 
         public IHandlingDefinitionFactory DefinitionFactory { get; }
 

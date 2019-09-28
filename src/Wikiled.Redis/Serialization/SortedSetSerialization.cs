@@ -106,8 +106,11 @@ namespace Wikiled.Redis.Serialization
             return Observable.Create<T>(
                 async observer =>
                 {
-                    var items = await database.SortedSetRangeByScoreWithScoresAsync(key, skip: fromRecord, take: toRecord)
-                                              .ConfigureAwait(false);
+                    var items = await link.Resilience.AsyncRetryPolicy.ExecuteAsync(
+                                              async () =>
+                                                  await database.SortedSetRangeByScoreWithScoresAsync(key, skip: fromRecord, take: toRecord)
+                                                                .ConfigureAwait(false))
+                                          .ConfigureAwait(false);
                     foreach (var value in items)
                     {
                         observer.OnNext((T)(object)value);

@@ -9,7 +9,7 @@ namespace Wikiled.Redis.Indexing
 {
     public class HashIndexManager : IndexManagerBase
     {
-        public HashIndexManager(IRedisLink link, params IIndexKey[] indexes)
+        public HashIndexManager(IRedisLink link,  params IIndexKey[] indexes)
             : base(link, indexes)
         {
         }
@@ -38,7 +38,9 @@ namespace Wikiled.Redis.Indexing
             return Observable.Create<RedisValue>(
                 async observer =>
                 {
-                    var result = await database.HashGetAsync(Link.GetIndexKey(index), hashKey).ConfigureAwait(false);
+                    var result = await Link.Resilience.AsyncRetryPolicy
+                                                 .ExecuteAsync(async () => await database.HashGetAsync(Link.GetIndexKey(index), hashKey).ConfigureAwait(false))
+                                                 .ConfigureAwait(false);
                     observer.OnNext(result);
                     observer.OnCompleted();
                 });

@@ -1,5 +1,4 @@
 ﻿using System;
-using StackExchange.Redis;
 using Wikiled.Redis.Keys;
 using Wikiled.Redis.Logic;
 

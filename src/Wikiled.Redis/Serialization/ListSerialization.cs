@@ -85,7 +85,8 @@ namespace Wikiled.Redis.Serialization
             return Observable.Create<T>(
                 async observer =>
                 {
-                    var items = await redisSetList.GetRedisValues(database, key, fromRecord, toRecord).ConfigureAwait(false);
+                    var items = await link.Resilience.AsyncRetryPolicy.ExecuteAsync(async () => await redisSetList.GetRedisValues(database, key, fromRecord, toRecord).ConfigureAwait(false))
+                                          .ConfigureAwait(false);
                     var values = GetValues<T>(key, items);
                     foreach (var value in values)
                     {

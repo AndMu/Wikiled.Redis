@@ -5,6 +5,7 @@ using StackExchange.Redis;
 using Wikiled.Common.Helpers;
 using Wikiled.Redis.Keys;
 using Wikiled.Redis.Logic;
+using Wikiled.Redis.Logic.Resilience;
 
 namespace Wikiled.Redis.Indexing
 {
@@ -35,7 +36,10 @@ namespace Wikiled.Redis.Indexing
             return Observable.Create<RedisValue>(
                 async observer =>
                 {
-                    var keys = await database.SortedSetRangeByRankAsync(Link.GetIndexKey(index), start, stop, Order.Descending).ConfigureAwait(false);
+                    var keys = await Link.Resilience.AsyncRetryPolicy
+                                         .ExecuteAsync(async () => await database.SortedSetRangeByRankAsync(Link.GetIndexKey(index), start, stop, Order.Descending).ConfigureAwait(false))
+                                         .ConfigureAwait(false);
+
                     foreach (var key in keys)
                     {
                         observer.OnNext(key);

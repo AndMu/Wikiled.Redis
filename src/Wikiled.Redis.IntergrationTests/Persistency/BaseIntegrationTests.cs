@@ -1,9 +1,9 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Moq;
 using NUnit.Framework;
 using System.IO;
 using System.Xml.Linq;
+using Microsoft.Extensions.Logging;
 using Wikiled.Common.Logging;
 using Wikiled.Common.Serialization;
 using Wikiled.Redis.Channels;
@@ -18,6 +18,8 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
 {
     public class BaseIntegrationTests
     {
+        private static readonly ILogger log = ApplicationLogging.CreateLogger<RedisPersistencyTests>();
+
         private RedisInside.Redis redisInstance;
 
         protected ObjectKey Key { get; private set; }
@@ -39,9 +41,8 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
         [SetUp]
         public void Setup()
         {
-            //redisInstance = new RedisInside.Redis(i => i.Port(6666).LogTo(item => log.LogDebug(item)));
+            redisInstance = new RedisInside.Redis(i => i.Port(6666).LogTo(item => log.LogDebug(item)));
             var config = XDocument.Load(Path.Combine(TestContext.CurrentContext.TestDirectory, @"Config\redis.config")).XmlDeserialize<RedisConfiguration>();
-            config.Endpoints[0].Port = 6333;
             var provider = new ModuleHelper(config).Provider;
             Redis = provider.GetService<IRedisLink>();
             Redis.Open();

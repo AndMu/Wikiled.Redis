@@ -106,7 +106,9 @@ namespace Wikiled.Redis.Serialization
             return Observable.Create<T>(
                 async observer =>
                 {
-                    var exist = await database.KeyExistsAsync(key).ConfigureAwait(false);
+                    var exist = await link.Resilience.AsyncRetryPolicy.ExecuteAsync(
+                                              async () => await database.KeyExistsAsync(key).ConfigureAwait(false))
+                                          .ConfigureAwait(false);
                     if (!exist)
                     {
                         log.LogDebug("Key doesn't exist: {0}", key);
@@ -114,7 +116,10 @@ namespace Wikiled.Redis.Serialization
                         return;
                     }
 
-                    var result = await database.HashGetAllAsync(key).ConfigureAwait(false);
+                    var result = await link.Resilience.AsyncRetryPolicy.ExecuteAsync(
+                                               async () => await database.HashGetAllAsync(key).ConfigureAwait(false))
+                                           .ConfigureAwait(false);
+
                     var actualValues = ConstructActualValues<T>(result);
                     foreach (var value in actualValues)
                     {

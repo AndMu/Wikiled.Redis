@@ -2,6 +2,7 @@
 using StackExchange.Redis;
 using Wikiled.Redis.Channels;
 using Wikiled.Redis.Keys;
+using Wikiled.Redis.Logic.Resilience;
 using Wikiled.Redis.Scripts;
 using Wikiled.Redis.Serialization;
 using Wikiled.Redis.Serialization.Subscription;
@@ -14,6 +15,8 @@ namespace Wikiled.Redis.Logic
         ///     Redis client
         /// </summary>
         IRedisClient Client { get; }
+
+        IResilience Resilience { get; }
 
         IHandlingDefinitionFactory DefinitionFactory { get; }
 
