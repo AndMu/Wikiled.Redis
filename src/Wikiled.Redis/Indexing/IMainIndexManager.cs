@@ -11,6 +11,6 @@ namespace Wikiled.Redis.Indexing
 
         Task[] Delete(IDatabaseAsync database, IDataKey dataKey);
 
-        IIndexManager GetManager(params IIndexKey[] index);
+        IIndexManager GetManager(IIndexKey index);
     }
 }

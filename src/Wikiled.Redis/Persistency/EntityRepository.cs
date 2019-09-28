@@ -32,7 +32,7 @@ namespace Wikiled.Redis.Persistency
             return Redis.Client.Count(key);
         }
 
-        public async Task<T[]> LoadPage(IIndexKey key, int start = 0, int end = 1)
+        public async Task<T[]> LoadPage(IIndexKey key, int start = 0, int end = -1)
         {
             return await Redis.Client.GetRecords<T>(key, start, end).ToArray();
         }
@@ -46,7 +46,6 @@ namespace Wikiled.Redis.Persistency
         {
             return SaveInternal(entity, transaction, indexes);
         }
-
 
         public IObservable<T> LoadAll(IIndexKey key)
         {

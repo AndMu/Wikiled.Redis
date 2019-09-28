@@ -1,18 +1,23 @@
 ﻿using System;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
 using Wikiled.Redis.Keys;
 using Wikiled.Redis.Logic;
-using Wikiled.Redis.Logic.Resilience;
 
 namespace Wikiled.Redis.Indexing
 {
     public class ListIndexManager : IndexManagerBase
     {
-        public ListIndexManager(IRedisLink link,  params IIndexKey[] indexes)
-            : base(link, indexes)
+        public ListIndexManager(ILogger<ListIndexManager> logger, IRedisLink link)
+            : base(logger, link)
         {
+        }
+
+        public override Task<long> Count(IDatabaseAsync database, IIndexKey index)
+        {
+            return database.ListLengthAsync(Link.GetIndexKey(index));
         }
 
         protected override Task RemoveRawIndex(IDatabaseAsync database, IIndexKey index, string rawKey)
@@ -26,17 +31,11 @@ namespace Wikiled.Redis.Indexing
             return database.ListLeftPushAsync(Link.GetIndexKey(index), rawKey);
         }
 
-        protected override Task<long> SingleCount(IDatabaseAsync database, IIndexKey index)
-        {
-            return database.ListLengthAsync(Link.GetIndexKey(index));
-        }
-
         protected override IObservable<RedisValue> GetIdsSingle(IDatabaseAsync database, IIndexKey index, long start = 0, long stop = -1)
         {
             return Observable.Create<RedisValue>(
                 async observer =>
                 {
-
                     var keys = await Link.Resilience.AsyncRetryPolicy
                                                  .ExecuteAsync(async () => await database.ListRangeAsync(Link.GetIndexKey(index), start, stop).ConfigureAwait(false))
                                                  .ConfigureAwait(false);

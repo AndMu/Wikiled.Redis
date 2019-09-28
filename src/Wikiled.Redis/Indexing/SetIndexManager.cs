@@ -1,19 +1,24 @@
 ﻿using System;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
 using Wikiled.Common.Helpers;
 using Wikiled.Redis.Keys;
 using Wikiled.Redis.Logic;
-using Wikiled.Redis.Logic.Resilience;
 
 namespace Wikiled.Redis.Indexing
 {
     public class SetIndexManager : IndexManagerBase
     {
-        public SetIndexManager(IRedisLink link, params IIndexKey[] indexes)
-            : base(link, indexes)
+        public SetIndexManager(ILogger<SetIndexManager> logger, IRedisLink link)
+            : base(logger, link)
         {
+        }
+
+        public override Task<long> Count(IDatabaseAsync database, IIndexKey index)
+        {
+            return database.SortedSetLengthAsync(Link.GetIndexKey(index));
         }
 
         protected override Task RemoveRawIndex(IDatabaseAsync database, IIndexKey index, string rawKey)
@@ -24,11 +29,6 @@ namespace Wikiled.Redis.Indexing
         protected override Task AddRawIndex(IDatabaseAsync database, IIndexKey index, string rawKey)
         {
             return database.SortedSetAddAsync(Link.GetIndexKey(index), rawKey, DateTime.UtcNow.ToUnixTime());
-        }
-
-        protected override Task<long> SingleCount(IDatabaseAsync database, IIndexKey index)
-        {
-            return database.SortedSetLengthAsync(Link.GetIndexKey(index));
         }
 
         protected override IObservable<RedisValue> GetIdsSingle(IDatabaseAsync database, IIndexKey index, long start = 0, long stop = -1)

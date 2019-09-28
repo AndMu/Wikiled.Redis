@@ -2,9 +2,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using Wikiled.Common.Extensions;
 using Wikiled.Redis.Keys;
 
 namespace Wikiled.Redis.Indexing
@@ -25,7 +23,7 @@ namespace Wikiled.Redis.Indexing
             var tasks = new List<Task>(dataKey.Indexes.Length);
             foreach (var indexManager in GetManagers(dataKey))
             {
-                tasks.Add(indexManager.AddIndex(database, dataKey));
+                tasks.Add(indexManager.Manager.AddIndex(database, dataKey, indexManager.Index));
             }
 
             return tasks.ToArray();
@@ -36,19 +34,18 @@ namespace Wikiled.Redis.Indexing
             var tasks = new List<Task>(dataKey.Indexes.Length);
             foreach (var indexManager in GetManagers(dataKey))
             {
-                tasks.Add(indexManager.RemoveIndex(database, dataKey));
+                tasks.Add(indexManager.Manager.RemoveIndex(database, dataKey, indexManager.Index));
             }
 
             return tasks.ToArray();
         }
 
-        public IIndexManager GetManager(params IIndexKey[] index)
+        public IIndexManager GetManager(IIndexKey index)
         {
-            string indexKey = index.Length == 1 ? index[0].Key : index.Select(item => item.Key).AccumulateItems(":");
-            return manager.GetOrAdd(indexKey, key => factory.Create(index));
+            return factory.Create(index);
         }
 
-        private IEnumerable<IIndexManager> GetManagers(IDataKey dataKey)
+        private IEnumerable<(IIndexManager Manager, IIndexKey Index)> GetManagers(IDataKey dataKey)
         {
             if (dataKey == null)
             {
@@ -57,7 +54,7 @@ namespace Wikiled.Redis.Indexing
 
             foreach (var index in dataKey.Indexes)
             {
-                yield return GetManager(index);
+                yield return (GetManager(index), index);
             }
         }
     }

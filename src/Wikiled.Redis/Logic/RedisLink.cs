@@ -47,7 +47,7 @@ namespace Wikiled.Redis.Logic
             Resilience = resilience ?? throw new ArgumentNullException(nameof(resilience));
             log = loggerFactory.CreateLogger<RedisLink>();
             Generator = new ScriptGenerator();
-            mainIndexManager = new MainIndexManager(new IndexManagerFactory(this));
+            mainIndexManager = new MainIndexManager(new IndexManagerFactory(loggerFactory, this));
             Client = new RedisClient(loggerFactory?.CreateLogger<RedisClient>(), this, mainIndexManager);
         }
 

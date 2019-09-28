@@ -111,7 +111,7 @@ namespace Wikiled.Redis.Serialization
                                           .ConfigureAwait(false);
                     if (!exist)
                     {
-                        log.LogDebug("Key doesn't exist: {0}", key);
+                        log.LogWarning("Key doesn't exist: {0}", key);
                         observer.OnCompleted();
                         return;
                     }

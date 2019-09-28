@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
 using Wikiled.Redis.Keys;
 using Wikiled.Redis.Logic;
@@ -9,9 +10,14 @@ namespace Wikiled.Redis.Indexing
 {
     public class HashIndexManager : IndexManagerBase
     {
-        public HashIndexManager(IRedisLink link,  params IIndexKey[] indexes)
-            : base(link, indexes)
+        public HashIndexManager(ILogger<HashIndexManager> logger, IRedisLink link)
+            : base(logger, link)
         {
+        }
+
+        public override Task<long> Count(IDatabaseAsync database, IIndexKey index)
+        {
+            return database.HashLengthAsync(Link.GetIndexKey(index));
         }
 
         protected override Task RemoveRawIndex(IDatabaseAsync database, IIndexKey index, string rawKey)
@@ -24,11 +30,6 @@ namespace Wikiled.Redis.Indexing
         {
             var hashIndex = (HashIndexKey)index;
             return database.HashSetAsync(Link.GetIndexKey(index), new[] { new HashEntry(hashIndex.HashKey, rawKey) });
-        }
-
-        protected override Task<long> SingleCount(IDatabaseAsync database, IIndexKey index)
-        {
-            return database.HashLengthAsync(Link.GetIndexKey(index));
         }
 
         protected override IObservable<RedisValue> GetIdsSingle(IDatabaseAsync database, IIndexKey index, long start = 0, long stop = -1)

@@ -15,7 +15,7 @@ namespace Wikiled.Redis.Persistency
 
         Task<long> Count(IIndexKey key);
 
-        Task<T[]> LoadPage(IIndexKey key, int start = 0, int end = 1);
+        Task<T[]> LoadPage(IIndexKey key, int start = 0, int end = -1);
 
         IObservable<T> LoadAll(IIndexKey key);
 

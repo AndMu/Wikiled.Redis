@@ -127,33 +127,18 @@ namespace Wikiled.Redis.Logic
 
             return link.Resilience
                        .AsyncRetryPolicy
-                       .ExecuteAsync(async () => await indexManager.Count(GetDatabase()).ConfigureAwait(false));
+                       .ExecuteAsync(async () => await indexManager.Count(GetDatabase(), index).ConfigureAwait(false));
         }
 
         public IObservable<T> GetRecords<T>(IIndexKey index, long start = 0, long end = -1)
         {
-            return GetRecords<T>(new[] { index }, start, end);
-        }
-
-        public IObservable<T> GetRecords<T>(IIndexKey[] index, long start = 0, long end = -1)
-        {
-            if (index == null)
-            {
-                throw new ArgumentNullException(nameof(index));
-            }
-
             logger.LogDebug($"GetRecords {start}-{end}");
             var indexManager = mainIndexManager.GetManager(index);
             int batch = BatchSize;
-            if (index.Length > 1)
-            {
-                logger.LogWarning("Joined index batching is not supported");
-                batch = int.MaxValue;
-            }
 
             return ObserverHelpers.Batch(
-                indexManager.Count(GetDatabase()),
-                (fromIndex, toIndex) => indexManager.GetKeys(GetDatabase(), fromIndex, toIndex),
+                indexManager.Count(GetDatabase(), index),
+                (fromIndex, toIndex) => indexManager.GetKeys(GetDatabase(), index, fromIndex, toIndex),
                 GetRecords<T>,
                 batch,
                 start,
