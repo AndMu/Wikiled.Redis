@@ -22,13 +22,13 @@ namespace Wikiled.Redis.Serialization
         public string[] GetColumns<T>()
         {
             var definition = link.GetDefinition<T>();
-            if(definition.Serializer == null)
+            if (definition.KeyValueSerializer == null)
             {
                 log.LogError("Serializer not found");
-                return new string[] {};
+                return new string[] { };
             }
 
-            return definition.Serializer.Properties;
+            return definition.KeyValueSerializer.Properties;
         }
 
         public IEnumerable<HashEntry> GetEntries<T>(T instance)
@@ -39,19 +39,19 @@ namespace Wikiled.Redis.Serialization
             }
 
             var definition = link.GetDefinition<T>();
-            if(definition.Serializer == null)
+            if (definition.KeyValueSerializer == null)
             {
                 log.LogError("Serializer not found");
                 yield break;
             }
 
-            var entries = definition.Serializer.Serialize(instance)
+            var entries = definition.KeyValueSerializer.Serialize(instance)
                                     .Select(
                                         item => new HashEntry(
                                                     item.Key,
                                                     string.IsNullOrEmpty(item.Value) ? RedisValue.EmptyString : (RedisValue)item.Value));
 
-            foreach(var entry in entries)
+            foreach (var entry in entries)
             {
                 yield return entry;
             }
@@ -65,13 +65,13 @@ namespace Wikiled.Redis.Serialization
             }
 
             var definition = link.GetDefinition<T>();
-            return definition.Serializer.DeserializeStream(GetValues(definition.Serializer.Properties, values));
+            return definition.KeyValueSerializer.DeserializeStream(GetValues(definition.KeyValueSerializer.Properties, values));
         }
 
         private IEnumerable<KeyValuePair<string, string>> GetValues(string[] names, RedisValue[] values)
         {
             var total = names.Length;
-            for(int i = 0; i < values.Length; i++)
+            for (int i = 0; i < values.Length; i++)
             {
                 var name = names[i % total];
                 var value = values[i];

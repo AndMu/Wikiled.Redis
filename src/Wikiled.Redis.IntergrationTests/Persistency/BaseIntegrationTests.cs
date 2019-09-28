@@ -11,14 +11,13 @@ using Wikiled.Redis.Config;
 using Wikiled.Redis.IntegrationTests.Helpers;
 using Wikiled.Redis.Keys;
 using Wikiled.Redis.Logic;
+using Wikiled.Redis.Logic.Resilience;
 using Wikiled.Redis.Persistency;
 
 namespace Wikiled.Redis.IntegrationTests.Persistency
 {
     public class BaseIntegrationTests
     {
-        private static readonly ILogger log = ApplicationLogging.CreateLogger<RedisPersistencyTests>();
-
         private RedisInside.Redis redisInstance;
 
         protected ObjectKey Key { get; private set; }
@@ -35,17 +34,21 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
 
         protected IndexKey ListAll2 { get; private set; }
 
+        protected IResilience Resilience { get; private set; }
+
         [SetUp]
         public void Setup()
         {
-            redisInstance = new RedisInside.Redis(i => i.Port(6666).LogTo(item => log.LogDebug(item)));
+            //redisInstance = new RedisInside.Redis(i => i.Port(6666).LogTo(item => log.LogDebug(item)));
             var config = XDocument.Load(Path.Combine(TestContext.CurrentContext.TestDirectory, @"Config\redis.config")).XmlDeserialize<RedisConfiguration>();
+            config.Endpoints[0].Port = 6333;
             var provider = new ModuleHelper(config).Provider;
             Redis = provider.GetService<IRedisLink>();
             Redis.Open();
             Redis.Multiplexer.Flush();
 
             var redis2 = provider.GetService<IRedisLink>();
+            Resilience = provider.GetService<IResilience>();
             redis2.Open();
             Key = new ObjectKey("Key1");
             Routing = new Identity();

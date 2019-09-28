@@ -123,15 +123,16 @@ namespace Wikiled.Redis.Config
         public ConfigurationOptions GetOptions()
         {
             var config = new ConfigurationOptions
-            {
-                CommandMap = CommandMap.Create(ExcludedCommands, false),
-                KeepAlive = KeepAlive,              // 60 sec to ensure connection is alive
-                ConnectTimeout = ConnectTimeout,    // 5 sec
-                SyncTimeout = SyncTimeout,          // 5 sec
-                ServiceName = ServiceName,          // sentinel service name
-                AllowAdmin = AllowAdmin,
-                AbortOnConnectFail = false
-            };
+                         {
+                             CommandMap = CommandMap.Create(ExcludedCommands, false),
+                             KeepAlive = KeepAlive, // 60 sec to ensure connection is alive
+                             ConnectTimeout = ConnectTimeout, // 5 sec
+                             SyncTimeout = SyncTimeout, // 5 sec
+                             ServiceName = ServiceName, // sentinel service name
+                             AllowAdmin = AllowAdmin,
+                             AbortOnConnectFail = false,
+                             ReconnectRetryPolicy = new ExponentialRetry(500, 10000)
+                         };
 
             if (!string.IsNullOrEmpty(Password))
             {

@@ -102,7 +102,7 @@ namespace Wikiled.Redis.Logic
         /// </summary>
         /// <typeparam name="T">Type serializer</typeparam>
         /// <returns>If it is supported instance of serializer</returns>
-        public IKeyValueSerializer<T> Serializer
+        public IKeyValueSerializer<T> KeyValueSerializer
         {
             get => serializer;
             set

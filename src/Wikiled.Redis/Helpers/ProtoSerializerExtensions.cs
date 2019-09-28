@@ -103,7 +103,7 @@ namespace Wikiled.Redis.Helpers
                 return null;
             }
 
-            using (MemoryStream memoryStream = new MemoryStream())
+            using (var memoryStream = new MemoryStream())
             {
                 Serializer.Serialize(memoryStream, instance);
                 byte[] objectDataAsStream = compress(memoryStream.ToArray());

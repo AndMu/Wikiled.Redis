@@ -22,7 +22,7 @@ namespace Wikiled.Redis.UnitTests.Serialization
             link.Setup(item => item.State).Returns(ChannelState.Open);
             link.Setup(item => item.LinkId).Returns(0);
             var definition = Global.HandlingDefinitionFactory.ConstructGeneric<Identity>(link.Object);
-            definition.Serializer = new KeyValueSerializer<Identity>(() => new Identity());
+            definition.KeyValueSerializer = new KeyValueSerializer<Identity>(() => new Identity());
             link.Setup(item => item.GetDefinition<Identity>())
                 .Returns(definition);
             instance = new HashSetSerialization(link.Object);

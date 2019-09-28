@@ -36,7 +36,7 @@ namespace Wikiled.Redis.UnitTests.Logic
             Assert.Throws<ArgumentOutOfRangeException>(() => Global.HandlingDefinitionFactory.ConstructGeneric<int>(link.Object, dataSerializer.Object));
             var instance = Global.HandlingDefinitionFactory.ConstructGeneric<Identity>(link.Object);
             Assert.IsFalse(instance.IsWellKnown);
-            Assert.IsNull(instance.Serializer);
+            Assert.IsNull(instance.KeyValueSerializer);
             Assert.AreEqual("L10:1", instance.GetNextId());
         }
 
@@ -50,17 +50,17 @@ namespace Wikiled.Redis.UnitTests.Logic
             Assert.IsFalse(definition.IsNormalized);
             Assert.IsFalse(definition.IsSingleInstance);
             Assert.IsFalse(definition.IsWellKnown);
-            Assert.IsNull(definition.Serializer);
+            Assert.IsNull(definition.KeyValueSerializer);
             definition.IsNormalized = true;
             definition.IsSingleInstance = true;
             definition.IsWellKnown = true;
 
             var serializer = new Mock<IKeyValueSerializer<Identity>>();
-            definition.Serializer = serializer.Object;
+            definition.KeyValueSerializer = serializer.Object;
             Assert.IsTrue(definition.IsNormalized);
             Assert.IsTrue(definition.IsSingleInstance);
             Assert.IsTrue(definition.IsWellKnown);
-            Assert.IsNotNull(definition.Serializer);
+            Assert.IsNotNull(definition.KeyValueSerializer);
         }
 
         [Test]
@@ -74,11 +74,11 @@ namespace Wikiled.Redis.UnitTests.Logic
             Assert.Throws<ArgumentOutOfRangeException>(() => definition.IsSingleInstance = true);
             Assert.Throws<ArgumentOutOfRangeException>(() => definition.IsWellKnown = true);
             Mock<IKeyValueSerializer<int>> serializer = new Mock<IKeyValueSerializer<int>>();
-            Assert.Throws<ArgumentOutOfRangeException>(() => definition.Serializer = serializer.Object);
+            Assert.Throws<ArgumentOutOfRangeException>(() => definition.KeyValueSerializer = serializer.Object);
             Assert.IsFalse(definition.IsNormalized);
             Assert.IsFalse(definition.IsSingleInstance);
             Assert.IsFalse(definition.IsWellKnown);
-            Assert.IsNull(definition.Serializer);
+            Assert.IsNull(definition.KeyValueSerializer);
         }
     }
 }

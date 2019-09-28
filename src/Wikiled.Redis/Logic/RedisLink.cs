@@ -91,7 +91,7 @@ namespace Wikiled.Redis.Logic
             {
                 action = new SortedSetSerialization(this, mainIndexManager);
             }
-            else if (definition.Serializer != null)
+            else if (definition.KeyValueSerializer != null)
             {
                 var serialization = new HashSetSerialization(this);
 

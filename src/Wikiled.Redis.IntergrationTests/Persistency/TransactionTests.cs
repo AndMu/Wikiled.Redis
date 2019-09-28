@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using NUnit.Framework;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
@@ -6,7 +7,6 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Wikiled.Redis.Channels;
 using Wikiled.Redis.IntegrationTests.Helpers;
 using Wikiled.Redis.IntegrationTests.MockData;
-using Wikiled.Redis.Persistency;
 
 namespace Wikiled.Redis.IntegrationTests.Persistency
 {
@@ -74,6 +74,25 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
             }
 
             await Task.WhenAll(tasks).ConfigureAwait(false);
+        }
+
+        [Test]
+        public async Task TestNestedRepositorySequentialy()
+        {
+            var repositoryInner = new IdentityRepository(new NullLogger<IdentityRepository>(), Redis);
+            var repository = new SimpleItemRepository(new NullLogger<SimpleItemRepository>(), Redis, repositoryInner);
+
+            for (int i = 0; i < 10; i++)
+            {
+                try
+                {
+                    await Resilience.AsyncRetryPolicy.ExecuteAsync(() => repository.Save(new SimpleItem { Id = i }, repository.Entity.AllIndex));
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                }
+            }
         }
     }
 }
