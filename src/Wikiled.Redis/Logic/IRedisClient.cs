@@ -28,7 +28,7 @@ namespace Wikiled.Redis.Logic
         /// <param name="keys"></param>
         /// <param name="instance"></param>
         /// <returns></returns>
-        Task AddRecords<T>(IEnumerable<IDataKey> keys, params T[] instances);
+        Task AddRecords<T>(IEnumerable<IDataKey> keys, params T[] instance);
 
         /// <summary>
         ///     Check is key in db
