@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 
 namespace Wikiled.Redis.Keys
 {
@@ -35,7 +34,7 @@ namespace Wikiled.Redis.Keys
                 throw new ArgumentException("Value cannot be null or empty.", nameof(objectName));
             }
 
-            ObjectKey objectKey = new ObjectKey(objectName);
+            var objectKey = new ObjectKey(objectName);
             return new SimpleKey(repository, objectKey);
         }
     }

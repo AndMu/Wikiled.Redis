@@ -220,7 +220,7 @@ namespace Wikiled.Redis.Logic
 
             if (!(GetSpecific<T>() is ObjectListSerialization persistency))
             {
-                log.LogWarning("Type persitency not supported");
+                log.LogWarning("Type persistence not supported");
                 return null;
             }
 

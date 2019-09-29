@@ -146,7 +146,6 @@ namespace Wikiled.Redis.Logic
 
             try
             {
-
                 log.LogDebug("Opening...");
                 Database = ResolveDatabase();
             }
@@ -198,8 +197,7 @@ namespace Wikiled.Redis.Logic
                 enabledNotifications = true;
             }
 
-            // in current implementation on DB 0 is supported. 
-            var eventName = $"__keyspace@0__:{key}";
+            var eventName = $"__key*:{key}";
             ISubscriber subscriber = connection.GetSubscriber();
             var redisChannel = new RedisChannel(eventName, RedisChannel.PatternMode.Auto);
             subscriber.Subscribe(redisChannel, (channel, value) => action(new KeyspaceEvent(key, channel, value)));

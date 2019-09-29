@@ -1,7 +1,11 @@
 ﻿using Microsoft.Extensions.Logging;
 using System;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using StackExchange.Redis;
+using Wikiled.Redis.Helpers;
 using Wikiled.Redis.Keys;
 using Wikiled.Redis.Logic;
 
@@ -26,7 +30,14 @@ namespace Wikiled.Redis.Persistency
         protected ILogger<EntityRepository<T>> Log { get; }
 
         protected IRedisLink Redis { get; }
-        
+
+        public IObservable<T> SubscribeToChanges()
+        {
+            var key = Entity.GetKey("*");
+            return Observable.Create<T>(
+                async (observer, token) => { await EntityEventSubscription(key, token, observer); });
+        }
+
         public Task<long> Count(IIndexKey key)
         {
             return Redis.Client.Count(key);
@@ -109,6 +120,45 @@ namespace Wikiled.Redis.Persistency
             }
 
             await Task.WhenAll(beforeTask, addTask).ConfigureAwait(false);
+        }
+
+        private async Task EntityEventSubscription(IDataKey key, CancellationToken token, IObserver<T> observer)
+        {
+            ISubscriber subscriber = null;
+            try
+            {
+                subscriber = Redis.Multiplexer.SubscribeKeyEvents(
+                    key.FullKey,
+                    async events =>
+                    {
+                        if (token.IsCancellationRequested)
+                        {
+                            return;
+                        }
+
+                        var receivedKey = events.Channel.ToString();
+                        var start = receivedKey.IndexOf(FieldConstants.ObjectTag) + 8;
+                        if (start < 0)
+                        {
+                            Log.LogWarning("Bad key: {0}", receivedKey);
+                            return;
+                        }
+
+                        receivedKey = receivedKey.Substring(start);
+                        var keyItem = new RepositoryKey(this, new ObjectKey(receivedKey));
+                        var record = await Redis.Client.GetRecords<T>(keyItem).LastOrDefaultAsync();
+                        observer.OnNext(record);
+                    });
+
+                await token.AsTask();
+            }
+            catch (OperationCanceledException)
+            {
+            }
+            finally
+            {
+                subscriber?.UnsubscribeAll();
+            }
         }
     }
 }

@@ -46,53 +46,5 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
             rawResult = await Redis.Client.GetRecords<string>(Key).LastOrDefaultAsync();
             Assert.AreEqual("Test", rawResult);
         }
-
-        [Test]
-        public async Task TestRepository()
-        {
-            var repository = new IdentityRepository(new NullLogger<IdentityRepository>(), Redis);
-
-            var tasks = new List<Task>();
-            for (int i = 0; i < 2; i++)
-            {
-                tasks.Add(repository.Save(new Identity { InstanceId = i.ToString() }, repository.Entity.AllIndex));
-            }
-
-            await Task.WhenAll(tasks).ConfigureAwait(false);
-        }
-
-        [Test]
-        public async Task TestNestedRepository()
-        {
-            var repositoryInner = new IdentityRepository(new NullLogger<IdentityRepository>(), Redis);
-            var repository = new SimpleItemRepository(new NullLogger<SimpleItemRepository>(), Redis, repositoryInner);
-
-            var tasks = new List<Task>();
-            for (int i = 0; i < 2; i++)
-            {
-                tasks.Add(repository.Save(new SimpleItem { Id = i }, repository.Entity.AllIndex));
-            }
-
-            await Task.WhenAll(tasks).ConfigureAwait(false);
-        }
-
-        [Test]
-        public async Task TestNestedRepositorySequentialy()
-        {
-            var repositoryInner = new IdentityRepository(new NullLogger<IdentityRepository>(), Redis);
-            var repository = new SimpleItemRepository(new NullLogger<SimpleItemRepository>(), Redis, repositoryInner);
-
-            for (int i = 0; i < 10; i++)
-            {
-                try
-                {
-                    await Resilience.AsyncRetryPolicy.ExecuteAsync(() => repository.Save(new SimpleItem { Id = i }, repository.Entity.AllIndex));
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e);
-                }
-            }
-        }
     }
 }
