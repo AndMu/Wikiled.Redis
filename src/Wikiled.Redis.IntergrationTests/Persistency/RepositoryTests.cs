@@ -31,6 +31,7 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
         public async Task TestEvents()
         {
             var repository = new IdentityRepository(new NullLogger<IdentityRepository>(), Redis);
+            repository.SubscribeToChanges().Subscribe(item => { });
             var result = repository.SubscribeToChanges().Take(2).ToArray().GetAwaiter();
 
             var tasks = new List<Task>();

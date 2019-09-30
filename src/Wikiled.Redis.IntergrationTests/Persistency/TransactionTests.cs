@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging.Abstractions;
-using Wikiled.Redis.Channels;
-using Wikiled.Redis.IntegrationTests.Helpers;
-using Wikiled.Redis.IntegrationTests.MockData;
 
 namespace Wikiled.Redis.IntegrationTests.Persistency
 {

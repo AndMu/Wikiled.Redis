@@ -95,5 +95,7 @@ namespace Wikiled.Redis.Logic
         /// <param name="key">Subscription key</param>
         /// <param name="action">Action on event</param>
         ISubscriber SubscribeKeyEvents(string key, Action<KeyspaceEvent> action);
+
+        Task<ChannelMessageQueue> SubscribeKeyEvents(string key);
     }
 }

@@ -204,6 +204,20 @@ namespace Wikiled.Redis.Logic
             return subscriber;
         }
 
+        public Task<ChannelMessageQueue> SubscribeKeyEvents(string key)
+        {
+            if (!enabledNotifications)
+            {
+                Configure("notify-keyspace-events", "KEA");
+                enabledNotifications = true;
+            }
+
+            var eventName = $"__key*:{key}";
+            ISubscriber subscriber = connection.GetSubscriber();
+            var redisChannel = new RedisChannel(eventName, RedisChannel.PatternMode.Auto);
+            return subscriber.SubscribeAsync(redisChannel);
+        }
+
         public IEnumerable<IServer> GetServers()
         {
             return Configuration.Endpoints.Select(endpoint => connection.GetServer(endpoint.Host, endpoint.Port));
