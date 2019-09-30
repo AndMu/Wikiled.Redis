@@ -13,8 +13,6 @@ namespace Wikiled.Redis.Logic
 
         private readonly ILogger<RedisTransaction> log;
 
-        private readonly ITransaction transaction;
-
         public RedisTransaction(ILoggerFactory loggerFactory, IRedisLink link, ITransaction transaction, IMainIndexManager indexManager)
         {
             if (loggerFactory == null)
@@ -22,11 +20,13 @@ namespace Wikiled.Redis.Logic
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
 
-            this.transaction = transaction ?? throw new ArgumentNullException(nameof(transaction));
+            this.Transaction = transaction ?? throw new ArgumentNullException(nameof(transaction));
             this.link = link ?? throw new ArgumentNullException(nameof(link));
             log = loggerFactory.CreateLogger<RedisTransaction>();
             Client = new RedisClient(loggerFactory.CreateLogger<RedisClient>(), link, indexManager, transaction);
         }
+
+        public ITransaction Transaction { get; }
 
         public IRedisClient Client { get; }
 
@@ -41,7 +41,7 @@ namespace Wikiled.Redis.Logic
             log.LogDebug("Commit");
             return link.Resilience
                        .AsyncRetryPolicy
-                       .ExecuteAsync(async () => await transaction.ExecuteAsync().ConfigureAwait(false));
+                       .ExecuteAsync(async () => await Transaction.ExecuteAsync().ConfigureAwait(false));
         }
     }
 }
