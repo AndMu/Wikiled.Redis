@@ -21,6 +21,6 @@ namespace Wikiled.Redis.Persistency
 
         Task<T> LoadSingle(string id);
 
-        Task Delete(string id);
+        Task Delete(string id, IRedisTransaction transaction = null);
     }
 }
