@@ -32,8 +32,9 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
         {
             var repository = new IdentityRepository(new NullLogger<IdentityRepository>(), Redis);
             repository.SubscribeToChanges().Subscribe(item => { });
-            var result = repository.SubscribeToChanges().Take(2).ToArray().GetAwaiter();
+            var result = repository.SubscribeToChanges().Take(2).Timeout(TimeSpan.FromSeconds(5)).ToArray().GetAwaiter();
 
+            await Task.Delay(100).ConfigureAwait(false);
             var tasks = new List<Task>();
             for (int i = 0; i < 2; i++)
             {
@@ -62,7 +63,7 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
         }
 
         [Test]
-        public async Task TestNestedRepositorySequentialy()
+        public async Task TestNestedRepositorySequential()
         {
             var repositoryInner = new IdentityRepository(new NullLogger<IdentityRepository>(), Redis);
             var repository = new SimpleItemRepository(new NullLogger<SimpleItemRepository>(), Redis, repositoryInner);
@@ -71,7 +72,7 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
             {
                 try
                 {
-                    await Resilience.AsyncRetryPolicy.ExecuteAsync(() => repository.Save(new SimpleItem { Id = i }, repository.Entity.AllIndex));
+                    await Resilience.AsyncRetryPolicy.ExecuteAsync(() => repository.Save(new SimpleItem { Id = i }, repository.Entity.AllIndex)).ConfigureAwait(false);
                 }
                 catch (Exception e)
                 {
