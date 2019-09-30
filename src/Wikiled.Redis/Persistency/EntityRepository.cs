@@ -6,7 +6,6 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Wikiled.Redis.Helpers;
 using Wikiled.Redis.Keys;
 using Wikiled.Redis.Logic;
 
@@ -76,10 +75,17 @@ namespace Wikiled.Redis.Persistency
             return await Redis.Client.GetRecords<T>(key).LastOrDefaultAsync();
         }
 
-        public async Task Delete(string id, IRedisTransaction transaction = null)
+        public async Task Delete(string id, IRedisTransaction transaction = null, params IIndexKey[] indexes)
         {
             var client = transaction?.Client ?? Redis.Client;
-            await client.DeleteAll<T>(Entity.GetKey(id)).ConfigureAwait(false);
+            var entity = Entity.GetKey(id);
+            entity.AddIndex(Entity.AllIndex);
+            foreach (var index in indexes)
+            {
+                entity.AddIndex(index);
+            }
+
+            await client.DeleteAll<T>(entity).ConfigureAwait(false);
         }
 
         protected abstract string GetRecordId(T instance);
