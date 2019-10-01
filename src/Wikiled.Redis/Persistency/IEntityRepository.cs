@@ -22,5 +22,7 @@ namespace Wikiled.Redis.Persistency
         Task<T> LoadSingle(string id);
 
         Task Delete(string id, IRedisTransaction transaction = null, params IIndexKey[] indexes);
+
+        IObservable<T> SubscribeToChanges();
     }
 }
