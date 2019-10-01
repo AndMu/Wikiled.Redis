@@ -11,8 +11,6 @@ namespace Wikiled.Redis.Indexing
     {
         private readonly IIndexManagerFactory factory;
 
-        private readonly ConcurrentDictionary<string, IIndexManager> manager = new ConcurrentDictionary<string, IIndexManager>();
-
         public MainIndexManager(IIndexManagerFactory factory)
         {
             this.factory = factory ?? throw new ArgumentNullException(nameof(factory));

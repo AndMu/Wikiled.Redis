@@ -1,12 +1,12 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using StackExchange.Redis;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
-using StackExchange.Redis;
-using Wikiled.Common.Logging;
 using Wikiled.Redis.Data;
+using Wikiled.Redis.Indexing;
 using Wikiled.Redis.Keys;
 using Wikiled.Redis.Logic;
 
@@ -16,15 +16,19 @@ namespace Wikiled.Redis.Serialization
     {
         private readonly IRedisLink link;
 
-        private static readonly ILogger log = ApplicationLogging.CreateLogger<ListSerialization>();
+        private readonly ILogger<ListSerialization> log;
 
         private readonly IRedisSetList redisSetList;
 
-        public ListSerialization(IRedisLink link, IRedisSetList redisSetList)
-            : base(link)
+        public ListSerialization(ILogger<ListSerialization> logger,
+                                 IRedisLink link,
+                                 IRedisSetList redisSetList,
+                                 IMainIndexManager indexManager)
+            : base(logger, link, indexManager)
         {
             this.link = link ?? throw new ArgumentNullException(nameof(link));
             this.redisSetList = redisSetList ?? throw new ArgumentNullException(nameof(redisSetList));
+            log = logger;
         }
 
         public Task AddRecord<T>(IDatabaseAsync database, IDataKey key, params T[] instances)

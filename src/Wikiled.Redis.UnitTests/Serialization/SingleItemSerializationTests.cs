@@ -49,15 +49,15 @@ namespace Wikiled.Redis.UnitTests.Serialization
             database = new Mock<IDatabaseAsync>();
             objecMock = new Mock<IObjectSerialization>();
             link.Setup(item => item.GetDefinition<Identity>()).Returns(Global.HandlingDefinitionFactory.ConstructGeneric<Identity>(link.Object));
-            instance = new SingleItemSerialization(link.Object, objecMock.Object, mainIndexManager.Object);
+            instance = new SingleItemSerialization(new NullLogger<SingleItemSerialization>(), link.Object, objecMock.Object, mainIndexManager.Object);
         }
 
         [Test]
         public void Construct()
         {
-            Assert.Throws<ArgumentNullException>(() => new SingleItemSerialization(null, objecMock.Object, mainIndexManager.Object));
-            Assert.Throws<ArgumentNullException>(() => new SingleItemSerialization(link.Object, null, mainIndexManager.Object));
-            Assert.Throws<ArgumentNullException>(() => new SingleItemSerialization(link.Object, objecMock.Object, null));
+            Assert.Throws<ArgumentNullException>(() => new SingleItemSerialization(new NullLogger<SingleItemSerialization>(), null, objecMock.Object, mainIndexManager.Object));
+            Assert.Throws<ArgumentNullException>(() => new SingleItemSerialization(new NullLogger<SingleItemSerialization>(), link.Object, null, mainIndexManager.Object));
+            Assert.Throws<ArgumentNullException>(() => new SingleItemSerialization(new NullLogger<SingleItemSerialization>(), link.Object, objecMock.Object, null));
         }
 
         [Test]

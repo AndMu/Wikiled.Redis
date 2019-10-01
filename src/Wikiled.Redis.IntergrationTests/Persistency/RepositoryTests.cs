@@ -64,11 +64,13 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
             var all = await repository.LoadAll(repository.Entity.AllIndex).ToArray();
             Assert.AreEqual(2, all.Length);
 
+            tasks.Clear();
             for (int i = 0; i < 2; i++)
             {
                 tasks.Add(repository.Delete(i.ToString()));
             }
 
+            await Task.WhenAll(tasks).ConfigureAwait(false);
             all = await repository.LoadAll(repository.Entity.AllIndex).ToArray();
             Assert.AreEqual(0, all.Length);
         }
@@ -81,7 +83,8 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
 
             for (int i = 0; i < 10; i++)
             {
-                await Resilience.AsyncRetryPolicy.ExecuteAsync(() => repository.Save(new SimpleItem { Id = i }, repository.Entity.AllIndex))
+                await Resilience.AsyncRetryPolicy
+                                .ExecuteAsync(() => repository.Save(new SimpleItem { Id = i }, repository.Entity.AllIndex))
                                 .ConfigureAwait(false);
             }
         }

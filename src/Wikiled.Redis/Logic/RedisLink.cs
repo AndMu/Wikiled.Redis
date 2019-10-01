@@ -94,28 +94,28 @@ namespace Wikiled.Redis.Logic
 
             if (typeof(T) == typeof(SortedSetEntry))
             {
-                action = new SortedSetSerialization(this, mainIndexManager);
+                action = new SortedSetSerialization( loggerFactory.CreateLogger< SortedSetSerialization>(), this, mainIndexManager);
             }
             else if (definition.KeyValueSerializer != null)
             {
                 var serialization = new HashSetSerialization(this);
 
                 action = definition.IsSingleInstance
-                    ? (ISpecificPersistency) new SingleItemSerialization(this, serialization, mainIndexManager)
+                    ? (ISpecificPersistency) new SingleItemSerialization(loggerFactory.CreateLogger<SingleItemSerialization>(), this, serialization, mainIndexManager)
                     : new ObjectListSerialization(this, serialization, setList, mainIndexManager);
             }
             else if (!definition.IsSingleInstance &&
                      !definition.ExtractType &&
                      !definition.IsNormalized)
             {
-                action = new ListSerialization(this, setList);
+                action = new ListSerialization(loggerFactory.CreateLogger<ListSerialization>(), this, setList, mainIndexManager);
             }
             else
             {
                 var serialization = new ObjectHashSetSerialization(this, definition.DataSerializer);
 
                 action = definition.IsSingleInstance
-                    ? new SingleItemSerialization(this, serialization, mainIndexManager)
+                    ? new SingleItemSerialization(loggerFactory.CreateLogger<SingleItemSerialization>(), this, serialization, mainIndexManager)
                     : (ISpecificPersistency) new ObjectListSerialization(this, serialization, setList, mainIndexManager);
             }
 
