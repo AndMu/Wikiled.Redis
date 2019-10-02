@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging.Abstractions;
 using Wikiled.Redis.Keys;
 using Wikiled.Redis.Logic;
 using Wikiled.Redis.Serialization;
@@ -10,6 +11,7 @@ using StackExchange.Redis;
 using Wikiled.Redis.Channels;
 using Wikiled.Redis.Config;
 using Wikiled.Redis.Indexing;
+using Wikiled.Redis.Logic.Resilience;
 
 namespace Wikiled.Redis.UnitTests.Serialization
 {
@@ -36,6 +38,7 @@ namespace Wikiled.Redis.UnitTests.Serialization
             mainIndexManager = new Mock<IMainIndexManager>();
             var configuration = new RedisConfiguration("Test");
             link = new Mock<IRedisLink>();
+            link.Setup(item => item.Resilience).Returns(new ResilienceHandler(new NullLogger<ResilienceHandler>(), new ResilienceConfig()));
             var multiplexer = new Mock<IRedisMultiplexer>();
             multiplexer.Setup(item => item.Configuration).Returns(configuration);
             link.Setup(item => item.Multiplexer).Returns(multiplexer.Object);
@@ -46,15 +49,15 @@ namespace Wikiled.Redis.UnitTests.Serialization
             database = new Mock<IDatabaseAsync>();
             objecMock = new Mock<IObjectSerialization>();
             link.Setup(item => item.GetDefinition<Identity>()).Returns(Global.HandlingDefinitionFactory.ConstructGeneric<Identity>(link.Object));
-            instance = new SingleItemSerialization(link.Object, objecMock.Object, mainIndexManager.Object);
+            instance = new SingleItemSerialization(new NullLogger<SingleItemSerialization>(), link.Object, objecMock.Object, mainIndexManager.Object);
         }
 
         [Test]
         public void Construct()
         {
-            Assert.Throws<ArgumentNullException>(() => new SingleItemSerialization(null, objecMock.Object, mainIndexManager.Object));
-            Assert.Throws<ArgumentNullException>(() => new SingleItemSerialization(link.Object, null, mainIndexManager.Object));
-            Assert.Throws<ArgumentNullException>(() => new SingleItemSerialization(link.Object, objecMock.Object, null));
+            Assert.Throws<ArgumentNullException>(() => new SingleItemSerialization(new NullLogger<SingleItemSerialization>(), null, objecMock.Object, mainIndexManager.Object));
+            Assert.Throws<ArgumentNullException>(() => new SingleItemSerialization(new NullLogger<SingleItemSerialization>(), link.Object, null, mainIndexManager.Object));
+            Assert.Throws<ArgumentNullException>(() => new SingleItemSerialization(new NullLogger<SingleItemSerialization>(), link.Object, objecMock.Object, null));
         }
 
         [Test]

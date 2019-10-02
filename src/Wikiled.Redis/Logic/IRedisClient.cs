@@ -28,7 +28,7 @@ namespace Wikiled.Redis.Logic
         /// <param name="keys"></param>
         /// <param name="instance"></param>
         /// <returns></returns>
-        Task AddRecords<T>(IEnumerable<IDataKey> keys, params T[] instances);
+        Task AddRecords<T>(IEnumerable<IDataKey> keys, params T[] instance);
 
         /// <summary>
         ///     Check is key in db
@@ -97,15 +97,5 @@ namespace Wikiled.Redis.Logic
         /// <param name="end"></param>
         /// <returns></returns>
         IObservable<T> GetRecords<T>(IIndexKey index, long start = 0, long end = -1);
-
-        /// <summary>
-        /// Get record by joined index
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="index"></param>
-        /// <param name="start"></param>
-        /// <param name="end"></param>
-        /// <returns></returns>
-        IObservable<T> GetRecords<T>(IIndexKey[] index, long start = 0, long end = -1);
     }
 }

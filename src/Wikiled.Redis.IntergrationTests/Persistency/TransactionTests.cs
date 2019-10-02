@@ -11,6 +11,7 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
         public async Task AddToLimitedListTransaction()
         {
             var transaction = Redis.StartTransaction();
+            RepositoryKey.AddIndex(ListAll);
             var result = await Redis.Client.ContainsRecord<string>(RepositoryKey).ConfigureAwait(false);
             Assert.IsFalse(result);
             var task1 = transaction.Client.AddRecord(RepositoryKey, "Test1");
@@ -29,6 +30,7 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
         [Test]
         public async Task Transaction()
         {
+            Key.AddIndex(ListAll);
             var transaction = Redis.StartTransaction();
             var task1 = transaction.Client.AddRecord(Key, "Test");
             var rawResult = await Redis.Client.GetRecords<string>(Key).LastOrDefaultAsync();

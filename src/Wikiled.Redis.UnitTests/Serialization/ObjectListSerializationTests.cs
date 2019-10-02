@@ -12,6 +12,7 @@ using StackExchange.Redis;
 using Wikiled.Redis.Channels;
 using Wikiled.Redis.Config;
 using Wikiled.Redis.Indexing;
+using Wikiled.Redis.Logic.Resilience;
 
 namespace Wikiled.Redis.UnitTests.Serialization
 {
@@ -40,6 +41,7 @@ namespace Wikiled.Redis.UnitTests.Serialization
             mainIndexManager = new Mock<IMainIndexManager>();
             var configuration = new RedisConfiguration("Test");
             link = new Mock<IRedisLink>();
+            link.Setup(item => item.Resilience).Returns(new ResilienceHandler(new NullLogger<ResilienceHandler>(), new ResilienceConfig()));
             var multiplexer = new Mock<IRedisMultiplexer>();
             link.Setup(item => item.Multiplexer).Returns(multiplexer.Object);
             multiplexer.Setup(item => item.Configuration).Returns(configuration);

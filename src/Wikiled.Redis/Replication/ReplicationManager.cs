@@ -4,7 +4,6 @@ using System.Linq;
 using System.Net;
 using System.Reactive.Linq;
 using Microsoft.Extensions.Logging;
-using Wikiled.Common.Logging;
 using Wikiled.Redis.Channels;
 using Wikiled.Redis.Information;
 using Wikiled.Redis.Logic;

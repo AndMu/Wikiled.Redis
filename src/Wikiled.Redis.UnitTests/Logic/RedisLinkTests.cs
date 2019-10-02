@@ -7,6 +7,7 @@ using Wikiled.Redis.Channels;
 using Wikiled.Redis.Config;
 using Wikiled.Redis.Keys;
 using Wikiled.Redis.Logic;
+using Wikiled.Redis.Logic.Resilience;
 using Wikiled.Redis.Serialization;
 using Wikiled.Redis.Serialization.Subscription;
 
@@ -23,16 +24,19 @@ namespace Wikiled.Redis.UnitTests.Logic
 
         private RedisConfiguration configuration;
 
+        private Mock<IResilience> resilience;
+
         [SetUp]
         public void Setup()
         {
             configuration = new RedisConfiguration("Test");
+            resilience = new Mock<IResilience>();
             configuration.ServiceName = "Redis";
             database = new Mock<IDatabase>();
             multiplexer = new Mock<IRedisMultiplexer>();
             multiplexer.Setup(item => item.Database).Returns(database.Object);
             multiplexer.Setup(item => item.Configuration).Returns(configuration);
-            redisLink = new RedisLink(new NullLoggerFactory(), configuration, multiplexer.Object, Global.HandlingDefinitionFactory);
+            redisLink = new RedisLink(new NullLoggerFactory(), configuration, multiplexer.Object, Global.HandlingDefinitionFactory, resilience.Object);
             redisLink.Open();
         }
 
@@ -136,7 +140,7 @@ namespace Wikiled.Redis.UnitTests.Logic
         [Test]
         public void Create()
         {
-            Assert.Throws<ArgumentNullException>(() => new RedisLink(new NullLoggerFactory(), configuration, null, Global.HandlingDefinitionFactory));
+            Assert.Throws<ArgumentNullException>(() => new RedisLink(new NullLoggerFactory(), configuration, null, Global.HandlingDefinitionFactory, resilience.Object));
             Assert.AreEqual("Redis", redisLink.Name);
             Assert.AreEqual(multiplexer.Object, redisLink.Multiplexer);
             Assert.NotNull(redisLink.Generator);
@@ -176,7 +180,7 @@ namespace Wikiled.Redis.UnitTests.Logic
         [Test]
         public void Open()
         {
-            redisLink = new RedisLink(new NullLoggerFactory(), configuration, multiplexer.Object, Global.HandlingDefinitionFactory);
+            redisLink = new RedisLink(new NullLoggerFactory(), configuration, multiplexer.Object, Global.HandlingDefinitionFactory, resilience.Object);
             redisLink.Open();
             multiplexer.Verify(item => item.Open());
         }
@@ -186,7 +190,7 @@ namespace Wikiled.Redis.UnitTests.Logic
         {
             multiplexer = new Mock<IRedisMultiplexer>();
             multiplexer.Setup(item => item.Open()).Throws(new Exception());
-            redisLink = new RedisLink(new NullLoggerFactory(), configuration, multiplexer.Object, Global.HandlingDefinitionFactory);
+            redisLink = new RedisLink(new NullLoggerFactory(), configuration, multiplexer.Object, Global.HandlingDefinitionFactory, resilience.Object);
             Assert.Throws<Exception>(() => redisLink.Open());
             Assert.Throws<Exception>(() => redisLink.Open());
             multiplexer.Verify(item => item.Open(), Times.Exactly(2));
@@ -196,7 +200,7 @@ namespace Wikiled.Redis.UnitTests.Logic
         [Test]
         public void OpenFailed()
         {
-            redisLink = new RedisLink(new NullLoggerFactory(), configuration, multiplexer.Object, Global.HandlingDefinitionFactory);
+            redisLink = new RedisLink(new NullLoggerFactory(), configuration, multiplexer.Object, Global.HandlingDefinitionFactory, resilience.Object);
             multiplexer.Setup(item => item.Open()).Throws(new Exception());
             Assert.Throws<Exception>(() => redisLink.Open());
             Assert.AreEqual(ChannelState.Closed, redisLink.State);

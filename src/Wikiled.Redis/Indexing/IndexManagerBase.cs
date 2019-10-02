@@ -1,11 +1,8 @@
-using System;
-using System.Linq;
-using System.Reactive.Linq;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
-using Wikiled.Common.Logging;
-using Wikiled.Redis.Helpers;
+using System;
+using System.Reactive.Linq;
+using System.Threading.Tasks;
 using Wikiled.Redis.Keys;
 using Wikiled.Redis.Logic;
 
@@ -13,99 +10,75 @@ namespace Wikiled.Redis.Indexing
 {
     public abstract class IndexManagerBase : IIndexManager
     {
-        private readonly IIndexKey[] indexes;
+        private readonly ILogger log;
 
-        private static readonly ILogger log = ApplicationLogging.CreateLogger<IndexManagerBase>();
-
-        private readonly string repository;
-
-        protected IndexManagerBase(IRedisLink link, IDatabaseAsync database, params IIndexKey[] indexes)
+        protected IndexManagerBase(ILogger log, IRedisLink link)
         {
             Link = link ?? throw new ArgumentNullException(nameof(link));
-            Database = database ?? throw new ArgumentNullException(nameof(database));
-            this.indexes = indexes ?? throw new ArgumentNullException(nameof(indexes));
-            repository = indexes.Select(item => item.RepositoryKey).First();
+            this.log = log ?? throw new ArgumentNullException(nameof(log));
         }
-
-        protected IDatabaseAsync Database { get; }
 
         protected IRedisLink Link { get; }
 
-        public Task AddIndex(IDataKey key)
+        public Task AddIndex(IDatabaseAsync database, IDataKey key, IIndexKey indexes)
         {
             if (key == null)
             {
                 throw new ArgumentNullException(nameof(key));
             }
 
-            return AddRawIndex(key.RecordId);
+            return AddRawIndex(database, key.RecordId, indexes);
         }
 
-        public Task AddRawIndex(string rawKey)
+        public Task AddRawIndex(IDatabaseAsync database, string rawKey, IIndexKey indexes)
         {
             if (string.IsNullOrEmpty(rawKey))
             {
                 throw new ArgumentException("Value cannot be null or empty.", nameof(rawKey));
             }
 
-            var tasks = indexes.Select(index => AddRawIndex(index, rawKey));
-            return Task.WhenAll(tasks);
+            return AddRawIndex(database, indexes, rawKey);
         }
 
-        public Task RemoveIndex(IDataKey key)
+        public Task RemoveIndex(IDatabaseAsync database, IDataKey key, IIndexKey indexes)
         {
             if (key?.RecordId == null)
             {
                 throw new ArgumentNullException(nameof(key));
             }
 
-            var tasks = indexes.Select(index => RemoveRawIndex(index, key.RecordId));
-            return Task.WhenAll(tasks);
+            return RemoveRawIndex(database, indexes, key.RecordId);
         }
 
-        public async Task<long> Count()
+        public abstract Task<long> Count(IDatabaseAsync database, IIndexKey index);
+
+        public IObservable<RedisValue> GetIds(IDatabaseAsync database, IIndexKey indexes, long start = 0, long stop = -1)
         {
-            var tasks = indexes.Select(SingleCount);
-            var result = await Task.WhenAll(tasks).ConfigureAwait(false);
-            return result.Sum();
+            return GetIdsSingle(database, indexes, start, stop);
         }
 
-        public IObservable<RedisValue> GetIds(long start = 0, long stop = -1)
-        {
-            IObservable<RedisValue> result = null;
-            foreach (var currentIndex in indexes)
-            {
-                var current = GetIdsSingle(currentIndex, start, stop);
-                result = result != null ? result.InnerJoin(current) : current;
-            }
-
-            return result;
-        }
-
-        public IObservable<IDataKey> GetKeys(long start = 0, long stop = -1)
+        public IObservable<IDataKey> GetKeys(IDatabaseAsync database, IIndexKey indexes, long start = 0, long stop = -1)
         {
             log.LogDebug("GetKeys");
-            var keys = GetIds(start, stop);
-            return keys.Select(item => GetKey(item));
+            var keys = GetIds(database, indexes, start, stop);
+            return keys.Select(item => GetKey(item, indexes));
         }
 
-        public Task Reset()
+        public Task Reset(IDatabaseAsync database, IIndexKey indexes)
         {
             log.LogDebug("Reset");
-            var tasks = indexes.Select(item => Database.KeyDeleteAsync(Link.GetIndexKey(item)));
-            return Task.WhenAll(tasks);
+            return database.KeyDeleteAsync(Link.GetIndexKey(indexes));
         }
 
-        protected abstract Task RemoveRawIndex(IIndexKey index, string rawKey);
+        protected abstract Task RemoveRawIndex(IDatabaseAsync database, IIndexKey index, string rawKey);
 
-        protected abstract Task AddRawIndex(IIndexKey index, string rawKey);
+        protected abstract Task AddRawIndex(IDatabaseAsync database, IIndexKey index, string rawKey);
 
-        protected abstract IObservable<RedisValue> GetIdsSingle(IIndexKey key, long start = 0, long stop = -1);
+        protected abstract IObservable<RedisValue> GetIdsSingle(IDatabaseAsync database, IIndexKey key, long start = 0, long stop = -1);
 
-        protected abstract Task<long> SingleCount(IIndexKey index);
-
-        private IDataKey GetKey(string key)
+        private IDataKey GetKey(string key, IIndexKey indexes)
         {
+            var repository = indexes.RepositoryKey;
             if (!string.IsNullOrEmpty(repository))
             {
                 return SimpleKey.GenerateKey(repository, key);

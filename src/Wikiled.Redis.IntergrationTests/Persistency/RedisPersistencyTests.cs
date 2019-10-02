@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging.Abstractions;
 using Wikiled.Redis.Channels;
 using Wikiled.Redis.Helpers;
 using Wikiled.Redis.Indexing;
@@ -97,7 +98,7 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
             Assert.AreEqual("Test2", items[1].Environment);
             Assert.AreEqual("Test3", items[2].Environment);
 
-            items = Redis.Client.GetRecords<Identity>(new[] { ListAll, ListAll2 }).ToEnumerable().OrderBy(item => item.Environment).ToArray();
+            items = Redis.Client.GetRecords<Identity>(ListAll2).ToEnumerable().OrderBy(item => item.Environment).ToArray();
             Assert.AreEqual(2, items.Length);
             Assert.AreEqual("Test1", items[0].Environment);
             Assert.AreEqual("Test2", items[1].Environment);
@@ -114,28 +115,28 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
             items = await Redis.Client.GetRecords<Identity>(ListAll, 3, 4).ToArray();
             Assert.AreEqual(0, items.Length);
 
-            var factory = new IndexManagerFactory(Redis);
-            var manager = factory.Create(Redis.Database, ListAll);
-            var count = await manager.Count().ConfigureAwait(false);
+            var factory = new IndexManagerFactory(new NullLoggerFactory(), Redis);
+            var manager = factory.Create(ListAll);
+            var count = await manager.Count(Redis.Database, ListAll).ConfigureAwait(false);
             Assert.AreEqual(3, count);
 
             count = await Redis.Client.Count(ListAll).ConfigureAwait(false);
             Assert.AreEqual(3, count);
 
-            count = (await manager.GetIds().ToArray()).Length;
+            count = (await manager.GetIds(Redis.Database, ListAll).ToArray()).Length;
             Assert.AreEqual(3, count);
 
-            var result = await manager.GetIds(1, 2).ToArray();
+            var result = await manager.GetIds(Redis.Database, ListAll, 1, 2).ToArray();
             Assert.AreEqual("Test2", (string)result[0]);
-            result = await manager.GetIds(0, 1).ToArray();
+            result = await manager.GetIds(Redis.Database, ListAll, 0, 1).ToArray();
             Assert.AreEqual("Test3", (string)result[0]);
 
-            await manager.Reset().ConfigureAwait(false);
-            count = await manager.Count().ConfigureAwait(false);
+            await manager.Reset(Redis.Database, ListAll).ConfigureAwait(false);
+            count = await manager.Count(Redis.Database, ListAll).ConfigureAwait(false);
             Assert.AreEqual(0, count);
 
             await Redis.Reindex(key2).ConfigureAwait(false);
-            count = await manager.Count().ConfigureAwait(false);
+            count = await manager.Count(Redis.Database, ListAll).ConfigureAwait(false);
             Assert.AreEqual(3, count);
         }
 

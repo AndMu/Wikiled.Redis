@@ -1,6 +1,6 @@
 ﻿using Polly.Retry;
 
-namespace Wikiled.Redis.Logic
+namespace Wikiled.Redis.Logic.Resilience
 {
     public interface IResilience
     {

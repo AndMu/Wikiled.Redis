@@ -37,7 +37,7 @@ namespace Wikiled.Redis.Logic
             log.LogInformation("RegisterHashType<{0}>", typeof(T));
             serializer = serializer ?? new KeyValueSerializer<T>(() => new T());
             var definition = link.DefinitionFactory.ConstructGeneric<T>(link);
-            definition.Serializer = serializer;
+            definition.KeyValueSerializer = serializer;
             definition.IsWellKnown = true;
             definition.IsNormalized = true;
             link.RegisterDefinition(definition);

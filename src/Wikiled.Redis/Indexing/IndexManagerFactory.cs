@@ -1,5 +1,6 @@
 ﻿using System;
-using StackExchange.Redis;
+using System.Collections.Generic;
+using Microsoft.Extensions.Logging;
 using Wikiled.Redis.Keys;
 using Wikiled.Redis.Logic;
 
@@ -7,33 +8,38 @@ namespace Wikiled.Redis.Indexing
 {
     public class IndexManagerFactory : IIndexManagerFactory
     {
+        private const string setName = "set";
+        private const string listName = "list";
+        private const string hashName = "hash";
+
+        private readonly ILoggerFactory loggerFactory;
+
         private readonly IRedisLink link;
 
-        public IndexManagerFactory(IRedisLink link)
+        private Dictionary<string, IIndexManager> table = new Dictionary<string, IIndexManager>();
+
+        public IndexManagerFactory(ILoggerFactory loggerFactory, IRedisLink link)
         {
             this.link = link ?? throw new ArgumentNullException(nameof(link));
+            this.loggerFactory = loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory));
+            table[setName] = new SetIndexManager(loggerFactory.CreateLogger<SetIndexManager>(), link);
+            table[listName] = new ListIndexManager(loggerFactory.CreateLogger<ListIndexManager>(), link);
+            table[hashName] = new HashIndexManager(loggerFactory.CreateLogger<HashIndexManager>(), link);
         }
 
-        public IIndexManager Create(IDatabaseAsync database, params IIndexKey[] index)
+        public IIndexManager Create(IIndexKey index)
         {
             if (index == null)
             {
                 throw new ArgumentNullException(nameof(index));
             }
 
-            if (index.Length == 0)
-            {
-                throw new ArgumentException("Value cannot be an empty collection.", nameof(index));
-            }
-
-            switch (index[0])
+            switch (index)
             {
                 case IndexKey indexKey:
-                    return indexKey.IsSet
-                        ? (IIndexManager)new SetIndexManager(link, database, index)
-                        : new ListIndexManager(link, database, index);
+                    return indexKey.IsSet ? table[setName] : table[listName];
                 case HashIndexKey indexKey:
-                    return new HashIndexManager(link, database, indexKey);
+                    return table[hashName];
             }
 
             throw new NotSupportedException("Indexing type is not supported: " + index);

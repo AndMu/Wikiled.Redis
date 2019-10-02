@@ -42,7 +42,9 @@ namespace Wikiled.Redis.Logic
                 throw new ArgumentNullException(nameof(instances));
             }
 
-            return link.GetSpecific<T>().AddRecord(GetDatabase(), key, instances);
+            return  link.Resilience
+                        .AsyncRetryPolicy
+                        .ExecuteAsync(async () => await link.GetSpecific<T>().AddRecord(GetDatabase(), key, instances).ConfigureAwait(false));
         }
 
         public Task AddRecords<T>(IEnumerable<IDataKey> keys, params T[] instances)
@@ -57,7 +59,9 @@ namespace Wikiled.Redis.Logic
                 throw new ArgumentNullException(nameof(instances));
             }
 
-            return link.GetSpecific<T>().AddRecords(GetDatabase(), keys, instances);
+            return link.Resilience
+                       .AsyncRetryPolicy
+                       .ExecuteAsync(async () => await link.GetSpecific<T>().AddRecords(GetDatabase(), keys, instances).ConfigureAwait(false));
         }
 
         public Task<bool> ContainsRecord<T>(IDataKey key)
@@ -67,7 +71,9 @@ namespace Wikiled.Redis.Logic
                 throw new ArgumentNullException(nameof(key));
             }
 
-            return link.ContainsRecord(GetDatabase(), key);
+            return link.Resilience
+                       .AsyncRetryPolicy
+                       .ExecuteAsync(async () => await link.ContainsRecord(GetDatabase(), key).ConfigureAwait(false));
         }
 
         public Task DeleteAll<T>(IDataKey key)
@@ -77,7 +83,9 @@ namespace Wikiled.Redis.Logic
                 throw new ArgumentNullException(nameof(key));
             }
 
-            return link.GetSpecific<T>().DeleteAll(GetDatabase(), key);
+            return link.Resilience
+                       .AsyncRetryPolicy
+                       .ExecuteAsync(async () => await link.GetSpecific<T>().DeleteAll(GetDatabase(), key).ConfigureAwait(false));
         }
 
         public Task SetExpire<T>(IDataKey key, TimeSpan span)
@@ -87,7 +95,9 @@ namespace Wikiled.Redis.Logic
                 throw new ArgumentNullException(nameof(key));
             }
 
-            return link.GetSpecific<T>().SetExpire(GetDatabase(), key, span);
+            return link.Resilience
+                       .AsyncRetryPolicy
+                       .ExecuteAsync(async () => await link.GetSpecific<T>().SetExpire(GetDatabase(), key, span).ConfigureAwait(false));
         }
 
         public Task SetExpire<T>(IDataKey key, DateTime dateTime)
@@ -97,7 +107,9 @@ namespace Wikiled.Redis.Logic
                 throw new ArgumentNullException(nameof(key));
             }
 
-            return link.GetSpecific<T>().SetExpire(GetDatabase(), key, dateTime);
+            return link.Resilience
+                       .AsyncRetryPolicy
+                       .ExecuteAsync(async () => await link.GetSpecific<T>().SetExpire(GetDatabase(), key, dateTime).ConfigureAwait(false));
         }
 
         public Task<long> Count(IIndexKey index)
@@ -107,34 +119,26 @@ namespace Wikiled.Redis.Logic
                 throw new ArgumentNullException(nameof(index));
             }
 
-            var indexManager = mainIndexManager.GetManager(GetDatabase(), index);
-            return indexManager?.Count();
+            var indexManager = mainIndexManager.GetManager(index);
+            if (indexManager == null)
+            {
+                return Task.FromResult(0L);
+            }
+
+            return link.Resilience
+                       .AsyncRetryPolicy
+                       .ExecuteAsync(async () => await indexManager.Count(GetDatabase(), index).ConfigureAwait(false));
         }
 
         public IObservable<T> GetRecords<T>(IIndexKey index, long start = 0, long end = -1)
         {
-            return GetRecords<T>(new[] { index }, start, end);
-        }
-
-        public IObservable<T> GetRecords<T>(IIndexKey[] index, long start = 0, long end = -1)
-        {
-            if (index == null)
-            {
-                throw new ArgumentNullException(nameof(index));
-            }
-
             logger.LogDebug($"GetRecords {start}-{end}");
-            var indexManager = mainIndexManager.GetManager(GetDatabase(), index);
+            var indexManager = mainIndexManager.GetManager(index);
             int batch = BatchSize;
-            if (index.Length > 1)
-            {
-                logger.LogWarning("Joined index batching is not supported");
-                batch = int.MaxValue;
-            }
 
             return ObserverHelpers.Batch(
-                indexManager.Count(),
-                (fromIndex, toIndex) => indexManager.GetKeys(fromIndex, toIndex),
+                indexManager.Count(GetDatabase(), index),
+                (fromIndex, toIndex) => indexManager.GetKeys(GetDatabase(), index, fromIndex, toIndex),
                 GetRecords<T>,
                 batch,
                 start,
@@ -153,7 +157,9 @@ namespace Wikiled.Redis.Logic
 
         public Task<long> Count<T>(IDataKey dataKey)
         {
-            return link.GetSpecific<T>().Count(GetDatabase(), dataKey);
+            return link.Resilience
+                       .AsyncRetryPolicy
+                       .ExecuteAsync(async () => await link.GetSpecific<T>().Count(GetDatabase(), dataKey).ConfigureAwait(false));
         }
 
         private IDatabaseAsync GetDatabase()

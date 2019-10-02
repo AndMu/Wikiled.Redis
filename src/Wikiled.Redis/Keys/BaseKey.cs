@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Wikiled.Redis.Keys
 {
     public abstract class BaseKey : IDataKey
     {
-        private readonly List<IIndexKey> indexes = new List<IIndexKey>();
+        private readonly Dictionary<string, IIndexKey> indexes = new Dictionary<string, IIndexKey>();
 
         protected BaseKey(string recordId, string fullKey)
         {
@@ -27,7 +28,7 @@ namespace Wikiled.Redis.Keys
 
         public string RecordId { get; }
 
-        public IIndexKey[] Indexes => indexes.ToArray();
+        public IIndexKey[] Indexes => indexes.Values.ToArray();
 
         public virtual void AddIndex(IIndexKey key)
         {
@@ -36,7 +37,7 @@ namespace Wikiled.Redis.Keys
                 throw new ArgumentNullException(nameof(key));
             }
 
-            indexes.Add(key);
+            indexes[key.Key] = key;
         }
 
         public override bool Equals(object obj)

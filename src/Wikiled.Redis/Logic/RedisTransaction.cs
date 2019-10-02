@@ -13,8 +13,6 @@ namespace Wikiled.Redis.Logic
 
         private readonly ILogger<RedisTransaction> log;
 
-        private readonly ITransaction transaction;
-
         public RedisTransaction(ILoggerFactory loggerFactory, IRedisLink link, ITransaction transaction, IMainIndexManager indexManager)
         {
             if (loggerFactory == null)
@@ -22,24 +20,28 @@ namespace Wikiled.Redis.Logic
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
 
-            this.transaction = transaction ?? throw new ArgumentNullException(nameof(transaction));
+            this.Transaction = transaction ?? throw new ArgumentNullException(nameof(transaction));
             this.link = link ?? throw new ArgumentNullException(nameof(link));
             log = loggerFactory.CreateLogger<RedisTransaction>();
             Client = new RedisClient(loggerFactory.CreateLogger<RedisClient>(), link, indexManager, transaction);
         }
 
+        public ITransaction Transaction { get; }
+
         public IRedisClient Client { get; }
 
         public Task Commit()
         {
-            if(link.State != ChannelState.Open)
+            if (link.State != ChannelState.Open)
             {
                 log.LogWarning("Can't commit transaction with non open link");
                 return Task.CompletedTask;
             }
 
             log.LogDebug("Commit");
-            return transaction.ExecuteAsync();
+            return link.Resilience
+                       .AsyncRetryPolicy
+                       .ExecuteAsync(async () => await Transaction.ExecuteAsync().ConfigureAwait(false));
         }
     }
 }

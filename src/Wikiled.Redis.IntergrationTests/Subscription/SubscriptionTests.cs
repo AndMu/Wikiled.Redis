@@ -47,7 +47,7 @@ namespace Wikiled.Redis.IntegrationTests.Subscription
         }
 
         [Test]
-        public void TestSubscribtion()
+        public void TestSubstitution()
         {
             var events = new List<KeyspaceEvent>();
             redis.SubscribeKeyEvents(key, @event => events.Add(@event));

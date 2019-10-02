@@ -27,28 +27,31 @@ namespace Wikiled.Redis.Indexing
             }
 
             log.LogDebug("Redindex {0}", key);
-            var manager = new IndexManagerFactory(link);
-            var indexManagers = manager.Create(link.Database, key.Indexes);
+            var manager = new IndexManagerFactory(ApplicationLogging.LoggerFactory, link);
             var tasks = new List<Task>();
-
-            tasks.Add(indexManagers.Reset());
-
-            await Task.WhenAll(tasks.ToArray()).ConfigureAwait(false);
-
-            var actualKey = (string)link.GetKey(key);
-            var mask = Regex.Replace(actualKey, $"{FieldConstants.Object}:.*", $"{FieldConstants.Object}*", RegexOptions.IgnoreCase);
             var total = 0;
-
-            tasks.Clear();
-            foreach (var redisKey in link.Multiplexer.GetKeys(mask))
+            foreach (var index in key.Indexes)
             {
-                total++;
-                var rawId = Regex.Replace(redisKey, $".*:{FieldConstants.Object}:", string.Empty, RegexOptions.IgnoreCase);
-                tasks.Add(indexManagers.AddRawIndex(rawId));
-            }
+                var indexManagers = manager.Create(index);
 
-            log.LogDebug("Redindexed {0} {1}", key, total);
+                tasks.Add(indexManagers.Reset(link.Database, index));
+
+                await Task.WhenAll(tasks.ToArray()).ConfigureAwait(false);
+
+                var actualKey = (string)link.GetKey(key);
+                var mask = Regex.Replace(actualKey, $"{FieldConstants.Object}:.*", $"{FieldConstants.Object}*", RegexOptions.IgnoreCase);
+
+                tasks.Clear();
+                foreach (var redisKey in link.Multiplexer.GetKeys(mask))
+                {
+                    total++;
+                    var rawId = Regex.Replace(redisKey, $".*:{FieldConstants.Object}:", string.Empty, RegexOptions.IgnoreCase);
+                    tasks.Add(indexManagers.AddRawIndex(link.Database, rawId, index));
+                }
+            }
+            
             await Task.WhenAll(tasks).ConfigureAwait(false);
+            log.LogDebug("ReIndexed {0} {1}", key, total);
         }
     }
 }

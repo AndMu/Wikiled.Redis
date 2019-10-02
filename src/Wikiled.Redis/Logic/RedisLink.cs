@@ -8,6 +8,7 @@ using Wikiled.Redis.Channels;
 using Wikiled.Redis.Config;
 using Wikiled.Redis.Indexing;
 using Wikiled.Redis.Keys;
+using Wikiled.Redis.Logic.Resilience;
 using Wikiled.Redis.Persistency;
 using Wikiled.Redis.Scripts;
 using Wikiled.Redis.Serialization;
@@ -35,20 +36,24 @@ namespace Wikiled.Redis.Logic
         public RedisLink(ILoggerFactory loggerFactory,
                          IRedisConfiguration configuration,
                          IRedisMultiplexer multiplexer,
-                         IHandlingDefinitionFactory handlingDefinitionFactory)
+                         IHandlingDefinitionFactory handlingDefinitionFactory,
+                         IResilience resilience)
             : base(configuration?.ServiceName)
         {
             this.loggerFactory = loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory));
             Multiplexer = multiplexer ?? throw new ArgumentNullException(nameof(multiplexer));
 
             DefinitionFactory = handlingDefinitionFactory ?? throw new ArgumentNullException(nameof(handlingDefinitionFactory));
+            Resilience = resilience ?? throw new ArgumentNullException(nameof(resilience));
             log = loggerFactory.CreateLogger<RedisLink>();
             Generator = new ScriptGenerator();
-            mainIndexManager = new MainIndexManager(new IndexManagerFactory(this));
+            mainIndexManager = new MainIndexManager(new IndexManagerFactory(loggerFactory, this));
             Client = new RedisClient(loggerFactory?.CreateLogger<RedisClient>(), this, mainIndexManager);
         }
 
         public IRedisClient Client { get; }
+
+        public IResilience Resilience { get; }
 
         public IHandlingDefinitionFactory DefinitionFactory { get; }
 
@@ -89,28 +94,28 @@ namespace Wikiled.Redis.Logic
 
             if (typeof(T) == typeof(SortedSetEntry))
             {
-                action = new SortedSetSerialization(this, mainIndexManager);
+                action = new SortedSetSerialization( loggerFactory.CreateLogger< SortedSetSerialization>(), this, mainIndexManager);
             }
-            else if (definition.Serializer != null)
+            else if (definition.KeyValueSerializer != null)
             {
                 var serialization = new HashSetSerialization(this);
 
                 action = definition.IsSingleInstance
-                    ? (ISpecificPersistency) new SingleItemSerialization(this, serialization, mainIndexManager)
+                    ? (ISpecificPersistency) new SingleItemSerialization(loggerFactory.CreateLogger<SingleItemSerialization>(), this, serialization, mainIndexManager)
                     : new ObjectListSerialization(this, serialization, setList, mainIndexManager);
             }
             else if (!definition.IsSingleInstance &&
                      !definition.ExtractType &&
                      !definition.IsNormalized)
             {
-                action = new ListSerialization(this, setList);
+                action = new ListSerialization(loggerFactory.CreateLogger<ListSerialization>(), this, setList, mainIndexManager);
             }
             else
             {
                 var serialization = new ObjectHashSetSerialization(this, definition.DataSerializer);
 
                 action = definition.IsSingleInstance
-                    ? new SingleItemSerialization(this, serialization, mainIndexManager)
+                    ? new SingleItemSerialization(loggerFactory.CreateLogger<SingleItemSerialization>(), this, serialization, mainIndexManager)
                     : (ISpecificPersistency) new ObjectListSerialization(this, serialization, setList, mainIndexManager);
             }
 
@@ -215,7 +220,7 @@ namespace Wikiled.Redis.Logic
 
             if (!(GetSpecific<T>() is ObjectListSerialization persistency))
             {
-                log.LogWarning("Type persitency not supported");
+                log.LogWarning("Type persistence not supported");
                 return null;
             }
 

@@ -5,7 +5,6 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
-using Wikiled.Common.Logging;
 using Wikiled.Redis.Indexing;
 using Wikiled.Redis.Keys;
 using Wikiled.Redis.Logic;
@@ -16,17 +15,18 @@ namespace Wikiled.Redis.Serialization
     {
         private readonly IRedisLink link;
 
-        private static readonly ILogger log = ApplicationLogging.CreateLogger<SingleItemSerialization>();
+        private readonly ILogger<SingleItemSerialization> log;
 
         private readonly IObjectSerialization objectSerialization;
 
         private readonly IMainIndexManager mainIndexManager;
 
-        public SingleItemSerialization(IRedisLink link, IObjectSerialization objectSerialization, IMainIndexManager mainIndexManager)
-            : base(link)
+        public SingleItemSerialization(ILogger<SingleItemSerialization> log, IRedisLink link, IObjectSerialization objectSerialization, IMainIndexManager mainIndexManager)
+            : base(log, link, mainIndexManager)
         {
             this.objectSerialization = objectSerialization ?? throw new ArgumentNullException(nameof(objectSerialization));
             this.mainIndexManager = mainIndexManager ?? throw new ArgumentNullException(nameof(mainIndexManager));
+            this.log = log ?? throw new ArgumentNullException(nameof(log));
             this.link = link ?? throw new ArgumentNullException(nameof(link));
         }
 
@@ -106,15 +106,20 @@ namespace Wikiled.Redis.Serialization
             return Observable.Create<T>(
                 async observer =>
                 {
-                    var exist = await database.KeyExistsAsync(key).ConfigureAwait(false);
+                    var exist = await link.Resilience.AsyncRetryPolicy.ExecuteAsync(
+                                              async () => await database.KeyExistsAsync(key).ConfigureAwait(false))
+                                          .ConfigureAwait(false);
                     if (!exist)
                     {
-                        log.LogDebug("Key doesn't exist: {0}", key);
+                        log.LogWarning("Key doesn't exist: {0}", key);
                         observer.OnCompleted();
                         return;
                     }
 
-                    var result = await database.HashGetAllAsync(key).ConfigureAwait(false);
+                    var result = await link.Resilience.AsyncRetryPolicy.ExecuteAsync(
+                                               async () => await database.HashGetAllAsync(key).ConfigureAwait(false))
+                                           .ConfigureAwait(false);
+
                     var actualValues = ConstructActualValues<T>(result);
                     foreach (var value in actualValues)
                     {

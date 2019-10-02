@@ -10,6 +10,8 @@
 
         public const string Object = "object";
 
+        public const string ObjectTag = ":object:";
+
         public const string TimeStamp = "TimeStamp";
 
         public const string Type = "Type";
