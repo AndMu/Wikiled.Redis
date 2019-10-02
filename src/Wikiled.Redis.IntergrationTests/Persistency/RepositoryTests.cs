@@ -53,11 +53,14 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
             var repositoryInner = new IdentityRepository(new NullLogger<IdentityRepository>(), Redis);
             var repository = new SimpleItemRepository(new NullLogger<SimpleItemRepository>(), Redis, repositoryInner);
 
+            var transaction = Redis.StartTransaction();
             var tasks = new List<Task>();
             for (int i = 0; i < 2; i++)
             {
-                tasks.Add(repository.Save(new SimpleItem { Id = i }, repository.Entity.AllIndex));
+                tasks.Add(repository.Save(new SimpleItem { Id = i }, transaction));
             }
+
+            await transaction.Commit().ConfigureAwait(false);
 
             await Task.WhenAll(tasks).ConfigureAwait(false);
 
@@ -65,11 +68,13 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
             Assert.AreEqual(2, all.Length);
 
             tasks.Clear();
+            transaction = Redis.StartTransaction();
             for (int i = 0; i < 2; i++)
             {
                 tasks.Add(repository.Delete(i.ToString()));
             }
 
+            await transaction.Commit().ConfigureAwait(false);
             await Task.WhenAll(tasks).ConfigureAwait(false);
             all = await repository.LoadAll(repository.Entity.AllIndex).ToArray();
             Assert.AreEqual(0, all.Length);
