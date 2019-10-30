@@ -37,11 +37,11 @@ namespace Wikiled.Redis.Modules
             services.AddSingleton<IHandlingDefinitionFactory, HandlingDefinitionFactory>();
             services.AddSingleton(ResilienceConfig);
             
-            services.AddTransient<RedisLink>();
+            services.AddTransient<IRedisLink, RedisLink>();
 
             async Task<IRedisLink> ImplementationFactory(IServiceProvider ctx)
             {
-                var link = ctx.GetService<RedisLink>();
+                var link = ctx.GetService<IRedisLink>();
                 if (OpenOnConstruction)
                 {
                     await ctx.GetService<IResilience>().AsyncRetryPolicy.ExecuteAsync(link.Open).ConfigureAwait(false);
@@ -60,9 +60,7 @@ namespace Wikiled.Redis.Modules
             }
 
             services.AddFactory<IRedisLink>();
-
             services.AddTransient<IRedisMultiplexer, RedisMultiplexer>();
-
 
             services.AddSingleton<Func<ConfigurationOptions, Task<IConnectionMultiplexer>>>(
                 ctx =>
