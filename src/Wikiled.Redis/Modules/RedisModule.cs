@@ -37,7 +37,7 @@ namespace Wikiled.Redis.Modules
             services.AddSingleton<IHandlingDefinitionFactory, HandlingDefinitionFactory>();
             services.AddSingleton(ResilienceConfig);
             
-            services.AddTransient<IRedisLink, RedisLink>();
+            services.AddTransient<RedisLink>();
 
             async Task<IRedisLink> ImplementationFactory(IServiceProvider ctx)
             {
@@ -53,10 +53,12 @@ namespace Wikiled.Redis.Modules
             if (IsSingleInstance)
             {
                 services.AddSingleton(ImplementationFactory);
+                services.AddSingleton(ctx => ctx.GetService<Task<IRedisLink>>().Result);
             }
             else
             {
                 services.AddTransient(ImplementationFactory);
+                services.AddTransient(ctx => ctx.GetService<Task<IRedisLink>>().Result);
             }
 
             services.AddFactory<IRedisLink>();
