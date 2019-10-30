@@ -3,6 +3,7 @@ using StackExchange.Redis;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Wikiled.Common.Reflection;
 using Wikiled.Redis.Channels;
 using Wikiled.Redis.Config;
@@ -243,12 +244,13 @@ namespace Wikiled.Redis.Logic
             }
         }
 
-        protected override ChannelState OpenInternal()
+        protected override async Task<ChannelState> OpenInternal()
         {
             log.LogDebug("OpenInternal: {0}", Multiplexer.Configuration);
             try
             {
-                Multiplexer.Open();
+                await Multiplexer.Open().ConfigureAwait(false);
+
                 var key = this.GetKey(new SimpleKey("Connection", "Counter"));
                 LinkId = Multiplexer.Database.StringIncrement(key);
                 log.LogDebug("Link initialized with ID:{0}", LinkId);
@@ -260,7 +262,7 @@ namespace Wikiled.Redis.Logic
                 throw;
             }
 
-            return base.OpenInternal();
+            return await base.OpenInternal().ConfigureAwait(false);
         }
 
         public void RegisterDefinition<T>(HandlingDefinition<T> definition)

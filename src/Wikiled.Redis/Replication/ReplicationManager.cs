@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Wikiled.Redis.Channels;
 using Wikiled.Redis.Information;
@@ -45,7 +46,7 @@ namespace Wikiled.Redis.Replication
             base.CloseInternal();
         }
 
-        protected override ChannelState OpenInternal()
+        protected override Task<ChannelState> OpenInternal()
         {
             if (!slave.IsActive)
             {

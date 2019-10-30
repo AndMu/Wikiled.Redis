@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Reactive.Subjects;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
@@ -31,9 +32,9 @@ namespace Wikiled.Redis.UnitTests.Replication
         }
 
         [Test]
-        public void Close()
+        public async Task Close()
         {
-            manager.Open();
+            await manager.Open().ConfigureAwait(false);
             manager.Close();
             Assert.AreEqual(ChannelState.Closed, manager.State);
             testManager.Slave.Verify(item => item.SetupSlave(null));
@@ -49,9 +50,9 @@ namespace Wikiled.Redis.UnitTests.Replication
         }
 
         [Test]
-        public void Open()
+        public async Task Open()
         {
-            manager.Open();
+            await manager.Open().ConfigureAwait(false);
             Assert.AreEqual(ChannelState.Open, manager.State);
             testManager.Slave.Verify(item => item.SetupSlave(It.IsAny<EndPoint>()));
         }
@@ -60,34 +61,34 @@ namespace Wikiled.Redis.UnitTests.Replication
         public void OpenMasterDown()
         {
             testManager.Master.Setup(item => item.IsActive).Returns(false);
-            Assert.Throws<InvalidOperationException>(() => manager.Open());
+            Assert.ThrowsAsync<InvalidOperationException>(manager.Open);
         }
 
         [Test]
         public void OpenSlaveDown()
         {
             testManager.Slave.Setup(item => item.IsActive).Returns(false);
-            Assert.Throws<InvalidOperationException>(() => manager.Open());
+            Assert.ThrowsAsync<InvalidOperationException>(manager.Open);
         }
 
         [Test]
         public void OpenMasterZero()
         {
             testManager.Master.Setup(item => item.GetServers()).Returns(new IServer[] { });
-            Assert.Throws<InvalidOperationException>(() => manager.Open());
+            Assert.ThrowsAsync<InvalidOperationException>(manager.Open);
         }
 
         [Test]
-        public void VerifyReplicationProcess()
+        public async Task VerifyReplicationProcess()
         {
             var replicationInfo = testManager.SetupReplication();
-            List<ReplicationProgress> arguments = new List<ReplicationProgress>();
+            var arguments = new List<ReplicationProgress>();
             manager.Progress.Subscribe(
                 item =>
                 {
                     arguments.Add(item);
                 });
-            manager.Open();
+            await manager.Open().ConfigureAwait(false);
 
             Assert.AreEqual(0, arguments.Count);
             timer.OnNext(1);
@@ -109,15 +110,15 @@ namespace Wikiled.Redis.UnitTests.Replication
         }
 
         [Test]
-        public void VerifyReplicationProcessError()
+        public async Task VerifyReplicationProcessError()
         {
-            List<ReplicationProgress> arguments = new List<ReplicationProgress>();
+            var arguments = new List<ReplicationProgress>();
             manager.Progress.Subscribe(
                 item =>
                 {
                     arguments.Add(item);
                 });
-            manager.Open();
+            await manager.Open().ConfigureAwait(false);
 
             Assert.AreEqual(0, arguments.Count);
             Assert.Throws<InvalidOperationException>(() => timer.OnNext(1));

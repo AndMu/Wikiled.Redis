@@ -19,9 +19,11 @@ namespace Wikiled.Redis.Logic
 
         private bool enabledNotifications;
 
-        private readonly Func<ConfigurationOptions, IConnectionMultiplexer> multiplexerFactory;
+        private readonly Func<ConfigurationOptions, Task<IConnectionMultiplexer>> multiplexerFactory;
 
-        public RedisMultiplexer(ILogger<RedisMultiplexer> log, IRedisConfiguration configuration, Func<ConfigurationOptions, IConnectionMultiplexer> multiplexerFactory)
+        public RedisMultiplexer(ILogger<RedisMultiplexer> log,
+                                IRedisConfiguration configuration,
+                                Func<ConfigurationOptions, Task<IConnectionMultiplexer>> multiplexerFactory)
         {
             Configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             this.multiplexerFactory = multiplexerFactory ?? throw new ArgumentNullException(nameof(multiplexerFactory));
@@ -136,7 +138,7 @@ namespace Wikiled.Redis.Logic
             return connection.GetSubscriber();
         }
 
-        public void Open()
+        public async Task Open()
         {
             if (connection != null)
             {
@@ -147,7 +149,7 @@ namespace Wikiled.Redis.Logic
             try
             {
                 log.LogDebug("Opening...");
-                Database = ResolveDatabase();
+                Database = await ResolveDatabase();
             }
             catch
             {
@@ -156,7 +158,7 @@ namespace Wikiled.Redis.Logic
             }
         }
 
-        private IDatabase ResolveDatabase()
+        private async Task<IDatabase> ResolveDatabase()
         {
             var options = Configuration.GetOptions();
 
@@ -173,12 +175,24 @@ namespace Wikiled.Redis.Logic
                 Configuration.ServiceName,
                 Configuration.AllowAdmin);
 
-            connection = multiplexerFactory(options);
+            connection = await multiplexerFactory(options).ConfigureAwait(false);
             connection.ConnectionFailed += OnConnectionFailed;
             connection.ConnectionRestored += OnConnectionRestored;
             connection.ErrorMessage += OnErrorMessage;
             connection.InternalError += OnInternalError;
-            return GetDatabaseFromMultiplexer(connection);
+            
+            var database = await GetDatabaseFromMultiplexer(connection).ConfigureAwait(false);
+
+            for (int i = 0; i < 3; i++)
+            {
+                if (connection.IsConnecting)
+                {
+                    log.LogInformation("Waiting to connect");
+                    await Task.Delay(200).ConfigureAwait(false);
+                }
+            }
+
+            return database;
         }
 
         public void SetupSlave(EndPoint master)
@@ -253,7 +267,7 @@ namespace Wikiled.Redis.Logic
                 eventArgs.Exception);
         }
 
-        private IDatabase GetDatabaseFromMultiplexer(IConnectionMultiplexer multiplexer)
+        private Task<IDatabase> GetDatabaseFromMultiplexer(IConnectionMultiplexer multiplexer)
         {
             foreach (var endPoint in multiplexer.GetEndPoints())
             {
@@ -292,11 +306,11 @@ namespace Wikiled.Redis.Logic
                     return ResolveDatabase();
                 }
 
-                log.LogInformation("Looking for a database: {0} [{1}]", server.EndPoint, server.ServerType);
+                log.LogInformation("Looking for database: {0} [{1}]", server.EndPoint, server.ServerType);
                 if (!server.IsSlave)
                 {
                     IDatabase database = server.Multiplexer.GetDatabase();
-                    return database;
+                    return Task.FromResult(database);
                 }
             }
 

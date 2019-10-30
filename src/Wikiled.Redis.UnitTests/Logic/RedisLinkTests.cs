@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using NUnit.Framework;
@@ -178,10 +179,10 @@ namespace Wikiled.Redis.UnitTests.Logic
         }
 
         [Test]
-        public void Open()
+        public async Task Open()
         {
             redisLink = new RedisLink(new NullLoggerFactory(), configuration, multiplexer.Object, Global.HandlingDefinitionFactory, resilience.Object);
-            redisLink.Open();
+            await redisLink.Open().ConfigureAwait(false);
             multiplexer.Verify(item => item.Open());
         }
 
@@ -191,21 +192,21 @@ namespace Wikiled.Redis.UnitTests.Logic
             multiplexer = new Mock<IRedisMultiplexer>();
             multiplexer.Setup(item => item.Open()).Throws(new Exception());
             redisLink = new RedisLink(new NullLoggerFactory(), configuration, multiplexer.Object, Global.HandlingDefinitionFactory, resilience.Object);
-            Assert.Throws<Exception>(() => redisLink.Open());
-            Assert.Throws<Exception>(() => redisLink.Open());
+            Assert.ThrowsAsync<Exception>(redisLink.Open);
+            Assert.ThrowsAsync<Exception>(redisLink.Open);
             multiplexer.Verify(item => item.Open(), Times.Exactly(2));
             multiplexer.Verify(item => item.Close(), Times.Exactly(2));
         }
 
         [Test]
-        public void OpenFailed()
+        public async Task OpenFailed()
         {
             redisLink = new RedisLink(new NullLoggerFactory(), configuration, multiplexer.Object, Global.HandlingDefinitionFactory, resilience.Object);
             multiplexer.Setup(item => item.Open()).Throws(new Exception());
-            Assert.Throws<Exception>(() => redisLink.Open());
+            Assert.ThrowsAsync<Exception>(redisLink.Open);
             Assert.AreEqual(ChannelState.Closed, redisLink.State);
             multiplexer.Setup(item => item.Open());
-            redisLink.Open();
+            await redisLink.Open().ConfigureAwait(false);
             Assert.AreEqual(ChannelState.Open, redisLink.State);
         }
 

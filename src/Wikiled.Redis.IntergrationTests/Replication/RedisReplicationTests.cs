@@ -44,18 +44,16 @@ namespace Wikiled.Redis.IntegrationTests.Replication
             await Task.Delay(500).ConfigureAwait(false);
             var config = XDocument.Load(Path.Combine(TestContext.CurrentContext.TestDirectory, @"Config\redis.config")).XmlDeserialize<RedisConfiguration>();
             config.Endpoints[0].Port = ((IPEndPoint)redisOne.Endpoint).Port;
-            linkOne = new ModuleHelper(config).Provider.GetService<IRedisLink>();
+            linkOne = await new ModuleHelper(config).Provider.GetService<Task<IRedisLink>>().ConfigureAwait(false);
 
             config = XDocument.Load(Path.Combine(TestContext.CurrentContext.TestDirectory, @"Config\redis.config")).XmlDeserialize<RedisConfiguration>();
             config.Endpoints[0].Port = ((IPEndPoint)redisTwo.Endpoint).Port;
             var provider = new ModuleHelper(config).Provider;
-            linkTwo = provider.GetService<IRedisLink>();
+            linkTwo = await provider.GetService<Task<IRedisLink>>().ConfigureAwait(false);
 
             factory = provider.GetService<IReplicationFactory>();
 
-            linkOne.Open();
             linkOne.Multiplexer.Flush();
-            linkTwo.Open();
             linkTwo.Multiplexer.Flush();
 
             var data = linkOne.Database.ListRange(key);
@@ -95,9 +93,9 @@ namespace Wikiled.Redis.IntegrationTests.Replication
         public async Task TestReplication()
         {
             int replicationWait = 10000;
-            using (var replication = factory.StartReplicationFrom(linkOne.Multiplexer, linkTwo.Multiplexer))
+            using (var replication = await factory.StartReplicationFrom(linkOne.Multiplexer, linkTwo.Multiplexer))
             {
-                CancellationTokenSource tokenSource = new CancellationTokenSource(replicationWait);
+                var tokenSource = new CancellationTokenSource(replicationWait);
                 var completed = await replication.Progress.Where(item => item.InSync)
                                                  .FirstAsync()
                                                  .ToTask(tokenSource.Token).ConfigureAwait(false);
