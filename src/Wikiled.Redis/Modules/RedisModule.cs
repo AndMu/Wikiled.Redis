@@ -41,7 +41,7 @@ namespace Wikiled.Redis.Modules
 
             async Task<IRedisLink> ImplementationFactory(IServiceProvider ctx)
             {
-                var link = ctx.GetService<IRedisLink>();
+                var link = ctx.GetService<RedisLink>();
                 if (OpenOnConstruction)
                 {
                     await ctx.GetService<IResilience>().AsyncRetryPolicy.ExecuteAsync(link.Open).ConfigureAwait(false);

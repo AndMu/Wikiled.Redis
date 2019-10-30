@@ -45,7 +45,7 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
             redisInstance = new RedisInside.Redis(i => i.Port(6666).LogTo(item => log.LogDebug(item)));
             var config = XDocument.Load(Path.Combine(TestContext.CurrentContext.TestDirectory, @"Config\redis.config")).XmlDeserialize<RedisConfiguration>();
             var provider = new ModuleHelper(config).Provider;
-            Redis = await provider.GetService<Task<IRedisLink>>().ConfigureAwait(false);
+            Redis = provider.GetService<IRedisLink>();
             Redis.Multiplexer.Flush();
 
             var redis2 = await provider.GetService<Task<IRedisLink>>().ConfigureAwait(false);
