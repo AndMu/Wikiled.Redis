@@ -250,9 +250,8 @@ namespace Wikiled.Redis.Logic
             try
             {
                 await Multiplexer.Open().ConfigureAwait(false);
-
                 var key = this.GetKey(new SimpleKey("Connection", "Counter"));
-                LinkId = Multiplexer.Database.StringIncrement(key);
+                LinkId = await Multiplexer.Database.StringIncrementAsync(key).ConfigureAwait(false);
                 log.LogDebug("Link initialized with ID:{0}", LinkId);
             }
             catch (Exception e)

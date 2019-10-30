@@ -183,12 +183,16 @@ namespace Wikiled.Redis.Logic
             
             var database = await GetDatabaseFromMultiplexer(connection).ConfigureAwait(false);
 
-            for (int i = 0; i < 3; i++)
+            for (int i = 0; i < 5; i++)
             {
                 if (connection.IsConnecting)
                 {
-                    log.LogInformation("Waiting to connect");
-                    await Task.Delay(200).ConfigureAwait(false);
+                    log.LogInformation("Waiting to connect...");
+                    await Task.Delay(500).ConfigureAwait(false);
+                }
+                else
+                {
+                    break;
                 }
             }
 
