@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Threading.Tasks;
 using StackExchange.Redis;
 using Wikiled.Common.Utilities.Modules;
 using Wikiled.Redis.Config;
@@ -38,12 +39,12 @@ namespace Wikiled.Redis.Modules
             
             services.AddTransient<RedisLink>();
 
-            IRedisLink ImplementationFactory(IServiceProvider ctx)
+            async Task<IRedisLink> ImplementationFactory(IServiceProvider ctx)
             {
                 var link = ctx.GetService<RedisLink>();
                 if (OpenOnConstruction)
                 {
-                    ctx.GetService<IResilience>().RetryPolicy.Execute(link.Open);
+                    await ctx.GetService<IResilience>().AsyncRetryPolicy.ExecuteAsync(link.Open).ConfigureAwait(false);
                 }
 
                 return link;
@@ -52,16 +53,20 @@ namespace Wikiled.Redis.Modules
             if (IsSingleInstance)
             {
                 services.AddSingleton(ImplementationFactory);
+                services.AddSingleton(ctx => ctx.GetService<Task<IRedisLink>>().Result);
             }
             else
             {
                 services.AddTransient(ImplementationFactory);
+                services.AddTransient(ctx => ctx.GetService<Task<IRedisLink>>().Result);
             }
 
             services.AddFactory<IRedisLink>();
-
             services.AddTransient<IRedisMultiplexer, RedisMultiplexer>();
-            services.AddSingleton<Func<ConfigurationOptions, IConnectionMultiplexer>>(ctx => option => ConnectionMultiplexer.Connect(option) as IConnectionMultiplexer);
+
+            services.AddSingleton<Func<ConfigurationOptions, Task<IConnectionMultiplexer>>>(
+                ctx =>
+                    async option => (await ConnectionMultiplexer.ConnectAsync(option).ConfigureAwait(false)) as IConnectionMultiplexer);
             services.AddTransient<IReplicationFactory, ReplicationFactory>();
             
             services.AddSingleton<Func<IRedisConfiguration, IRedisMultiplexer>>(
@@ -71,7 +76,7 @@ namespace Wikiled.Redis.Modules
                     {
                         return new RedisMultiplexer(x.GetService<ILogger<RedisMultiplexer>>(),
                                                     config,
-                                                    options => ConnectionMultiplexer.Connect(options));
+                                                    x.GetService<Func<ConfigurationOptions, Task<IConnectionMultiplexer>>>());
                     }
 
                     return Construct;

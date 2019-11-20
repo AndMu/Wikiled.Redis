@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -28,13 +29,12 @@ namespace Wikiled.Redis.IntegrationTests.Subscription
         private ObjectKey key;
 
         [SetUp]
-        public void Setup()
+        public async Task Setup()
         {
             redisInstance = new RedisInside.Redis(i => i.Port(6666).LogTo(item => log.LogDebug(item)));
             var config = XDocument.Load(Path.Combine(TestContext.CurrentContext.TestDirectory, @"Config\redis.config")).XmlDeserialize<RedisConfiguration>();
             config.ServiceName = "IT";
-            redis = new ModuleHelper(config).Provider.GetService<IRedisLink>();
-            redis.Open();
+            redis = await new ModuleHelper(config).Provider.GetService<Task<IRedisLink>>().ConfigureAwait(false);
             redis.Multiplexer.Flush();
             key = new ObjectKey("Test", "Key");
         }

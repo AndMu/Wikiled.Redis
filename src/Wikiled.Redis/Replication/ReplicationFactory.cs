@@ -29,7 +29,7 @@ namespace Wikiled.Redis.Replication
             this.tracker = tracker;
         }
 
-        public IReplicationManager StartReplicationFrom(IRedisMultiplexer master, IRedisMultiplexer slave)
+        public async Task<IReplicationManager> StartReplicationFrom(IRedisMultiplexer master, IRedisMultiplexer slave)
         {
             if (master == null)
             {
@@ -44,7 +44,7 @@ namespace Wikiled.Redis.Replication
             var timer = Observable.Interval(TimeSpan.FromSeconds(1), scheduler);
             var manager = new ReplicationManager(loggerFactory.CreateLogger<ReplicationManager>(), master, slave, timer);
             tracker?.Track(manager.Progress);
-            manager.Open();
+            await manager.Open().ConfigureAwait(false);
             return manager;
         }
 
@@ -53,15 +53,15 @@ namespace Wikiled.Redis.Replication
             using (var masterMultiplexer = redisFactory(new RedisConfiguration(master)))
             using (var slaveEMultiplexer = redisFactory(new RedisConfiguration(slave)))
             {
-                masterMultiplexer.Open();
-                slaveEMultiplexer.Open();
+                await masterMultiplexer.Open().ConfigureAwait(false);
+                await slaveEMultiplexer.Open().ConfigureAwait(false);
 
                 var timer = Observable.Interval(TimeSpan.FromSeconds(1), scheduler);
                 ReplicationProgress result;
                 using (var manager = new ReplicationManager(loggerFactory.CreateLogger<ReplicationManager>(), masterMultiplexer, slaveEMultiplexer, timer))
                 {
                     tracker?.Track(manager.Progress);
-                    manager.Open();
+                    await manager.Open().ConfigureAwait(false);
                     result = await manager.Progress
                                           .Where(item => item.InSync)
                                           .FirstAsync()

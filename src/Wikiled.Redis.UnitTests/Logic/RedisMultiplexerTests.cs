@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Wikiled.Redis.Config;
@@ -17,7 +18,7 @@ namespace Wikiled.Redis.UnitTests.Logic
 
         private RedisMultiplexer multiplexer;
 
-        private Func<ConfigurationOptions, IConnectionMultiplexer> multiplexerFactory;
+        private Func<ConfigurationOptions, Task<IConnectionMultiplexer>> multiplexerFactory;
 
         private Mock<IConnectionMultiplexer> connectionMultiplexer;
 
@@ -34,7 +35,7 @@ namespace Wikiled.Redis.UnitTests.Logic
             connectionMultiplexer.Setup(item => item.GetServer(It.IsAny<EndPoint>(), null)).Returns(server.Object);
             server.Setup(item => item.Multiplexer).Returns(connectionMultiplexer.Object);
             connectionMultiplexer.Setup(item => item.GetDatabase(-1, null)).Returns(database.Object);
-            multiplexerFactory = options => connectionMultiplexer.Object;
+            multiplexerFactory = options => Task.FromResult(connectionMultiplexer.Object);
             option = new RedisConfiguration("Test");
             option.Endpoints = new[] { new RedisEndpoint { Host = "localhost", Port = 7000 } };
             multiplexer = new RedisMultiplexer(new NullLogger<RedisMultiplexer>(), option, multiplexerFactory);
@@ -61,16 +62,16 @@ namespace Wikiled.Redis.UnitTests.Logic
         [Test]
         public void OpenNoEndPoints()
         {
-            Assert.Throws<RedisConnectionException>(() => multiplexer.Open());
+            Assert.ThrowsAsync<RedisConnectionException>(multiplexer.Open);
         }
 
         [Test]
-        public void OpenSimple()
+        public async Task OpenSimple()
         {
             connectionMultiplexer.Setup(item => item.GetEndPoints(false)).Returns(new EndPoint[] { new DnsEndPoint("localhost", 6377) });
             server.Setup(item => item.ServerType).Returns(ServerType.Standalone);
             server.Setup(item => item.IsSlave).Returns(false);
-            multiplexer.Open();
+            await multiplexer.Open().ConfigureAwait(false);
             Assert.AreEqual(database.Object, multiplexer.Database);
         }
 
@@ -80,7 +81,7 @@ namespace Wikiled.Redis.UnitTests.Logic
             connectionMultiplexer.Setup(item => item.GetEndPoints(false)).Returns(new EndPoint[] { new DnsEndPoint("localhost", 6377) });
             server.Setup(item => item.ServerType).Returns(ServerType.Standalone);
             server.Setup(item => item.IsSlave).Returns(true);
-            Assert.Throws<RedisConnectionException>(() => multiplexer.Open());
+            Assert.ThrowsAsync<RedisConnectionException>(multiplexer.Open);
         }
 
         [Test]
@@ -88,11 +89,11 @@ namespace Wikiled.Redis.UnitTests.Logic
         {
             connectionMultiplexer.Setup(item => item.GetEndPoints(false)).Returns(new EndPoint[] { new DnsEndPoint("localhost", 6377) });
             server.Setup(item => item.ServerType).Returns(ServerType.Sentinel);
-            Assert.Throws<RedisConnectionException>(() => multiplexer.Open());
+            Assert.ThrowsAsync<RedisConnectionException>(multiplexer.Open);
         }
 
         [Test]
-        public void OpenSentinel()
+        public async Task OpenSentinel()
         {
             connectionMultiplexer.Setup(item => item.GetEndPoints(false)).Returns(new EndPoint[] { new DnsEndPoint("localhost", 6377) });
             server.SetupSequence(item => item.ServerType).Returns(ServerType.Sentinel).Returns(ServerType.Standalone);
@@ -110,7 +111,7 @@ namespace Wikiled.Redis.UnitTests.Logic
                           }
                       });
 
-            multiplexer.Open();
+            await multiplexer.Open().ConfigureAwait(false);
             Assert.AreEqual(database.Object, multiplexer.Database);
             connectionMultiplexer.Verify(item => item.Close(true));
         }

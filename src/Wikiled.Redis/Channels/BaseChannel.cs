@@ -1,12 +1,11 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
 namespace Wikiled.Redis.Channels
 {
     public abstract class BaseChannel : IChannel
     {
-        private readonly object syncRoot = new object();
-
         private ChannelState state;
 
         protected BaseChannel(string name)
@@ -37,18 +36,17 @@ namespace Wikiled.Redis.Channels
 
         public void Close()
         {
-            lock (syncRoot)
-            {
-                Logger.LogDebug("Closing {0}...", Name);
-                if (State != ChannelState.Open && State != ChannelState.Opening)
-                {
-                    return;
-                }
+            Logger.LogDebug("Closing {0}...", Name);
 
-                State = ChannelState.Closing;
-                CloseInternal();
-                State = ChannelState.Closed;
+            if (State != ChannelState.Open &&
+                State != ChannelState.Opening)
+            {
+                return;
             }
+
+            State = ChannelState.Closing;
+            CloseInternal();
+            State = ChannelState.Closed;
         }
 
         /// <summary>
@@ -67,18 +65,18 @@ namespace Wikiled.Redis.Channels
             GC.SuppressFinalize(this);
         }
 
-        public void Open()
+        public async Task Open()
         {
             Logger.LogDebug("Opening {0}...", Name);
-            lock (syncRoot)
+
+            if (State == ChannelState.Open ||
+                State == ChannelState.Closing ||
+                State == ChannelState.Opening)
             {
-                if (State == ChannelState.Open || State == ChannelState.Closing || State == ChannelState.Opening)
-                {
-                    return;
-                }
-                
-                OpenAndSetState();
+                return;
             }
+
+            await OpenAndSetState().ConfigureAwait(false);
         }
 
         protected virtual void CloseInternal()
@@ -95,17 +93,17 @@ namespace Wikiled.Redis.Channels
             Close();
         }
 
-        protected virtual ChannelState OpenInternal()
+        protected virtual Task<ChannelState> OpenInternal()
         {
-            return ChannelState.Open;
+            return Task.FromResult(ChannelState.Open);
         }
 
-        private void OpenAndSetState()
+        private async Task OpenAndSetState()
         {
             try
             {
                 State = ChannelState.Opening;
-                State = OpenInternal();
+                State = await OpenInternal().ConfigureAwait(false);
             }
             catch
             {

@@ -81,7 +81,7 @@ namespace Wikiled.Redis.Logic
         /// <summary>
         ///     Open
         /// </summary>
-        void Open();
+        Task Open();
 
         /// <summary>
         ///     Setup slave/master

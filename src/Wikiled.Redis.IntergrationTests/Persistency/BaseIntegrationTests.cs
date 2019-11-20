@@ -2,6 +2,7 @@
 using Moq;
 using NUnit.Framework;
 using System.IO;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.Extensions.Logging;
 using Wikiled.Common.Logging;
@@ -39,18 +40,16 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
         protected IResilience Resilience { get; private set; }
 
         [SetUp]
-        public void Setup()
+        public async Task Setup()
         {
             redisInstance = new RedisInside.Redis(i => i.Port(6666).LogTo(item => log.LogDebug(item)));
             var config = XDocument.Load(Path.Combine(TestContext.CurrentContext.TestDirectory, @"Config\redis.config")).XmlDeserialize<RedisConfiguration>();
             var provider = new ModuleHelper(config).Provider;
             Redis = provider.GetService<IRedisLink>();
-            Redis.Open();
             Redis.Multiplexer.Flush();
 
-            var redis2 = provider.GetService<IRedisLink>();
+            var redis2 = await provider.GetService<Task<IRedisLink>>().ConfigureAwait(false);
             Resilience = provider.GetService<IResilience>();
-            redis2.Open();
             Key = new ObjectKey("Key1");
             Routing = new Identity();
             Routing.ApplicationId = "Test";

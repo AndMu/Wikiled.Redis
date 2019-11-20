@@ -9,6 +9,6 @@ namespace Wikiled.Redis.Replication
     {
         Task<ReplicationProgress> Replicate(DnsEndPoint master, DnsEndPoint slave, CancellationToken token);
 
-        IReplicationManager StartReplicationFrom(IRedisMultiplexer master, IRedisMultiplexer slave);
+        Task<IReplicationManager> StartReplicationFrom(IRedisMultiplexer master, IRedisMultiplexer slave);
     }
 }

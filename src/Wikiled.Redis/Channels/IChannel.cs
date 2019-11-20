@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 namespace Wikiled.Redis.Channels
 {
@@ -10,6 +11,6 @@ namespace Wikiled.Redis.Channels
 
         void Close();
 
-        void Open();
+        Task Open();
     }
 }
