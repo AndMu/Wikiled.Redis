@@ -48,6 +48,7 @@ namespace Wikiled.Redis.Logic
 
         public void Close()
         {
+            log.LogInformation("Close");
             if (connection == null)
             {
                 return;
@@ -96,6 +97,7 @@ namespace Wikiled.Redis.Logic
 
         public void Dispose()
         {
+            log.LogInformation("Dispose");
             var current = connection;
             Close();
             current?.Dispose();
@@ -149,7 +151,7 @@ namespace Wikiled.Redis.Logic
             try
             {
                 log.LogDebug("Opening...");
-                Database = await ResolveDatabase();
+                Database = await ResolveDatabase().ConfigureAwait(false);
             }
             catch
             {

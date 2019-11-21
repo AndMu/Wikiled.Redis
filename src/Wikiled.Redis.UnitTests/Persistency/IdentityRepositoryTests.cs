@@ -37,6 +37,7 @@ namespace Wikiled.Redis.UnitTests.Persistency
             data.InstanceId = "TestId";
             logger = new NullLogger<IdentityRepository>();
             mockRedisLink = new Mock<IRedisLink>();
+            var transaction = new Mock<IRedisTransaction>();
             handlingDefinition = new Mock<IHandlingDefinitionFactory>();
             mockRedisLink.Setup(item => item.DefinitionFactory).Returns(handlingDefinition.Object);
 
@@ -46,9 +47,11 @@ namespace Wikiled.Redis.UnitTests.Persistency
             database = new Mock<IDatabase>();
             mockClient = new Mock<IRedisClient>();
             mockRedisLink.Setup(item => item.Database).Returns(database.Object);
+            mockRedisLink.Setup(item => item.StartTransaction()).Returns(transaction.Object);
             mockRedisLink.Setup(item => item.State).Returns(ChannelState.Open);
             mockRedisLink.Setup(item => item.Name).Returns("T");
             mockRedisLink.Setup(item => item.Client).Returns(mockClient.Object);
+            transaction.Setup(item => item.Client).Returns(mockClient.Object);
             instance = CreateUserRepository();
         }
 
@@ -67,9 +70,10 @@ namespace Wikiled.Redis.UnitTests.Persistency
             Assert.ThrowsAsync<ArgumentNullException>(async () => await instance.LoadPage(null));
         }
 
+        [Test]
         public async Task Save()
         {
-            await instance.Save(data);
+            await instance.Save(data).ConfigureAwait(false);
             mockClient.Verify(item => item.AddRecord(It.IsAny<IDataKey>(), data));
         }
 
@@ -85,7 +89,7 @@ namespace Wikiled.Redis.UnitTests.Persistency
         public async Task LoadUserNotFound()
         {
             mockClient.Setup(item => item.GetRecords<Identity>(It.IsAny<IDataKey>())).Returns(Observable.Empty<Identity>());
-            var result = await instance.LoadSingle("Test");
+            var result = await instance.LoadSingle("Test").ConfigureAwait(false);
             Assert.IsNull(result);
             mockClient.Verify(item => item.GetRecords<Identity>(It.IsAny<IDataKey>()));
         }
