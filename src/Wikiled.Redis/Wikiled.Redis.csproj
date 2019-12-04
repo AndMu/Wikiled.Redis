@@ -26,9 +26,9 @@
     <PackageReference Include="protobuf-net" version="2.4.4" />
     <PackageReference Include="Snappy.Standard" Version="0.2.0" />
     <PackageReference Include="StackExchange.Redis" version="2.0.601" />
-    <PackageReference Include="System.Reactive" Version="4.2.0" />
+    <PackageReference Include="System.Reactive" Version="4.3.1" />
     <PackageReference Include="Wikiled.Common" Version="1.1.10" />
-    <PackageReference Include="Wikiled.Common.Utilities" Version="1.2.29" />
+    <PackageReference Include="Wikiled.Common.Utilities" Version="1.2.31" />
   </ItemGroup>
 
   <ItemGroup>
