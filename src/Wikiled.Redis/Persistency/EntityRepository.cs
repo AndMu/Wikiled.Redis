@@ -90,7 +90,10 @@ namespace Wikiled.Redis.Persistency
 
         protected abstract string GetRecordId(T instance);
 
-        protected abstract Task BeforeSaving(IRedisTransaction transaction, IDataKey key, T entity);
+        protected virtual Task BeforeSaving(IRedisTransaction transaction, IDataKey key, T entity)
+        {
+            return Task.CompletedTask;
+        }
 
         protected async Task SaveInternal(T entity, IRedisTransaction sharedTransaction = null, params IIndexKey[] indexes)
         {
