@@ -7,6 +7,7 @@ using Wikiled.Common.Utilities.Modules;
 using Wikiled.Redis.Config;
 using Wikiled.Redis.Logic;
 using Wikiled.Redis.Logic.Resilience;
+using Wikiled.Redis.Persistency;
 using Wikiled.Redis.Replication;
 
 namespace Wikiled.Redis.Modules
@@ -23,7 +24,7 @@ namespace Wikiled.Redis.Modules
 
         public RedisConfiguration RedisConfiguration { get; }
 
-        public ResilienceConfig ResilienceConfig { get; set; } = new ResilienceConfig() {LongDelay = 1000, ShortDelay = 100};
+        public ResilienceConfig ResilienceConfig { get; set; } = new ResilienceConfig { LongDelay = 1000, ShortDelay = 100 };
 
         public bool IsSingleInstance { get; set; }
 
@@ -34,9 +35,10 @@ namespace Wikiled.Redis.Modules
             logger.LogDebug("Using Redis cache");
             services.AddSingleton<IRedisConfiguration>(RedisConfiguration);
             services.AddSingleton<IResilience, ResilienceHandler>();
+            services.AddSingleton<IEntitySubscriber, EntitySubscriber>();
             services.AddSingleton<IHandlingDefinitionFactory, HandlingDefinitionFactory>();
             services.AddSingleton(ResilienceConfig);
-            
+
             services.AddTransient<RedisLink>();
 
             async Task<IRedisLink> ImplementationFactory(IServiceProvider ctx)
@@ -68,7 +70,7 @@ namespace Wikiled.Redis.Modules
                 ctx =>
                     async option => (await ConnectionMultiplexer.ConnectAsync(option).ConfigureAwait(false)) as IConnectionMultiplexer);
             services.AddTransient<IReplicationFactory, ReplicationFactory>();
-            
+
             services.AddSingleton<Func<IRedisConfiguration, IRedisMultiplexer>>(
                 x =>
                 {

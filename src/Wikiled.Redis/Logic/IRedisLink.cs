@@ -3,6 +3,7 @@ using StackExchange.Redis;
 using Wikiled.Redis.Channels;
 using Wikiled.Redis.Keys;
 using Wikiled.Redis.Logic.Resilience;
+using Wikiled.Redis.Persistency;
 using Wikiled.Redis.Scripts;
 using Wikiled.Redis.Serialization;
 using Wikiled.Redis.Serialization.Subscription;
@@ -39,6 +40,8 @@ namespace Wikiled.Redis.Logic
         ///     Raw DB multiplexer
         /// </summary>
         IRedisMultiplexer Multiplexer { get; }
+
+        IEntitySubscriber EntitySubscriber { get; }
 
         /// <summary>
         ///     Get handling definition

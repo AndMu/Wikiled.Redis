@@ -1,10 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
-using StackExchange.Redis;
 using System;
 using System.Reactive.Concurrency;
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Wikiled.Redis.Keys;
 using Wikiled.Redis.Logic;
@@ -31,11 +28,12 @@ namespace Wikiled.Redis.Persistency
 
         protected ILogger<EntityRepository<T>> Log { get; }
 
-        protected IRedisLink Redis { get; }
+        public IRedisLink Redis { get; }
 
         public IObservable<T> SubscribeToChanges()
         {
-            subscription ??= CreateSubscription().ObserveOn(TaskPoolScheduler.Default);
+            subscription ??= Redis.EntitySubscriber.Subscribe(this).ObserveOn(TaskPoolScheduler.Default);
+
             return subscription;
         }
 
@@ -63,7 +61,7 @@ namespace Wikiled.Redis.Persistency
         {
             return Redis.Client.GetRecords<T>(key);
         }
-
+        
         public async Task<T> LoadSingle(string id)
         {
             if (id == null)
@@ -130,71 +128,5 @@ namespace Wikiled.Redis.Persistency
             await Task.WhenAll(beforeTask, addTask).ConfigureAwait(false);
         }
 
-        private async Task EntityEventSubscription(IDataKey key, CancellationToken token, IObserver<ChannelMessage> observer)
-        {
-            ChannelMessageQueue subscriber = null;
-            try
-            {
-                subscriber = await Redis.Multiplexer.SubscribeKeyEvents(key.FullKey).ConfigureAwait(false);
-
-                do
-                {
-                    var result = await subscriber.ReadAsync(token).ConfigureAwait(false);
-                    observer.OnNext(result);
-                    while (subscriber.TryRead(out result))
-                    {
-                        observer.OnNext(result);
-                    }
-                } while (!token.IsCancellationRequested);
-            }
-            catch (OperationCanceledException)
-            {
-            }
-            finally
-            {
-                if (subscriber != null)
-                {
-                    await subscriber.UnsubscribeAsync().ConfigureAwait(false);
-                }
-            }
-        }
-
-        private async Task<T> Convert(ChannelMessage message)
-        {
-            if (((string) message.Message).ToLower() == "del")
-            {
-                return null;
-            }
-
-            var receivedKey = message.Channel.ToString();
-            var start = receivedKey.IndexOf(FieldConstants.ObjectTag) + 8;
-            if (start < 0)
-            {
-                Log.LogWarning("Bad key: {0}", receivedKey);
-                return null;
-            }
-
-            receivedKey = receivedKey.Substring(start);
-            var keyItem = new RepositoryKey(this, new ObjectKey(receivedKey));
-            return await Redis.Client.GetRecords<T>(keyItem).LastOrDefaultAsync();
-        }
-
-        private IObservable<T> CreateSubscription()
-        {
-            var key = Entity.GetKey("*");
-
-            return Observable.Create<ChannelMessage>(
-                                 observer =>
-                                 {
-                                     var diposable = new CancellationDisposable();
-                                     Task.Run(() => EntityEventSubscription(key, diposable.Token, observer));
-                                     return diposable;
-                                 })
-                             .Select(Convert)
-                             .Merge()
-                             .Where(item => item != null)
-                             .Publish()
-                             .RefCount();
-        }
     }
 }

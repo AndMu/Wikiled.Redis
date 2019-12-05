@@ -38,7 +38,8 @@ namespace Wikiled.Redis.Logic
                          IRedisConfiguration configuration,
                          IRedisMultiplexer multiplexer,
                          IHandlingDefinitionFactory handlingDefinitionFactory,
-                         IResilience resilience)
+                         IResilience resilience,
+                         IEntitySubscriber entitySubscriber)
             : base(configuration?.ServiceName)
         {
             this.loggerFactory = loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory));
@@ -46,6 +47,7 @@ namespace Wikiled.Redis.Logic
 
             DefinitionFactory = handlingDefinitionFactory ?? throw new ArgumentNullException(nameof(handlingDefinitionFactory));
             Resilience = resilience ?? throw new ArgumentNullException(nameof(resilience));
+            EntitySubscriber = entitySubscriber;
             log = loggerFactory.CreateLogger<RedisLink>();
             Generator = new ScriptGenerator();
             mainIndexManager = new MainIndexManager(new IndexManagerFactory(loggerFactory, this));
@@ -65,6 +67,8 @@ namespace Wikiled.Redis.Logic
         public long LinkId { get; private set; }
 
         public IRedisMultiplexer Multiplexer { get; }
+
+        public IEntitySubscriber EntitySubscriber { get; }
 
         protected override ILogger Logger => log;
 
