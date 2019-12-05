@@ -33,7 +33,6 @@ namespace Wikiled.Redis.Persistency
         public IObservable<T> SubscribeToChanges()
         {
             subscription ??= Redis.EntitySubscriber.Subscribe(this).ObserveOn(TaskPoolScheduler.Default);
-
             return subscription;
         }
 

@@ -8,6 +8,8 @@ namespace Wikiled.Redis.Persistency
     public interface IEntityRepository<T> : IBasicRepository<T>
         where T : class, new()
     {
+        IObservable<T> SubscribeToChanges();
+
         Task Save(T entity, IRedisTransaction transaction, params IIndexKey[] indexes);
 
         Task Save(T entity, IIndexKey[] indexes);
