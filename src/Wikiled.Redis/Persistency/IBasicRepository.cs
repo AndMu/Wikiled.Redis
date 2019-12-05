@@ -12,10 +12,10 @@ namespace Wikiled.Redis.Persistency
 
         Task<T> LoadSingle(string id);
 
-        Task Save(T entity, params IIndexKey[] indexes);
+        Task Save(T entity);
 
-        Task<long> Count(IIndexKey key);
+        Task<long> Count();
 
-        Task<T[]> LoadPage(IIndexKey key, int start = 0, int end = -1);
+        Task<T[]> LoadPage(int start = 0, int end = -1);
     }
 }
