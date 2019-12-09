@@ -108,6 +108,11 @@ namespace Wikiled.Redis.Persistency
             return Task.CompletedTask;
         }
 
+        protected virtual Task AfterSaving(IDataKey key, T entity)
+        {
+            return Task.CompletedTask;
+        }
+
         protected async Task SaveInternal(T entity, IRedisTransaction sharedTransaction = null, params IIndexKey[] indexes)
         {
             if (entity == null)
@@ -141,7 +146,7 @@ namespace Wikiled.Redis.Persistency
             }
 
             await Task.WhenAll(beforeTask, addTask).ConfigureAwait(false);
+            await AfterSaving(key, entity).ConfigureAwait(false);
         }
-
     }
 }
