@@ -15,7 +15,7 @@ namespace Wikiled.Redis.Keys
         }
 
         public ObjectKey(params string[] keys)
-            :base(string.Join(":", keys), FieldConstants.Object + ":" + string.Join(":", keys))
+            : base(string.Join(":", keys), FieldConstants.Object + ":" + string.Join(":", keys))
         {
             if (keys == null)
             {

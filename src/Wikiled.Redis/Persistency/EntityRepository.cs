@@ -11,7 +11,7 @@ namespace Wikiled.Redis.Persistency
     public abstract class EntityRepository<T> : IEntityRepository<T> 
         where T : class, new()
     {
-        private IObservable<T> subscription;
+        private IObservable<(IDataKey Key, string Command, T Intance)> subscription;
 
         protected EntityRepository(ILogger<EntityRepository<T>> log, IRedisLink redis, string entity)
         {
@@ -30,7 +30,7 @@ namespace Wikiled.Redis.Persistency
 
         public IRedisLink Redis { get; }
 
-        public IObservable<T> SubscribeToChanges()
+        public IObservable<(IDataKey Key, string Command, T Intance)> SubscribeToChanges()
         {
             subscription ??= Redis.EntitySubscriber.Subscribe(this).ObserveOn(TaskPoolScheduler.Default);
             return subscription;

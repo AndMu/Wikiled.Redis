@@ -23,7 +23,7 @@ namespace Wikiled.Redis.Persistency
             this.repository = repository ?? throw new ArgumentNullException(nameof(repository));
         }
 
-        public IObservable<T> CreateSubscription()
+        public IObservable<(IDataKey Key, string Command, T Instance)> CreateSubscription()
         {
             var key = repository.Entity.GetKey("*");
 
@@ -36,7 +36,7 @@ namespace Wikiled.Redis.Persistency
                                  })
                              .Select(Convert)
                              .Merge()
-                             .Where(item => item != null)
+                             .Where(item => item.Key != null)
                              .Publish()
                              .RefCount();
         }
@@ -70,11 +70,11 @@ namespace Wikiled.Redis.Persistency
             }
         }
 
-        private async Task<T> Convert(ChannelMessage message)
+        private async Task<(IDataKey Key, string Command, T Instance)> Convert(ChannelMessage message)
         {
-            if (((string)message.Message).ToLower() == "del")
+            if (string.Compare(message.Message, "expire", StringComparison.OrdinalIgnoreCase) == 0)
             {
-                return null;
+                return (null, message.Message, null);
             }
 
             var receivedKey = message.Channel.ToString();
@@ -82,12 +82,14 @@ namespace Wikiled.Redis.Persistency
             if (start < 0)
             {
                 logger.LogWarning("Bad key: {0}", receivedKey);
-                return null;
+                return (null, message.Message, null);
             }
 
             receivedKey = receivedKey.Substring(start);
             var keyItem = new RepositoryKey(repository, new ObjectKey(receivedKey));
-            return await repository.Redis.Client.GetRecords<T>(keyItem).LastOrDefaultAsync();
+            var instance = await repository.Redis.Client.GetRecords<T>(keyItem).LastOrDefaultAsync();
+
+            return (keyItem, message.Message, instance);
         }
     }
 }

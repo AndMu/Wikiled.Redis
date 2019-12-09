@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using System;
+using Wikiled.Redis.Keys;
 
 namespace Wikiled.Redis.Persistency
 {
@@ -12,7 +13,7 @@ namespace Wikiled.Redis.Persistency
             this.loggerFactory = loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory));
         }
 
-        public IObservable<T> Subscribe<T>(IBasicRepository<T> repository)
+        public IObservable<(IDataKey Key, string Command, T Intance)> Subscribe<T>(IBasicRepository<T> repository)
             where T : class, new()
         {
             return new EntitySubscription<T>(loggerFactory.CreateLogger<EntitySubscription<T>>(), repository).CreateSubscription();
