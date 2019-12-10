@@ -9,7 +9,7 @@ using Wikiled.Redis.Logic;
 
 namespace Wikiled.Redis.Serialization
 {
-    public class ObjectHashSetSerialization : IObjectSerialization
+    public class ObjectHashSetSerialization<T> : IObjectSerialization<T>
     {
         private readonly string[] columns =
         {
@@ -20,22 +20,25 @@ namespace Wikiled.Redis.Serialization
 
         private readonly IRedisLink link;
 
-        private static readonly ILogger log = ApplicationLogging.CreateLogger<ObjectHashSetSerialization>();
+        private static readonly ILogger log = ApplicationLogging.CreateLogger<ObjectHashSetSerialization<T>>();
 
         private readonly IDataSerializer serializer;
 
-        public ObjectHashSetSerialization(IRedisLink link, IDataSerializer serializer)
+        private readonly bool isWellKnown;
+
+        public ObjectHashSetSerialization(IRedisLink link, IDataSerializer serializer, bool isWellKnown)
         {
             this.link = link ?? throw new ArgumentNullException(nameof(link));
             this.serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
+            this.isWellKnown = isWellKnown;
         }
 
-        public string[] GetColumns<T>()
+        public string[] GetColumns()
         {
             return columns;
         }
 
-        public IEnumerable<HashEntry> GetEntries<T>(T instance)
+        public IEnumerable<HashEntry> GetEntries(T instance)
         {
             if (instance == null)
             {
@@ -43,41 +46,39 @@ namespace Wikiled.Redis.Serialization
             }
 
             var data = serializer.Serialize(instance);
-            var definition = link.GetDefinition<T>();
             yield return new HashEntry(FieldConstants.Data, data);
             yield return new HashEntry(FieldConstants.TimeStamp, Stopwatch.GetTimestamp());
-            if(!definition.IsWellKnown)
+            if (!isWellKnown)
             {
                 yield return new HashEntry(FieldConstants.Type, link.GetTypeID(instance.GetType()));
             }
         }
 
-        public IEnumerable<T> GetInstances<T>(RedisValue[] values)
+        public IEnumerable<T> GetInstances(RedisValue[] values)
         {
             if (values == null)
             {
                 throw new ArgumentNullException(nameof(values));
             }
 
-            var definition = link.GetDefinition<T>();
-            for(int i = 0; i < values.Length; i += 3)
+            for (int i = 0; i < values.Length; i += 3)
             {
                 byte[] data = values[i];
-                if((data == null) ||
+                if ((data == null) ||
                    (data.Length == 0))
                 {
                     log.LogWarning("Not Data Found in redis record");
                     continue;
                 }
 
-                if(definition.IsWellKnown)
+                if (isWellKnown)
                 {
                     yield return serializer.Deserialize<T>(data);
                 }
                 else
                 {
                     var type = link.GetTypeByName(values[i + 2]);
-                    if(type == null)
+                    if (type == null)
                     {
                         log.LogError("Type is not resolved");
                         continue;

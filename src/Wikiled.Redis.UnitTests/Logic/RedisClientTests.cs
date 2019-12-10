@@ -25,7 +25,7 @@ namespace Wikiled.Redis.UnitTests.Logic
 
         private Mock<IRedisLink> link;
 
-        private Mock<ISpecificPersistency> persistency;
+        private Mock<ISpecificPersistency<Identity>> persistency;
 
         private Mock<IMainIndexManager> mainIndexManager;
 
@@ -37,7 +37,7 @@ namespace Wikiled.Redis.UnitTests.Logic
             mainIndexManager = new Mock<IMainIndexManager>();
             link = new Mock<IRedisLink>();
             link.Setup(item => item.Resilience).Returns(new ResilienceHandler(new NullLogger<ResilienceHandler>(), new ResilienceConfig()));
-            persistency = new Mock<ISpecificPersistency>();
+            persistency = new Mock<ISpecificPersistency<Identity>>();
             link.Setup(item => item.GetSpecific<Identity>()).Returns(persistency.Object);
             database = new Mock<IDatabase>();
             link.Setup(item => item.Database).Returns(database.Object);
@@ -86,7 +86,7 @@ namespace Wikiled.Redis.UnitTests.Logic
         public async Task GetRecords()
         {
             Assert.ThrowsAsync<ArgumentNullException>(async () => await client.GetRecords<Identity>(null));
-            persistency.Setup(item => item.GetRecords<Identity>(database.Object, key, 0, -1)).Returns(new[] {new Identity()}.ToObservable());
+            persistency.Setup(item => item.GetRecords(database.Object, key, 0, -1)).Returns(new[] {new Identity()}.ToObservable());
             var result = await client.GetRecords<Identity>(key).LastOrDefaultAsync();
             Assert.IsNotNull(result);
         }

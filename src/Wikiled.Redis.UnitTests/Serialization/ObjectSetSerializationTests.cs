@@ -4,6 +4,7 @@ using Wikiled.Redis.Logic;
 using Wikiled.Redis.Serialization;
 using Moq;
 using NUnit.Framework;
+using Wikiled.Common.Testing.Utilities.Reflection;
 using Wikiled.Redis.Channels;
 using Wikiled.Redis.Data;
 using Wikiled.Redis.UnitTests.MockData;
@@ -13,7 +14,7 @@ namespace Wikiled.Redis.UnitTests.Serialization
     [TestFixture]
     public class ObjectSetSerializationTests
     {
-        private ObjectHashSetSerialization instance;
+        private ObjectHashSetSerialization<MainDataOne> instance;
 
         private Mock<IRedisLink> link;
 
@@ -23,28 +24,26 @@ namespace Wikiled.Redis.UnitTests.Serialization
             link = new Mock<IRedisLink>();
             link.Setup(item => item.State).Returns(ChannelState.Open);
             link.Setup(item => item.LinkId).Returns(0);
-            link.Setup(item => item.GetDefinition<MainDataOne>()).Returns(Global.HandlingDefinitionFactory.ConstructGeneric<MainDataOne>(link.Object));
-            instance = new ObjectHashSetSerialization(link.Object, new FlatProtoDataSerializer(true, Global.Stream));
+            instance = new ObjectHashSetSerialization<MainDataOne>(link.Object, new BinaryDataSerializer(), false);
         }
 
         [Test]
         public void Construct()
         {
-            Assert.Throws<ArgumentNullException>(() => new ObjectHashSetSerialization(null, new FlatProtoDataSerializer(true, Global.Stream)));
-            Assert.Throws<ArgumentNullException>(() => new ObjectHashSetSerialization(link.Object, null));
+            ConstructorHelper.ConstructorMustThrowArgumentNullException<ObjectHashSetSerialization<Identity>>();
         }
 
         [Test]
         public void GetColumns()
         {
-            var columns = instance.GetColumns<MainDataOne>();
+            var columns = instance.GetColumns();
             Assert.AreEqual(3, columns.Length);
         }
 
         [Test]
         public void GetEntries()
         {
-            Assert.Throws<ArgumentNullException>(() => instance.GetEntries<MainDataOne>(null).ToArray());
+            Assert.Throws<ArgumentNullException>(() => instance.GetEntries(null).ToArray());
             var entries = instance.GetEntries(new MainDataOne()).ToArray();
             Assert.AreEqual(3, entries.Length);
         }
@@ -52,8 +51,8 @@ namespace Wikiled.Redis.UnitTests.Serialization
         [Test]
         public void GetInstances()
         {
-            Assert.Throws<ArgumentNullException>(() => instance.GetInstances<MainDataOne>(null).ToArray());
-            var data = instance.GetInstances<MainDataOne>(instance.GetEntries(new MainDataOne()).Select(item => item.Value).ToArray());
+            Assert.Throws<ArgumentNullException>(() => instance.GetInstances(null).ToArray());
+            var data = instance.GetInstances(instance.GetEntries(new MainDataOne()).Select(item => item.Value).ToArray());
             Assert.IsNotNull(data);
         }
     }

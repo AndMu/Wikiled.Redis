@@ -3,12 +3,12 @@ using StackExchange.Redis;
 
 namespace Wikiled.Redis.Serialization
 {
-    public interface IObjectSerialization
+    public interface IObjectSerialization<T>
     {
-        string[] GetColumns<T>();
+        string[] GetColumns();
 
-        IEnumerable<HashEntry> GetEntries<T>(T instance);
+        IEnumerable<HashEntry> GetEntries(T instance);
 
-        IEnumerable<T> GetInstances<T>(RedisValue[] values);
+        IEnumerable<T> GetInstances(RedisValue[] values);
     }
 }

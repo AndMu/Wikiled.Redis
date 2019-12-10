@@ -11,17 +11,17 @@ using Wikiled.Redis.Logic;
 
 namespace Wikiled.Redis.Serialization
 {
-    public class SingleItemSerialization : BaseSetSerialization, ISpecificPersistency
+    public class SingleItemSerialization<T> : BaseSetSerialization, ISpecificPersistency<T>
     {
         private readonly IRedisLink link;
 
-        private readonly ILogger<SingleItemSerialization> log;
+        private readonly ILogger<SingleItemSerialization<T>> log;
 
-        private readonly IObjectSerialization objectSerialization;
+        private readonly IObjectSerialization<T> objectSerialization;
 
         private readonly IMainIndexManager mainIndexManager;
 
-        public SingleItemSerialization(ILogger<SingleItemSerialization> log, IRedisLink link, IObjectSerialization objectSerialization, IMainIndexManager mainIndexManager)
+        public SingleItemSerialization(ILogger<SingleItemSerialization<T>> log, IRedisLink link, IObjectSerialization<T> objectSerialization, IMainIndexManager mainIndexManager)
             : base(log, link, mainIndexManager)
         {
             this.objectSerialization = objectSerialization ?? throw new ArgumentNullException(nameof(objectSerialization));
@@ -30,7 +30,7 @@ namespace Wikiled.Redis.Serialization
             this.link = link ?? throw new ArgumentNullException(nameof(link));
         }
 
-        public Task AddRecord<T>(IDatabaseAsync database, IDataKey objectKey, params T[] instances)
+        public Task AddRecord(IDatabaseAsync database, IDataKey objectKey, params T[] instances)
         {
             if (database == null)
             {
@@ -62,7 +62,7 @@ namespace Wikiled.Redis.Serialization
             return Task.WhenAll(tasks);
         }
 
-        public Task AddRecords<T>(IDatabaseAsync database, IEnumerable<IDataKey> keys, params T[] instances)
+        public Task AddRecords(IDatabaseAsync database, IEnumerable<IDataKey> keys, params T[] instances)
         {
             if (database == null)
             {
@@ -83,7 +83,7 @@ namespace Wikiled.Redis.Serialization
             return Task.WhenAll(tasks);
         }
 
-        public IObservable<T> GetRecords<T>(IDatabaseAsync database, IDataKey dataKey, long fromRecord = 0, long toRecord = -1)
+        public IObservable<T> GetRecords(IDatabaseAsync database, IDataKey dataKey, long fromRecord = 0, long toRecord = -1)
         {
             if (database == null)
             {
@@ -120,7 +120,7 @@ namespace Wikiled.Redis.Serialization
                                                async () => await database.HashGetAllAsync(key).ConfigureAwait(false))
                                            .ConfigureAwait(false);
 
-                    var actualValues = ConstructActualValues<T>(result);
+                    var actualValues = ConstructActualValues(result);
                     foreach (var value in actualValues)
                     {
                         observer.OnNext(value);
@@ -136,17 +136,17 @@ namespace Wikiled.Redis.Serialization
             return database.HashLengthAsync(key);
         }
 
-        private IEnumerable<T> ConstructActualValues<T>(HashEntry[] result)
+        private IEnumerable<T> ConstructActualValues(HashEntry[] result)
         {
-            var values = GetRedisValues<T>(result);
-            var actualValues = objectSerialization.GetInstances<T>(values);
+            var values = GetRedisValues(result);
+            var actualValues = objectSerialization.GetInstances(values);
             return actualValues;
         }
 
-        private RedisValue[] GetRedisValues<T>(HashEntry[] result)
+        private RedisValue[] GetRedisValues(HashEntry[] result)
         {
             var table = result.ToDictionary(item => item.Name, item => item.Value);
-            var columns = objectSerialization.GetColumns<T>();
+            var columns = objectSerialization.GetColumns();
             var values = new RedisValue[columns.Length];
             for (var i = 0; i < columns.Length; i++)
             {

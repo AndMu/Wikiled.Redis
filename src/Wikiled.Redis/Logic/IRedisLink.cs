@@ -1,6 +1,7 @@
 ﻿using System;
 using StackExchange.Redis;
 using Wikiled.Redis.Channels;
+using Wikiled.Redis.Indexing;
 using Wikiled.Redis.Keys;
 using Wikiled.Redis.Logic.Resilience;
 using Wikiled.Redis.Persistency;
@@ -19,7 +20,9 @@ namespace Wikiled.Redis.Logic
 
         IResilience Resilience { get; }
 
-        IHandlingDefinitionFactory DefinitionFactory { get; }
+        IMainIndexManager IndexManager { get; }
+
+        IPersistencyRegistrationHandler PersistencyRegistration { get; }
 
         /// <summary>
         ///     Redis database
@@ -43,14 +46,9 @@ namespace Wikiled.Redis.Logic
 
         IEntitySubscriber EntitySubscriber { get; }
 
-        /// <summary>
-        ///     Get handling definition
-        /// </summary>
-        /// <typeparam name="T">Type</typeparam>
-        /// <returns>handling definition</returns>
-        HandlingDefinition<T> GetDefinition<T>();
+        void Register<T>(ISpecificPersistency<T> persistency);
 
-        ISpecificPersistency GetSpecific<T>();
+        ISpecificPersistency<T> GetSpecific<T>();
 
         /// <summary>
         ///     Resolve type by name
@@ -65,20 +63,6 @@ namespace Wikiled.Redis.Logic
         /// <param name="type"></param>
         /// <returns></returns>
         string GetTypeID(Type type);
-
-        /// <summary>
-        /// Register type definition
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="definition"></param>
-        void RegisterDefinition<T>(HandlingDefinition<T> definition) where T : class;
-
-        /// <summary>
-        ///     Has registered definition
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
-        bool HasDefinition<T>();
 
         /// <summary>
         ///     Get client which performs actions in transaction

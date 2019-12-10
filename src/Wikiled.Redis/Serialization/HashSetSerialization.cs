@@ -3,49 +3,34 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
-using Wikiled.Common.Logging;
-using Wikiled.Redis.Logic;
 
 namespace Wikiled.Redis.Serialization
 {
-    public class HashSetSerialization : IObjectSerialization
+    public class HashSetSerialization<T> : IObjectSerialization<T>
     {
-        private readonly IRedisLink link;
+        private readonly ILogger<HashSetSerialization<T>> log;
 
-        private static readonly ILogger log = ApplicationLogging.CreateLogger<HashSetSerialization>();
+        private readonly IKeyValueSerializer<T> serializer;
 
-        public HashSetSerialization(IRedisLink link)
+        public HashSetSerialization(ILogger<HashSetSerialization<T>> log, IKeyValueSerializer<T> serializer)
         {
-            this.link = link ?? throw new ArgumentNullException(nameof(link));
+            this.log = log ?? throw new ArgumentNullException(nameof(log));
+            this.serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
         }
 
-        public string[] GetColumns<T>()
+        public string[] GetColumns()
         {
-            var definition = link.GetDefinition<T>();
-            if (definition.KeyValueSerializer == null)
-            {
-                log.LogError("Serializer not found");
-                return new string[] { };
-            }
-
-            return definition.KeyValueSerializer.Properties;
+            return serializer.Properties;
         }
 
-        public IEnumerable<HashEntry> GetEntries<T>(T instance)
+        public IEnumerable<HashEntry> GetEntries(T instance)
         {
             if (instance == null)
             {
                 throw new ArgumentNullException(nameof(instance));
             }
 
-            var definition = link.GetDefinition<T>();
-            if (definition.KeyValueSerializer == null)
-            {
-                log.LogError("Serializer not found");
-                yield break;
-            }
-
-            var entries = definition.KeyValueSerializer.Serialize(instance)
+            var entries = serializer.Serialize(instance)
                                     .Select(
                                         item => new HashEntry(
                                                     item.Key,
@@ -57,15 +42,14 @@ namespace Wikiled.Redis.Serialization
             }
         }
 
-        public IEnumerable<T> GetInstances<T>(RedisValue[] values)
+        public IEnumerable<T> GetInstances(RedisValue[] values)
         {
             if (values == null)
             {
                 throw new ArgumentNullException(nameof(values));
             }
-
-            var definition = link.GetDefinition<T>();
-            return definition.KeyValueSerializer.DeserializeStream(GetValues(definition.KeyValueSerializer.Properties, values));
+            
+            return serializer.DeserializeStream(GetValues(serializer.Properties, values));
         }
 
         private IEnumerable<KeyValuePair<string, string>> GetValues(string[] names, RedisValue[] values)

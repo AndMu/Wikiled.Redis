@@ -11,15 +11,15 @@ using Wikiled.Redis.Logic;
 
 namespace Wikiled.Redis.Serialization
 {
-    public class SortedSetSerialization : BaseSetSerialization, ISpecificPersistency
+    public class SortedSetSerialization<T> : BaseSetSerialization, ISpecificPersistency<T>
     {
         private readonly IRedisLink link;
 
-        private readonly ILogger<SortedSetSerialization> log;
+        private readonly ILogger<SortedSetSerialization<T>> log;
 
         private readonly IMainIndexManager mainIndexManager;
 
-        public SortedSetSerialization(ILogger<SortedSetSerialization> log, IRedisLink link, IMainIndexManager mainIndexManager)
+        public SortedSetSerialization(ILogger<SortedSetSerialization<T>> log, IRedisLink link, IMainIndexManager mainIndexManager)
             : base(log, link, mainIndexManager)
         {
             this.link = link ?? throw new ArgumentNullException(nameof(link));
@@ -27,7 +27,7 @@ namespace Wikiled.Redis.Serialization
             this.log = log ?? throw new ArgumentNullException(nameof(log));
         }
 
-        public Task AddRecord<T>(IDatabaseAsync database, IDataKey key, params T[] instances)
+        public Task AddRecord(IDatabaseAsync database, IDataKey key, params T[] instances)
         {
             if (database == null)
             {
@@ -47,7 +47,7 @@ namespace Wikiled.Redis.Serialization
             return AddRecords(database, new[] { key }, instances);
         }
 
-        public Task AddRecords<T>(IDatabaseAsync database, IEnumerable<IDataKey> keys, params T[] instances)
+        public Task AddRecords(IDatabaseAsync database, IEnumerable<IDataKey> keys, params T[] instances)
         {
             if (database == null)
             {
@@ -85,7 +85,7 @@ namespace Wikiled.Redis.Serialization
             return Task.WhenAll(tasks);
         }
 
-        public IObservable<T> GetRecords<T>(IDatabaseAsync database, IDataKey dataKey, long fromRecord = 0, long toRecord = -1)
+        public IObservable<T> GetRecords(IDatabaseAsync database, IDataKey dataKey, long fromRecord = 0, long toRecord = -1)
         {
             if (database == null)
             {

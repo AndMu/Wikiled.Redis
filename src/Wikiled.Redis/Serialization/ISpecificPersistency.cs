@@ -6,7 +6,7 @@ using Wikiled.Redis.Keys;
 
 namespace Wikiled.Redis.Serialization
 {
-    public interface ISpecificPersistency
+    public interface ISpecificPersistency<T>
     {
         /// <summary>
         ///     Add single key record
@@ -16,7 +16,7 @@ namespace Wikiled.Redis.Serialization
         /// <param name="key"></param>
         /// <param name="instances"></param>
         /// <returns></returns>
-        Task AddRecord<T>(IDatabaseAsync database, IDataKey key, params T[] instances);
+        Task AddRecord(IDatabaseAsync database, IDataKey key, params T[] instances);
 
         /// <summary>
         ///     Add records
@@ -26,7 +26,7 @@ namespace Wikiled.Redis.Serialization
         /// <param name="keys"></param>
         /// <param name="instances"></param>
         /// <returns></returns>
-        Task AddRecords<T>(IDatabaseAsync database, IEnumerable<IDataKey> keys, params T[] instances);
+        Task AddRecords(IDatabaseAsync database, IEnumerable<IDataKey> keys, params T[] instances);
 
         /// <summary>
         ///     Remove all keys
@@ -63,7 +63,7 @@ namespace Wikiled.Redis.Serialization
         /// <param name="fromRecord"></param>
         /// <param name="toRecord"></param>
         /// <returns></returns>
-        IObservable<T> GetRecords<T>(IDatabaseAsync database, IDataKey dataKey, long fromRecord = 0, long toRecord = -1);
+        IObservable<T> GetRecords(IDatabaseAsync database, IDataKey dataKey, long fromRecord = 0, long toRecord = -1);
 
         /// <summary>
         /// Count records
