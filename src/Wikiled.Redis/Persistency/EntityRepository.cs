@@ -32,7 +32,7 @@ namespace Wikiled.Redis.Persistency
 
         public IObservable<(IDataKey Key, string Command, T Intance)> SubscribeToChanges()
         {
-            subscription ??= Redis.EntitySubscriber.Subscribe(this).ObserveOn(TaskPoolScheduler.Default);
+            subscription ??= Redis.EntitySubscriber.Subscribe(this);
             return subscription;
         }
 

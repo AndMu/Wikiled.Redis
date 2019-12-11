@@ -22,6 +22,8 @@ namespace Wikiled.Redis.UnitTests.Persistency
 
         private Mock<IRedisClient> mockClient;
 
+        private Mock<IPersistencyRegistrationHandler> _persistencyHandler;
+
         private Mock<IDatabase> database;
 
         private IdentityRepository instance;
@@ -39,11 +41,13 @@ namespace Wikiled.Redis.UnitTests.Persistency
 
             database = new Mock<IDatabase>();
             mockClient = new Mock<IRedisClient>();
+            _persistencyHandler = new Mock<IPersistencyRegistrationHandler>();
             mockRedisLink.Setup(item => item.Database).Returns(database.Object);
             mockRedisLink.Setup(item => item.StartTransaction()).Returns(transaction.Object);
             mockRedisLink.Setup(item => item.State).Returns(ChannelState.Open);
             mockRedisLink.Setup(item => item.Name).Returns("T");
             mockRedisLink.Setup(item => item.Client).Returns(mockClient.Object);
+            mockRedisLink.Setup(item => item.PersistencyRegistration).Returns(_persistencyHandler.Object);
             transaction.Setup(item => item.Client).Returns(mockClient.Object);
             instance = CreateUserRepository();
         }
