@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="2.2.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="3.1.0" />
     <PackageReference Include="Microsoft.Reactive.Testing" version="4.3.1" />
     <PackageReference Include="Moq" version="4.13.1" />
     <PackageReference Include="NUnit" version="3.12.0" />
@@ -14,7 +14,8 @@
     <packagereference Include="Microsoft.NET.Test.Sdk" Version="16.4.0"></packagereference>
     <PackageReference Include="protobuf-net" version="2.4.4" />
     <PackageReference Include="StackExchange.Redis" version="2.0.601" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="2.2.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="3.1.0" />
+    <PackageReference Include="Wikiled.Common.Testing.Utilities" Version="1.2.36" />
   </ItemGroup>
 
   <ItemGroup>

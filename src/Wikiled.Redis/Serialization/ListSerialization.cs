@@ -12,26 +12,30 @@ using Wikiled.Redis.Logic;
 
 namespace Wikiled.Redis.Serialization
 {
-    public class ListSerialization : BaseSetSerialization, ISpecificPersistency
+    public class ListSerialization<T> : BaseSetSerialization, ISpecificPersistency<T>
     {
         private readonly IRedisLink link;
 
-        private readonly ILogger<ListSerialization> log;
+        private readonly ILogger<ListSerialization<T>> log;
 
         private readonly IRedisSetList redisSetList;
 
-        public ListSerialization(ILogger<ListSerialization> logger,
+        private readonly IDataSerializer serializer;
+
+        public ListSerialization(ILogger<ListSerialization<T>> logger,
                                  IRedisLink link,
                                  IRedisSetList redisSetList,
-                                 IMainIndexManager indexManager)
+                                 IMainIndexManager indexManager,
+                                 IDataSerializer serializer)
             : base(logger, link, indexManager)
         {
             this.link = link ?? throw new ArgumentNullException(nameof(link));
             this.redisSetList = redisSetList ?? throw new ArgumentNullException(nameof(redisSetList));
-            log = logger;
+            this.serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
+            log = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public Task AddRecord<T>(IDatabaseAsync database, IDataKey key, params T[] instances)
+        public Task AddRecord(IDatabaseAsync database, IDataKey key, params T[] instances)
         {
             if (database == null)
             {
@@ -52,7 +56,7 @@ namespace Wikiled.Redis.Serialization
             return redisSetList.SaveItems(database, key, redisValues);
         }
 
-        public Task AddRecords<T>(IDatabaseAsync database, IEnumerable<IDataKey> keys, params T[] instances)
+        public Task AddRecords(IDatabaseAsync database, IEnumerable<IDataKey> keys, params T[] instances)
         {
             if (database == null)
             {
@@ -73,7 +77,7 @@ namespace Wikiled.Redis.Serialization
             return Task.WhenAll(task);
         }
 
-        public IObservable<T> GetRecords<T>(IDatabaseAsync database, IDataKey dataKey, long fromRecord = 0, long toRecord = -1)
+        public IObservable<T> GetRecords(IDatabaseAsync database, IDataKey dataKey, long fromRecord = 0, long toRecord = -1)
         {
             if (database == null)
             {
@@ -91,7 +95,7 @@ namespace Wikiled.Redis.Serialization
                 {
                     var items = await link.Resilience.AsyncRetryPolicy.ExecuteAsync(async () => await redisSetList.GetRedisValues(database, key, fromRecord, toRecord).ConfigureAwait(false))
                                           .ConfigureAwait(false);
-                    var values = GetValues<T>(key, items);
+                    var values = GetValues(key, items);
                     foreach (var value in values)
                     {
                         observer.OnNext(value);
@@ -107,20 +111,18 @@ namespace Wikiled.Redis.Serialization
             return redisSetList.GetLength(database, key);
         }
 
-        private RedisValue GetValue<T>(T instance)
+        private RedisValue GetValue(T instance)
         {
             if (!RedisValueExtractor.TryParsePrimitive(instance, out RedisValue redisValue))
             {
-                var definition = link.GetDefinition<T>();
-                return definition.DataSerializer.Serialize(instance);
+                return serializer.Serialize(instance);
             }
 
             return redisValue;
         }
 
-        private IEnumerable<T> GetValues<T>(RedisKey key, RedisValue[] values)
+        private IEnumerable<T> GetValues(RedisKey key, RedisValue[] values)
         {
-            var definition = link.GetDefinition<T>();
             foreach (var value in values)
             {
                 if (!value.HasValue)
@@ -143,7 +145,7 @@ namespace Wikiled.Redis.Serialization
                         yield break;
                     }
 
-                    yield return definition.DataSerializer.Deserialize<T>(data);
+                    yield return serializer.Deserialize<T>(data);
                 }
             }
         }

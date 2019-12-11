@@ -8,7 +8,7 @@ namespace Wikiled.Redis.Serialization
     {
         Task<long> GetLength(IDatabaseAsync database, RedisKey key);
 
-        Task<RedisValue[]> GetRedisValues(IDatabaseAsync database, RedisKey key, long from, long to);
+        Task<RedisValue[]> GetRedisValues(IDatabaseAsync database, RedisKey key, long from = 0, long to = -1);
 
         Task SaveItems(IDatabaseAsync database, IDataKey key, params RedisValue[] redisValues);
     }

@@ -12,10 +12,8 @@ namespace Wikiled.Redis.Serialization
     /// </summary>
     /// <typeparam name="T"></typeparam>
     public class KeyValueSerializer<T> : IKeyValueSerializer<T>
-        where T : class
+        where T : class, new()
     {
-        private readonly Func<T> factory;
-
         private static readonly ILogger log = ApplicationLogging.CreateLogger("KeyValueSerializer");
 
         private readonly List<Func<T, KeyValuePair<string, string>>> readActions = new List<Func<T, KeyValuePair<string, string>>>();
@@ -23,9 +21,8 @@ namespace Wikiled.Redis.Serialization
         private readonly Dictionary<string, Action<KeyValuePair<string, string>, T>> writeActions =
             new Dictionary<string, Action<KeyValuePair<string, string>, T>>();
 
-        public KeyValueSerializer(Func<T> factory)
+        public KeyValueSerializer()
         {
-            this.factory = factory;
             BuildTypeMap();
         }
 
@@ -49,7 +46,7 @@ namespace Wikiled.Redis.Serialization
             {
                 if(total == 0)
                 {
-                    instance = factory();
+                    instance = new T();
                 }
 
                 total++;

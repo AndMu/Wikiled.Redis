@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using Wikiled.Redis.Channels;
 using Wikiled.Redis.IntegrationTests.MockData;
 using Wikiled.Redis.Keys;
-using Wikiled.Redis.Logic;
 using Wikiled.Redis.Serialization;
 
 namespace Wikiled.Redis.IntegrationTests.Persistency
@@ -19,7 +18,7 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
         [TestCase(false)]
         public async Task KeyValue(bool isSet)
         {
-            Redis.RegisterHashType<Identity>();
+            Redis.PersistencyRegistration.RegisterHashsetList<Identity>();
             Key.AddIndex(new IndexKey("Data", isSet));
             await Redis.Client.AddRecord(Key, Routing).ConfigureAwait(false);
             var result = await Redis.Client.GetRecords<Identity>(Key).FirstAsync();
@@ -30,7 +29,7 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
         [Test]
         public async Task SaveComplex()
         {
-            Redis.RegisterHashType<ComplexData>();
+            Redis.PersistencyRegistration.RegisterHashsetList<ComplexData>();
             var data = new ComplexData();
             data.Date = new DateTime(2012, 02, 02);
             var newKey = new ObjectKey("Complex");
@@ -42,7 +41,7 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
         [Test]
         public async Task Single()
         {
-            Redis.RegisterHashType<Identity>().IsSingleInstance = true;
+            Redis.PersistencyRegistration.RegisterHashsetSingle<Identity>();
             Routing.ApplicationId = null;
             await Redis.Client.AddRecord(RepositoryKey, Routing).ConfigureAwait(false);
             RepositoryKey.AddIndex(new IndexKey(Repository.Object, "Data", true));
@@ -60,7 +59,7 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
         [Test]
         public async Task AddUpdate()
         {
-            Redis.RegisterHashType<Identity>().IsSingleInstance = true;
+            Redis.PersistencyRegistration.RegisterHashsetSingle<Identity>();
             RepositoryKey.AddIndex(new IndexKey(Repository.Object, "Data", true));
             await Redis.Client.DeleteAll<Identity>(RepositoryKey).ConfigureAwait(false);
             await Redis.Client.AddRecord(RepositoryKey, Routing).ConfigureAwait(false);
@@ -68,13 +67,10 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
             await Redis.Client.AddRecord(RepositoryKey, Routing).ConfigureAwait(false);
         }
 
-        [TestCase(true)]
-        [TestCase(false)]
-        public async Task TestIdentity(bool useSets)
+        [Test]
+        public async Task TestIdentity()
         {
-            var definition = Redis.RegisterHashType<Identity>();
-            definition.IsSingleInstance = true;
-            definition.IsSet = useSets;
+            Redis.PersistencyRegistration.RegisterHashsetSingle<Identity>();
 
             var key1 = new RepositoryKey(Repository.Object, new ObjectKey("Test1"));
             key1.AddIndex(ListAll);
@@ -101,7 +97,7 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
         [Test]
         public async Task SaveDictionary()
         {
-            Redis.RegisterHashType(new DictionarySerializer(new[] { "Result" }));
+            Redis.PersistencyRegistration.RegisterHashsetList(new DictionarySerializer(new[] { "Result" }));
             var table = new Dictionary<string, string>();
             table["Result"] = "one";
             await Redis.Client.AddRecord(Key, table).ConfigureAwait(false);

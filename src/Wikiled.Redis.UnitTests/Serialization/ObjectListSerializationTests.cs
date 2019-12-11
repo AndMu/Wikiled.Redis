@@ -2,13 +2,13 @@
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.IO;
 using Wikiled.Redis.Keys;
 using Wikiled.Redis.Logic;
 using Wikiled.Redis.Serialization;
 using Moq;
 using NUnit.Framework;
 using StackExchange.Redis;
+using Wikiled.Common.Testing.Utilities.Reflection;
 using Wikiled.Redis.Channels;
 using Wikiled.Redis.Config;
 using Wikiled.Redis.Indexing;
@@ -19,7 +19,7 @@ namespace Wikiled.Redis.UnitTests.Serialization
     [TestFixture]
     public class ObjectListSerializationTests
     {
-        private ObjectListSerialization instance;
+        private ObjectListSerialization<Identity> instance;
 
         private ObjectKey key;
 
@@ -27,7 +27,7 @@ namespace Wikiled.Redis.UnitTests.Serialization
 
         private Mock<IDatabaseAsync> database;
 
-        private Mock<IObjectSerialization> objecMock;
+        private Mock<IObjectSerialization<Identity>> objecMock;
 
         private Identity data;
 
@@ -48,21 +48,17 @@ namespace Wikiled.Redis.UnitTests.Serialization
             redisSetList = new Mock<IRedisSetList>();
             link.Setup(item => item.State).Returns(ChannelState.Open);
             link.Setup(item => item.LinkId).Returns(0);
-            objecMock = new Mock<IObjectSerialization>();
-            link.Setup(item => item.GetDefinition<Identity>()).Returns(Global.HandlingDefinitionFactory.ConstructGeneric<Identity>(link.Object));
+            objecMock = new Mock<IObjectSerialization<Identity>>();
             database = new Mock<IDatabaseAsync>();
             key = new ObjectKey("Test");
             data = new Identity();
-            instance = new ObjectListSerialization(link.Object, objecMock.Object, redisSetList.Object, mainIndexManager.Object);
+            instance = new ObjectListSerialization<Identity>(link.Object, objecMock.Object, redisSetList.Object, mainIndexManager.Object);
         }
 
         [Test]
         public void Construct()
         {
-            Assert.Throws<ArgumentNullException>(() => new ObjectListSerialization(null, objecMock.Object, redisSetList.Object, mainIndexManager.Object));
-            Assert.Throws<ArgumentNullException>(() => new ObjectListSerialization(link.Object, null, redisSetList.Object, mainIndexManager.Object));
-            Assert.Throws<ArgumentNullException>(() => new ObjectListSerialization(link.Object, objecMock.Object, null, mainIndexManager.Object));
-            Assert.Throws<ArgumentNullException>(() => new ObjectListSerialization(link.Object, objecMock.Object, redisSetList.Object, null));
+            ConstructorHelper.ConstructorMustThrowArgumentNullException<ObjectListSerialization<Identity>>();
         }
 
         [Test]
@@ -90,7 +86,7 @@ namespace Wikiled.Redis.UnitTests.Serialization
         {
             Assert.Throws<ArgumentNullException>(() => instance.AddRecord(null, key, data));
             Assert.Throws<ArgumentNullException>(() => instance.AddRecord(database.Object, null, data));
-            Assert.Throws<ArgumentNullException>(() => instance.AddRecord<Identity>(database.Object, key, null));
+            Assert.Throws<ArgumentNullException>(() => instance.AddRecord(database.Object, key, null));
             await instance.AddRecord(database.Object, key, data).ConfigureAwait(false);
             database.Verify(item => item.HashSetAsync(It.IsAny<RedisKey>(), It.IsAny<HashEntry[]>(), CommandFlags.None));
             redisSetList.Verify(
@@ -119,10 +115,10 @@ namespace Wikiled.Redis.UnitTests.Serialization
         [Test]
         public async Task GetRecords()
         {
-            Assert.ThrowsAsync<ArgumentNullException>(async () => await instance.GetRecords<Identity>(database.Object, null));
-            Assert.ThrowsAsync<ArgumentNullException>(async () => await instance.GetRecords<Identity>(null, key));
-            objecMock.Setup(item => item.GetColumns<Identity>()).Returns(new[] { "Test" });
-            objecMock.Setup(item => item.GetInstances<Identity>(It.IsAny<RedisValue[]>())).Returns(new[] { data });
+            Assert.ThrowsAsync<ArgumentNullException>(async () => await instance.GetRecords(database.Object, null));
+            Assert.ThrowsAsync<ArgumentNullException>(async () => await instance.GetRecords(null, key));
+            objecMock.Setup(item => item.GetColumns()).Returns(new[] { "Test" });
+            objecMock.Setup(item => item.GetInstances(It.IsAny<RedisValue[]>())).Returns(new[] { data });
 
             database.Setup(item => item.KeyExistsAsync(":object:Test", CommandFlags.None))
                     .Returns(Task.FromResult(true));
@@ -138,18 +134,18 @@ namespace Wikiled.Redis.UnitTests.Serialization
                     It.IsAny<RedisValue[]>(),
                     CommandFlags.PreferMaster))
                     .Returns(Task.FromResult(new RedisValue[] { }));
-            var record = await instance.GetRecords<Identity>(database.Object, key).FirstAsync();
+            var record = await instance.GetRecords(database.Object, key).FirstAsync();
             Assert.AreSame(data, record);
         }
 
         [Test]
         public async Task GetRecordsRange()
         {
-            Assert.ThrowsAsync<ArgumentNullException>(async () => await instance.GetRecords<Identity>(database.Object, null, 0, 10));
-            Assert.ThrowsAsync<ArgumentNullException>(async () => await instance.GetRecords<Identity>(null, key, 0, 10));
+            Assert.ThrowsAsync<ArgumentNullException>(async () => await instance.GetRecords(database.Object, null, 0, 10));
+            Assert.ThrowsAsync<ArgumentNullException>(async () => await instance.GetRecords(null, key, 0, 10));
 
-            objecMock.Setup(item => item.GetColumns<Identity>()).Returns(new[] { "Test" });
-            objecMock.Setup(item => item.GetInstances<Identity>(It.IsAny<RedisValue[]>())).Returns(new[] { data });
+            objecMock.Setup(item => item.GetColumns()).Returns(new[] { "Test" });
+            objecMock.Setup(item => item.GetInstances(It.IsAny<RedisValue[]>())).Returns(new[] { data });
 
             database.Setup(item => item.KeyExistsAsync(":object:Test", CommandFlags.None))
                     .Returns(Task.FromResult(true));
@@ -165,7 +161,7 @@ namespace Wikiled.Redis.UnitTests.Serialization
                     "nosort",
                     It.IsAny<RedisValue[]>(),
                     CommandFlags.PreferMaster)).Returns(Task.FromResult(new RedisValue[] { }));
-            var record = await instance.GetRecords<Identity>(database.Object, key, 1, 10).FirstAsync();
+            var record = await instance.GetRecords(database.Object, key, 1, 10).FirstAsync();
             Assert.AreSame(data, record);
         }
     }

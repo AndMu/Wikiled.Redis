@@ -16,7 +16,7 @@ namespace Wikiled.Redis.UnitTests.Serialization
         [SetUp]
         public void Setup()
         {
-            serializer = new KeyValueSerializer<TestType>(() => new TestType());
+            serializer = new KeyValueSerializer<TestType>();
             data = new TestType();
             data.Status1 = BasicTypes.Char;
             data.Data = "TestId";

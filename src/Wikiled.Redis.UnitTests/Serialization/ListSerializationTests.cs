@@ -10,6 +10,7 @@ using Wikiled.Redis.Serialization;
 using Moq;
 using NUnit.Framework;
 using StackExchange.Redis;
+using Wikiled.Common.Testing.Utilities.Reflection;
 using Wikiled.Redis.Channels;
 using Wikiled.Redis.Data;
 using Wikiled.Redis.Indexing;
@@ -25,7 +26,7 @@ namespace Wikiled.Redis.UnitTests.Serialization
 
         private Mock<IDatabaseAsync> database;
 
-        private ListSerialization instance;
+        private ListSerialization<MainDataOne> instance;
 
         private ObjectKey key;
 
@@ -50,18 +51,14 @@ namespace Wikiled.Redis.UnitTests.Serialization
             redis.Setup(item => item.LinkId).Returns(0);
             redis.Setup(item => item.Generator).Returns(new ScriptGenerator());
             serializer = new Mock<IDataSerializer>();
-            redis.Setup(item => item.GetDefinition<MainDataOne>()).Returns(Global.HandlingDefinitionFactory.ConstructGeneric<MainDataOne>(redis.Object, serializer.Object));
             database = new Mock<IDatabaseAsync>();
-            instance = new ListSerialization(new NullLogger<ListSerialization>(), redis.Object, redisSetList.Object, indexManager.Object);
+            instance = new ListSerialization<MainDataOne>(new NullLogger<ListSerialization<MainDataOne>>(), redis.Object, redisSetList.Object, indexManager.Object, serializer.Object);
         }
 
         [Test]
         public void Construct()
         {
-            Assert.Throws<ArgumentNullException>(() => new ListSerialization(new NullLogger<ListSerialization>(), null, redisSetList.Object, indexManager.Object));
-            Assert.Throws<ArgumentNullException>(() => new ListSerialization(new NullLogger<ListSerialization>(), redis.Object, null, indexManager.Object));
-            Assert.Throws<ArgumentNullException>(() => new ListSerialization(new NullLogger<ListSerialization>(), redis.Object, redisSetList.Object, null));
-            Assert.Throws<ArgumentNullException>(() => new ListSerialization(null, redis.Object, redisSetList.Object, indexManager.Object));
+            ConstructorHelper.ConstructorMustThrowArgumentNullException<ListSerialization<MainDataOne>>();
         }
 
         [Test]
@@ -77,7 +74,7 @@ namespace Wikiled.Redis.UnitTests.Serialization
         public async Task AddRecord()
         {
             Assert.Throws<ArgumentNullException>(() => instance.AddRecord(database.Object, null, data));
-            Assert.Throws<ArgumentNullException>(() => instance.AddRecord<Identity>(database.Object, key, null));
+            Assert.Throws<ArgumentNullException>(() => instance.AddRecord(database.Object, key, null));
             Assert.Throws<ArgumentNullException>(() => instance.AddRecord(null, key, data));
             await instance.AddRecord(database.Object, key, data).ConfigureAwait(false);
             redisSetList.Verify(item => item.SaveItems(database.Object, It.IsAny<IDataKey>(), It.IsAny<RedisValue>()));
@@ -86,8 +83,8 @@ namespace Wikiled.Redis.UnitTests.Serialization
         [Test]
         public async Task GetRecords()
         {
-            Assert.ThrowsAsync<ArgumentNullException>(async () => await instance.GetRecords<MainDataOne>(database.Object, null));
-            Assert.ThrowsAsync<ArgumentNullException>(async () => await instance.GetRecords<MainDataOne>(null, key));
+            Assert.ThrowsAsync<ArgumentNullException>(async () => await instance.GetRecords(database.Object, null));
+            Assert.ThrowsAsync<ArgumentNullException>(async () => await instance.GetRecords(null, key));
 
             var dataInstance = new MainDataOne();
             dataInstance.Name = "Test";
@@ -97,15 +94,15 @@ namespace Wikiled.Redis.UnitTests.Serialization
                 item.GetRedisValues(It.IsAny<IDatabaseAsync>(), It.IsAny<RedisKey>(), 0, -1))
                     .Returns(Task.FromResult(new RedisValue[] { new byte[] { 1 } }));
 
-            var records = await instance.GetRecords<MainDataOne>(database.Object, key).ToArray();
+            var records = await instance.GetRecords(database.Object, key).ToArray();
             Assert.AreEqual(1, records.Count());
         }
 
         [Test]
         public async Task GetRecordsRange()
         {
-            Assert.ThrowsAsync<ArgumentNullException>(async () => await instance.GetRecords<MainDataOne>(database.Object, null, 1, 10));
-            Assert.ThrowsAsync<ArgumentNullException>(async () => await instance.GetRecords<MainDataOne>(null, key, 1, 10));
+            Assert.ThrowsAsync<ArgumentNullException>(async () => await instance.GetRecords(database.Object, null, 1, 10));
+            Assert.ThrowsAsync<ArgumentNullException>(async () => await instance.GetRecords(null, key, 1, 10));
             database.Setup(
                 item =>
                 item.ScriptEvaluateAsync(
@@ -113,7 +110,7 @@ namespace Wikiled.Redis.UnitTests.Serialization
                     It.IsAny<RedisKey[]>(),
                     It.IsAny<RedisValue[]>(),
                     CommandFlags.PreferMaster)).Returns(Task.FromResult((RedisResult)null));
-            await instance.GetRecords<Identity>(database.Object, key, 1, 10).ToArray();
+            await instance.GetRecords(database.Object, key, 1, 10).ToArray();
         }
     }
 }

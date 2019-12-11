@@ -20,7 +20,7 @@ namespace Wikiled.Redis.Serialization
 
         public IEnumerable<Dictionary<string, string>> DeserializeStream(IEnumerable<KeyValuePair<string, string>> entries)
         {
-            Dictionary<string, string> dictionary = new Dictionary<string, string>();
+            var dictionary = new Dictionary<string, string>();
             foreach (var entry in entries)
             {
                 if (dictionary.ContainsKey(entry.Key))
