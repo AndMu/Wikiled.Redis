@@ -28,7 +28,7 @@ namespace Wikiled.Redis.Keys
             }
 
             id = id.ToLowerInvariant();
-            if (string.IsNullOrEmpty(EntityPrefix))
+            if (!string.IsNullOrEmpty(EntityPrefix))
             {
                 string[] key = { EntityPrefix, id };
                 return new RepositoryKey(repository, new ObjectKey(key));
