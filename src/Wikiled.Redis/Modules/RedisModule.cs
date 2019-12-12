@@ -2,9 +2,11 @@
 using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;
+using Microsoft.IO;
 using StackExchange.Redis;
 using Wikiled.Common.Utilities.Modules;
 using Wikiled.Redis.Config;
+using Wikiled.Redis.Data;
 using Wikiled.Redis.Logic;
 using Wikiled.Redis.Logic.Resilience;
 using Wikiled.Redis.Persistency;
@@ -36,7 +38,7 @@ namespace Wikiled.Redis.Modules
             services.AddSingleton<IRedisConfiguration>(RedisConfiguration);
             services.AddSingleton<IResilience, ResilienceHandler>();
             services.AddSingleton<IEntitySubscriber, EntitySubscriber>();
-            services.AddSingleton<IHandlingDefinitionFactory, HandlingDefinitionFactory>();
+            services.AddSingleton<IDataSerializer>(ctx => new FlatProtoDataSerializer(false, ctx.GetService<RecyclableMemoryStreamManager>()));
             services.AddSingleton(ResilienceConfig);
 
             services.AddTransient<RedisLink>();

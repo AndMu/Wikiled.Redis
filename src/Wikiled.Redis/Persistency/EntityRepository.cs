@@ -16,7 +16,7 @@ namespace Wikiled.Redis.Persistency
         {
             Log = log ?? throw new ArgumentNullException(nameof(log));
             Redis = redis ?? throw new ArgumentNullException(nameof(redis));
-            redis.RegisterHashType<T>().IsSingleInstance = true;
+            redis.PersistencyRegistration.RegisterHashsetSingle<T>();
             Name = $"{entity}s";
             Entity = new EntityKey(extended ? entity : string.Empty, this);
         }
@@ -31,7 +31,7 @@ namespace Wikiled.Redis.Persistency
 
         public IObservable<(IDataKey Key, string Command, T Intance)> SubscribeToChanges()
         {
-            subscription ??= Redis.EntitySubscriber.Subscribe(this).ObserveOn(TaskPoolScheduler.Default);
+            subscription ??= Redis.EntitySubscriber.Subscribe(this);
             return subscription;
         }
 
@@ -49,7 +49,6 @@ namespace Wikiled.Redis.Persistency
         {
             return await Redis.Client.GetRecords<T>(key, start, end).ToArray();
         }
-
 
         public Task<T[]> LoadPage(int start = 0, int end = -1)
         {

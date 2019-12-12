@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Wikiled.Common.Reflection;
 using Wikiled.Redis.Channels;
 using Wikiled.Redis.Config;
+using Wikiled.Redis.Data;
 using Wikiled.Redis.Indexing;
 using Wikiled.Redis.Keys;
 using Wikiled.Redis.Logic.Resilience;
@@ -24,41 +25,42 @@ namespace Wikiled.Redis.Logic
 
         private readonly ILogger<RedisLink> log;
 
-        private readonly ConcurrentDictionary<Type, ISpecificPersistency> addRecordActions = new ConcurrentDictionary<Type, ISpecificPersistency>();
-        
-        private readonly Dictionary<Type, object> typeHandler = new Dictionary<Type, object>();
+        private readonly Dictionary<Type, object> persistencyTable = new Dictionary<Type, object>();
 
         private readonly ConcurrentDictionary<Type, string> typeIdTable = new ConcurrentDictionary<Type, string>();
 
         private readonly ConcurrentDictionary<string, Type> typeNameTable = new ConcurrentDictionary<string, Type>();
 
-        private readonly IMainIndexManager mainIndexManager;
+        private readonly IDataSerializer defaultSerialiser; 
 
         public RedisLink(ILoggerFactory loggerFactory,
                          IRedisConfiguration configuration,
                          IRedisMultiplexer multiplexer,
-                         IHandlingDefinitionFactory handlingDefinitionFactory,
                          IResilience resilience,
-                         IEntitySubscriber entitySubscriber)
+                         IEntitySubscriber entitySubscriber,
+                         IDataSerializer defaultSerialiser)
             : base(configuration?.ServiceName)
         {
             this.loggerFactory = loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory));
             Multiplexer = multiplexer ?? throw new ArgumentNullException(nameof(multiplexer));
 
-            DefinitionFactory = handlingDefinitionFactory ?? throw new ArgumentNullException(nameof(handlingDefinitionFactory));
             Resilience = resilience ?? throw new ArgumentNullException(nameof(resilience));
             EntitySubscriber = entitySubscriber;
+            this.defaultSerialiser = defaultSerialiser ?? throw new ArgumentNullException(nameof(defaultSerialiser));
             log = loggerFactory.CreateLogger<RedisLink>();
             Generator = new ScriptGenerator();
-            mainIndexManager = new MainIndexManager(new IndexManagerFactory(loggerFactory, this));
-            Client = new RedisClient(loggerFactory?.CreateLogger<RedisClient>(), this, mainIndexManager);
+            IndexManager = new MainIndexManager(new IndexManagerFactory(loggerFactory, this));
+            Client = new RedisClient(loggerFactory?.CreateLogger<RedisClient>(), this, IndexManager);
+            PersistencyRegistration = new PersistencyRegistrationHandler(loggerFactory, this);
         }
+
+        public IMainIndexManager IndexManager { get; }
+
+        public IPersistencyRegistrationHandler PersistencyRegistration { get; }
 
         public IRedisClient Client { get; }
 
         public IResilience Resilience { get; }
-
-        public IHandlingDefinitionFactory DefinitionFactory { get; }
 
         public IDatabase Database => Multiplexer.Database;
 
@@ -72,62 +74,43 @@ namespace Wikiled.Redis.Logic
 
         protected override ILogger Logger => log;
 
-        public HandlingDefinition<T> GetDefinition<T>()
+        public void Register<T>(ISpecificPersistency<T> persistency)
         {
-            Type type = typeof(T);
-            if (!typeHandler.TryGetValue(type, out var definition))
+            if (persistency == null)
             {
-                definition = DefinitionFactory.ConstructGeneric<T>(this);
-                typeHandler[type] = definition;
+                throw new ArgumentNullException(nameof(persistency));
             }
 
-            return (HandlingDefinition<T>)definition;
+            persistencyTable.Add(typeof(T), persistency);
         }
 
-        public ISpecificPersistency GetSpecific<T>()
+        public ISpecificPersistency<T> GetSpecific<T>()
         {
             Type type = typeof(T);
             log.LogDebug("GetSpecific<{0}>", type);
 
-            if (addRecordActions.TryGetValue(type, out var action))
+            if (persistencyTable.TryGetValue(type, out var persistency))
             {
-                return action;
+                return (ISpecificPersistency<T>)persistency;
             }
 
-            var definition = GetDefinition<T>();
-            var setList = definition.IsSet ? (IRedisSetList) new RedisSet(this, mainIndexManager) : new RedisList(this, mainIndexManager);
-
-            if (typeof(T) == typeof(SortedSetEntry))
+            if (type == typeof(SortedSetEntry))
             {
-                action = new SortedSetSerialization( loggerFactory.CreateLogger< SortedSetSerialization>(), this, mainIndexManager);
-            }
-            else if (definition.KeyValueSerializer != null)
-            {
-                var serialization = new HashSetSerialization(this);
-
-                action = definition.IsSingleInstance
-                    ? (ISpecificPersistency) new SingleItemSerialization(loggerFactory.CreateLogger<SingleItemSerialization>(), this, serialization, mainIndexManager)
-                    : new ObjectListSerialization(this, serialization, setList, mainIndexManager);
-            }
-            else if (!definition.IsSingleInstance &&
-                     !definition.ExtractType &&
-                     !definition.IsNormalized)
-            {
-                action = new ListSerialization(loggerFactory.CreateLogger<ListSerialization>(), this, setList, mainIndexManager);
+                log.LogDebug("Creating default sorted set persistency handler");
+                persistency = new SortedSetSerialization<T>(loggerFactory.CreateLogger<SortedSetSerialization<T>>(), this, IndexManager);
             }
             else
             {
-                var serialization = new ObjectHashSetSerialization(this, definition.DataSerializer);
-
-                action = definition.IsSingleInstance
-                    ? new SingleItemSerialization(loggerFactory.CreateLogger<SingleItemSerialization>(), this, serialization, mainIndexManager)
-                    : (ISpecificPersistency) new ObjectListSerialization(this, serialization, setList, mainIndexManager);
+                log.LogDebug("Creating default list persistency handler");
+                persistency = new ListSerialization<T>(loggerFactory.CreateLogger<ListSerialization<T>>(),
+                                                     this,
+                                                     new RedisList(this, IndexManager),
+                                                     IndexManager,
+                                                     defaultSerialiser);
             }
 
-            log.LogDebug("GetSpecific<{0}> - Constructed - {1}", type, action);
-            addRecordActions[type] = action;
-
-            return action;
+            persistencyTable.Add(type, persistency);
+            return (ISpecificPersistency<T>) persistency;
         }
 
         public Type GetTypeByName(string id)
@@ -186,17 +169,11 @@ namespace Wikiled.Redis.Logic
             return typeIdKey.FullKey;
         }
 
-        public bool HasDefinition<T>()
-        {
-            Type type = typeof(T);
-            return typeHandler.ContainsKey(type);
-        }
-
         public IRedisTransaction StartTransaction()
         {
             log.LogDebug("StartTransaction");
             Multiplexer.CheckConnection();
-            return new RedisTransaction(loggerFactory, this, Multiplexer.Database.CreateTransaction(), mainIndexManager);
+            return new RedisTransaction(loggerFactory, this, Multiplexer.Database.CreateTransaction(), IndexManager);
         }
 
         public ISubscriber SubscribeKeyEvents(IDataKey key, Action<KeyspaceEvent> action)
@@ -223,13 +200,13 @@ namespace Wikiled.Redis.Logic
                 throw new ArgumentNullException(nameof(action));
             }
 
-            if (!(GetSpecific<T>() is ObjectListSerialization persistency))
+            if (!(GetSpecific<T>() is ObjectListSerialization<T> persistence))
             {
                 log.LogWarning("Type persistence not supported");
                 return null;
             }
 
-            var typeKey = this.GetKey(new ObjectKey(persistency.GetKeyPrefix<T>(), "*"));
+            var typeKey = this.GetKey(new ObjectKey(persistence.GetKeyPrefix(), "*"));
             return Multiplexer.SubscribeKeyEvents(typeKey, action);
         }
 
@@ -266,18 +243,6 @@ namespace Wikiled.Redis.Logic
             }
 
             return await base.OpenInternal().ConfigureAwait(false);
-        }
-
-        public void RegisterDefinition<T>(HandlingDefinition<T> definition)
-            where T : class
-        {
-            Type type = typeof(T);
-            if (typeHandler.ContainsKey(type))
-            {
-                throw new PersistencyException("Type was already initialized");
-            }
-
-            typeHandler[type] = definition;
         }
     }
 }

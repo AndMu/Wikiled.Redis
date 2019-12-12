@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Debug;
+using Microsoft.Extensions.Logging.Abstractions;
 using Wikiled.Common.Utilities.Modules;
 using Wikiled.Redis.Config;
 using Wikiled.Redis.Modules;
@@ -13,7 +13,7 @@ namespace Wikiled.Redis.IntegrationTests.Helpers
         {
             var service = new ServiceCollection();
             service.AddLogging(builder => builder.AddDebug());
-            service.RegisterModule(new RedisModule(new DebugLogger("Redis"), config));
+            service.RegisterModule(new RedisModule(new NullLogger<RedisModule>(), config));
             service.RegisterModule<CommonModule>();
             Provider = service.BuildServiceProvider();
         }

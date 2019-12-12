@@ -22,11 +22,11 @@ namespace Wikiled.Redis.UnitTests.Persistency
 
         private Mock<IRedisClient> mockClient;
 
+        private Mock<IPersistencyRegistrationHandler> _persistencyHandler;
+
         private Mock<IDatabase> database;
 
         private IdentityRepository instance;
-
-        private Mock<IHandlingDefinitionFactory> handlingDefinition;
 
         private Identity data;
 
@@ -38,19 +38,16 @@ namespace Wikiled.Redis.UnitTests.Persistency
             logger = new NullLogger<IdentityRepository>();
             mockRedisLink = new Mock<IRedisLink>();
             var transaction = new Mock<IRedisTransaction>();
-            handlingDefinition = new Mock<IHandlingDefinitionFactory>();
-            mockRedisLink.Setup(item => item.DefinitionFactory).Returns(handlingDefinition.Object);
-
-            handlingDefinition.Setup(item => item.ConstructGeneric<Identity>(It.IsAny<IRedisLink>(), null))
-                               .Returns(new HandlingDefinition<Identity>(0, null));
 
             database = new Mock<IDatabase>();
             mockClient = new Mock<IRedisClient>();
+            _persistencyHandler = new Mock<IPersistencyRegistrationHandler>();
             mockRedisLink.Setup(item => item.Database).Returns(database.Object);
             mockRedisLink.Setup(item => item.StartTransaction()).Returns(transaction.Object);
             mockRedisLink.Setup(item => item.State).Returns(ChannelState.Open);
             mockRedisLink.Setup(item => item.Name).Returns("T");
             mockRedisLink.Setup(item => item.Client).Returns(mockClient.Object);
+            mockRedisLink.Setup(item => item.PersistencyRegistration).Returns(_persistencyHandler.Object);
             transaction.Setup(item => item.Client).Returns(mockClient.Object);
             instance = CreateUserRepository();
         }
@@ -65,9 +62,9 @@ namespace Wikiled.Redis.UnitTests.Persistency
         [Test]
         public void TestArguments()
         {
-            Assert.ThrowsAsync<ArgumentNullException>(async () => await instance.Save(null));
-            Assert.ThrowsAsync<ArgumentNullException>(async () => await instance.LoadSingle(null));
-            Assert.ThrowsAsync<ArgumentNullException>(async () => await instance.LoadPage(null));
+            Assert.ThrowsAsync<ArgumentNullException>(async () => await instance.Save(null).ConfigureAwait(false));
+            Assert.ThrowsAsync<ArgumentNullException>(async () => await instance.LoadSingle(null).ConfigureAwait(false));
+            Assert.ThrowsAsync<ArgumentNullException>(async () => await instance.LoadPage(null).ConfigureAwait(false));
         }
 
         [Test]
@@ -98,7 +95,7 @@ namespace Wikiled.Redis.UnitTests.Persistency
         public async Task LoadSingle()
         {
             mockClient.Setup(item => item.GetRecords<Identity>(It.IsAny<IDataKey>())).Returns(new[] { new Identity() }.ToObservable);
-            var result = await instance.LoadSingle("Test");
+            var result = await instance.LoadSingle("Test").ConfigureAwait(false);
             Assert.IsNotNull(result);
             mockClient.Verify(item => item.GetRecords<Identity>(It.IsAny<IDataKey>()));
         }

@@ -18,7 +18,7 @@ namespace Wikiled.Redis.Serialization
 
         private readonly IRedisLink link;
 
-        private IMainIndexManager indexManager;
+        private readonly IMainIndexManager indexManager;
 
         public RedisSet(IRedisLink link, IMainIndexManager indexManager)
         {
@@ -31,9 +31,16 @@ namespace Wikiled.Redis.Serialization
             return database.SortedSetLengthAsync(key);
         }
 
-        public Task<RedisValue[]> GetRedisValues(IDatabaseAsync database, RedisKey key, long from, long to)
+        public Task<RedisValue[]> GetRedisValues(IDatabaseAsync database, RedisKey key, long from = 0, long to = -1)
         {
-            return database.SortedSetRangeByScoreAsync(key, from, to, order: Order.Descending);
+            // to and from has a different meaning here
+            if (from != 0 &&
+                to != -1)
+            {
+                return database.SortedSetRangeByScoreAsync(key, from, to, order: Order.Descending);
+            }
+
+            return database.SortedSetRangeByScoreAsync(key, order: Order.Descending);
         }
 
         public Task SaveItems(IDatabaseAsync database, IDataKey key, params RedisValue[] redisValues)

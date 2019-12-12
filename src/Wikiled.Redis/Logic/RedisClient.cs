@@ -20,7 +20,7 @@ namespace Wikiled.Redis.Logic
 
         private readonly ILogger<RedisClient> logger;
 
-        public RedisClient(ILogger<RedisClient> logger, IRedisLink link, IMainIndexManager mainIndexManager,IDatabaseAsync database = null)
+        public RedisClient(ILogger<RedisClient> logger, IRedisLink link, IMainIndexManager mainIndexManager, IDatabaseAsync database = null)
         {
             this.link = link ?? throw new ArgumentNullException(nameof(link));
             this.mainIndexManager = mainIndexManager ?? throw new ArgumentNullException(nameof(mainIndexManager));
@@ -42,7 +42,7 @@ namespace Wikiled.Redis.Logic
                 throw new ArgumentNullException(nameof(instances));
             }
 
-            return  link.Resilience
+            return link.Resilience
                         .AsyncRetryPolicy
                         .ExecuteAsync(async () => await link.GetSpecific<T>().AddRecord(GetDatabase(), key, instances).ConfigureAwait(false));
         }
@@ -152,7 +152,7 @@ namespace Wikiled.Redis.Logic
                 throw new ArgumentNullException(nameof(dataKey));
             }
 
-            return link.GetSpecific<T>().GetRecords<T>(GetDatabase(), dataKey);
+            return link.GetSpecific<T>().GetRecords(GetDatabase(), dataKey);
         }
 
         public Task<long> Count<T>(IDataKey dataKey)

@@ -1,17 +1,19 @@
-﻿using System;
-using System.Linq;
-using Wikiled.Redis.Logic;
-using Wikiled.Redis.Serialization;
+﻿using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using NUnit.Framework;
+using System;
+using System.Linq;
+using Wikiled.Common.Testing.Utilities.Reflection;
 using Wikiled.Redis.Channels;
+using Wikiled.Redis.Logic;
+using Wikiled.Redis.Serialization;
 
 namespace Wikiled.Redis.UnitTests.Serialization
 {
     [TestFixture]
     public class HashSetSerializationTests
     {
-        private HashSetSerialization instance;
+        private HashSetSerialization<Identity> instance;
 
         private Mock<IRedisLink> link;
 
@@ -21,30 +23,26 @@ namespace Wikiled.Redis.UnitTests.Serialization
             link = new Mock<IRedisLink>();
             link.Setup(item => item.State).Returns(ChannelState.Open);
             link.Setup(item => item.LinkId).Returns(0);
-            var definition = Global.HandlingDefinitionFactory.ConstructGeneric<Identity>(link.Object);
-            definition.KeyValueSerializer = new KeyValueSerializer<Identity>(() => new Identity());
-            link.Setup(item => item.GetDefinition<Identity>())
-                .Returns(definition);
-            instance = new HashSetSerialization(link.Object);
+            instance = new HashSetSerialization<Identity>(new NullLogger<HashSetSerialization<Identity>>(), new KeyValueSerializer<Identity>());
         }
 
         [Test]
         public void Construct()
         {
-            Assert.Throws<ArgumentNullException>(() => new HashSetSerialization(null));
+            ConstructorHelper.ConstructorMustThrowArgumentNullException<HashSetSerialization<Identity>>();
         }
 
         [Test]
         public void GetColumns()
         {
-            var columns = instance.GetColumns<Identity>();
+            var columns = instance.GetColumns();
             Assert.AreEqual(4, columns.Length);
         }
 
         [Test]
         public void GetEntries()
         {
-            Assert.Throws<ArgumentNullException>(() => instance.GetEntries<Identity>(null).ToArray());
+            Assert.Throws<ArgumentNullException>(() => instance.GetEntries(null).ToArray());
             var entries = instance.GetEntries(new Identity()).ToArray();
             Assert.AreEqual(4, entries.Length);
         }
@@ -52,8 +50,8 @@ namespace Wikiled.Redis.UnitTests.Serialization
         [Test]
         public void GetInstances()
         {
-            Assert.Throws<ArgumentNullException>(() => instance.GetInstances<Identity>(null).ToArray());
-            var data = instance.GetInstances<Identity>(instance.GetEntries(new Identity()).Select(item => item.Value).ToArray());
+            Assert.Throws<ArgumentNullException>(() => instance.GetInstances(null).ToArray());
+            var data = instance.GetInstances(instance.GetEntries(new Identity()).Select(item => item.Value).ToArray());
             Assert.IsNotNull(data);
         }
     }

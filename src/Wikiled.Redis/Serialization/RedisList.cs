@@ -42,19 +42,22 @@ namespace Wikiled.Redis.Serialization
             var redisKey = link.GetKey(key);
             log.LogDebug("AddSet: <{0}>", key);
 
+            var tasks = new List<Task>(mainIndexManager.Add(database, key));
             var size = GetLimit(key);
-            if(size.HasValue)
+            if (size.HasValue)
             {
                 var list = redisValues.ToList();
                 list.Add(size.Value);
-                return database.ScriptEvaluateAsync(
+                tasks.Add(database.ScriptEvaluateAsync(
                     link.Generator.GenerateInsertScript(true, redisValues.Length),
-                    new[] {redisKey},
-                    list.ToArray());
+                    new[] { redisKey },
+                    list.ToArray()));
             }
-
-            List<Task> tasks = new List<Task>(mainIndexManager.Add(database, key));
-            tasks.Add(database.ListRightPushAsync(redisKey, redisValues));
+            else
+            {
+                tasks.Add(database.ListRightPushAsync(redisKey, redisValues));
+            }
+            
             return Task.WhenAll(tasks);
         }
 
