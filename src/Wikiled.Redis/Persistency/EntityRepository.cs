@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
 using System;
-using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Wikiled.Redis.Keys;
@@ -13,13 +12,13 @@ namespace Wikiled.Redis.Persistency
     {
         private IObservable<(IDataKey Key, string Command, T Intance)> subscription;
 
-        protected EntityRepository(ILogger<EntityRepository<T>> log, IRedisLink redis, string entity)
+        protected EntityRepository(ILogger<EntityRepository<T>> log, IRedisLink redis, string entity, bool extended=false)
         {
             Log = log ?? throw new ArgumentNullException(nameof(log));
             Redis = redis ?? throw new ArgumentNullException(nameof(redis));
             redis.RegisterHashType<T>().IsSingleInstance = true;
             Name = $"{entity}s";
-            Entity = new EntityKey(entity, this);
+            Entity = new EntityKey(extended ? entity : string.Empty, this);
         }
 
         public string Name { get; }

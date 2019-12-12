@@ -6,7 +6,7 @@ namespace Wikiled.Redis.Keys
     public class ObjectKey : BaseKey
     {
         public ObjectKey(string id)
-            : base(id, FieldConstants.Object + ":" + id)
+            : base(id, $"{FieldConstants.Object}:{id}")
         {
             if (string.IsNullOrEmpty(id))
             {
@@ -15,7 +15,7 @@ namespace Wikiled.Redis.Keys
         }
 
         public ObjectKey(params string[] keys)
-            : base(string.Join(":", keys), FieldConstants.Object + ":" + string.Join(":", keys))
+            : base(string.Join(":", keys), $"{FieldConstants.Object}:{string.Join(":", keys)}")
         {
             if (keys == null)
             {

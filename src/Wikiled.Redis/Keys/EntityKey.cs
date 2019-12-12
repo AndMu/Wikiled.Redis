@@ -9,14 +9,14 @@ namespace Wikiled.Redis.Keys
 
         private const string allEntitiesTag = "All";
 
-        public EntityKey(string entityName, IRepository repository)
+        public EntityKey(string entityPrefix, IRepository repository)
         {
-            EntityName = entityName ?? throw new ArgumentNullException(nameof(entityName));
+            EntityPrefix = entityPrefix;
             this.repository = repository ?? throw new ArgumentNullException(nameof(repository));
             AllIndex = new IndexKey(repository, allEntitiesTag, true);
         }
 
-        public string EntityName { get; }
+        public string EntityPrefix { get; }
 
         public IndexKey AllIndex { get; }
 
@@ -27,8 +27,14 @@ namespace Wikiled.Redis.Keys
                 throw new ArgumentNullException(nameof(id), "Id can't be null'");
             }
 
-            string[] key = { EntityName, id.ToLower() };
-            return new RepositoryKey(repository, new ObjectKey(key));
+            id = id.ToLowerInvariant();
+            if (string.IsNullOrEmpty(EntityPrefix))
+            {
+                string[] key = { EntityPrefix, id };
+                return new RepositoryKey(repository, new ObjectKey(key));
+            }
+
+            return new RepositoryKey(repository, new ObjectKey(id));
         }
 
         public IIndexKey GenerateIndex(string name)
