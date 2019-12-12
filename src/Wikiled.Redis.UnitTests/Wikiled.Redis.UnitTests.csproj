@@ -15,7 +15,7 @@
     <PackageReference Include="protobuf-net" version="2.4.4" />
     <PackageReference Include="StackExchange.Redis" version="2.0.601" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="3.1.0" />
-    <PackageReference Include="Wikiled.Common.Testing.Utilities" Version="1.2.36" />
+    <PackageReference Include="Wikiled.Common.Testing.Utilities" Version="1.2.39" />
   </ItemGroup>
 
   <ItemGroup>
