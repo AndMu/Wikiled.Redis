@@ -26,8 +26,14 @@ namespace Wikiled.Redis.Persistency
 
         public IIndexKey InActive => inactive.Value;
 
-        public Task Deactivate(IDataKey key, IRedisTransaction transaction = null)
+        public Task Deactivate(string id, IRedisTransaction transaction = null)
         {
+            if (id == null)
+            {
+                throw new ArgumentNullException(nameof(id));
+            }
+
+            var key = Entity.GetKey(id);
             var client = (IDatabase)transaction?.Transaction ?? Redis.Multiplexer.Database;
             var activeTask = Redis.IndexManager.GetManager(Active).RemoveIndex(client, key, Active);
             var inactiveTask = Redis.IndexManager.GetManager(InActive).AddIndex(client, key, InActive);

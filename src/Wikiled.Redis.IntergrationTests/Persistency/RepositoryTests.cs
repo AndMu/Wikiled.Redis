@@ -119,7 +119,7 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
             Assert.AreEqual(0, loaded.Length);
 
 
-            await repository.Deactivate(new ObjectKey("1")).ConfigureAwait(false);
+            await repository.Deactivate("1").ConfigureAwait(false);
 
             loaded = await repository.LoadAll().ToArray();
             Assert.AreEqual(2, loaded.Length);

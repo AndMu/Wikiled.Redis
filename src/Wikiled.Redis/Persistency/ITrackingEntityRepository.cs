@@ -12,7 +12,7 @@ namespace Wikiled.Redis.Persistency
 
         IIndexKey InActive { get; }
 
-        Task Deactivate(IDataKey key, IRedisTransaction transaction);
+        Task Deactivate(string id, IRedisTransaction transaction);
 
         IObservable<T> LoadActive();
 
