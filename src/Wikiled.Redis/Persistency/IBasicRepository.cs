@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Wikiled.Redis.Keys;
 using Wikiled.Redis.Logic;
 
@@ -15,6 +16,8 @@ namespace Wikiled.Redis.Persistency
         Task Save(T entity);
 
         Task<long> Count();
+
+        IObservable<T> LoadAll();
 
         Task<T[]> LoadPage(int start = 0, int end = -1);
     }

@@ -45,6 +45,11 @@ namespace Wikiled.Redis.Persistency
             return Count(Entity.AllIndex);
         }
 
+        public IObservable<T> LoadAll()
+        {
+            return LoadAll(Entity.AllIndex);
+        }
+
         public async Task<T[]> LoadPage(IIndexKey key, int start = 0, int end = -1)
         {
             return await Redis.Client.GetRecords<T>(key, start, end).ToArray();

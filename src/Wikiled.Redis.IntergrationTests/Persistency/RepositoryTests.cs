@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Wikiled.Redis.Channels;
 using Wikiled.Redis.IntegrationTests.Helpers;
 using Wikiled.Redis.IntegrationTests.MockData;
+using Wikiled.Redis.Keys;
 
 namespace Wikiled.Redis.IntegrationTests.Persistency
 {
@@ -92,6 +93,42 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
                                 .ExecuteAsync(() => repository.Save(new SimpleItem { Id = i }, repository.Entity.AllIndex))
                                 .ConfigureAwait(false);
             }
+        }
+
+
+        [Test]
+        public async Task Activation()
+        {
+            var repository = new IdentityRepository(new NullLogger<IdentityRepository>(), Redis);
+
+            var tasks = new List<Task>();
+            for (int i = 0; i < 2; i++)
+            {
+                tasks.Add(repository.Save(new Identity { InstanceId = i.ToString() }, repository.Entity.AllIndex));
+            }
+
+            await Task.WhenAll(tasks).ConfigureAwait(false);
+            
+            var loaded = await repository.LoadAll().ToArray();
+            Assert.AreEqual(2, loaded.Length);
+            
+            loaded = await repository.LoadActive().ToArray();
+            Assert.AreEqual(2, loaded.Length);
+
+            loaded = await repository.LoadInActive().ToArray();
+            Assert.AreEqual(0, loaded.Length);
+
+
+            await repository.Deactivate(new ObjectKey("1")).ConfigureAwait(false);
+
+            loaded = await repository.LoadAll().ToArray();
+            Assert.AreEqual(2, loaded.Length);
+
+            loaded = await repository.LoadActive().ToArray();
+            Assert.AreEqual(1, loaded.Length);
+
+            loaded = await repository.LoadInActive().ToArray();
+            Assert.AreEqual(1, loaded.Length);
         }
     }
 }

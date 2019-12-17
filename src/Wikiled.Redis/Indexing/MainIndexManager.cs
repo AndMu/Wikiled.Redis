@@ -18,6 +18,11 @@ namespace Wikiled.Redis.Indexing
 
         public Task[] Add(IDatabaseAsync database, IDataKey dataKey)
         {
+            if (dataKey == null)
+            {
+                throw new ArgumentNullException(nameof(dataKey));
+            }
+
             var tasks = new List<Task>(dataKey.Indexes.Length);
             foreach (var indexManager in GetManagers(dataKey))
             {
@@ -29,6 +34,11 @@ namespace Wikiled.Redis.Indexing
 
         public Task[] Delete(IDatabaseAsync database, IDataKey dataKey)
         {
+            if (dataKey == null)
+            {
+                throw new ArgumentNullException(nameof(dataKey));
+            }
+
             var tasks = new List<Task>(dataKey.Indexes.Length);
             foreach (var indexManager in GetManagers(dataKey))
             {

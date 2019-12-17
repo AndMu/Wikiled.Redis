@@ -1,13 +1,11 @@
-﻿using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Wikiled.Redis.Channels;
-using Wikiled.Redis.Keys;
 using Wikiled.Redis.Logic;
 using Wikiled.Redis.Persistency;
 
 namespace Wikiled.Redis.IntegrationTests.Helpers
 {
-    public class IdentityRepository : EntityRepository<Identity>
+    public class IdentityRepository : TrackingEntityRepository<Identity>
     {
         public IdentityRepository(ILogger<IdentityRepository> log, IRedisLink redis)
             : base(log, redis, "Identity")
