@@ -117,7 +117,7 @@ namespace Wikiled.Redis.Logic
         {
             if (string.IsNullOrEmpty(id))
             {
-                throw new ArgumentException("Value cannot be null or empty.", nameof(id));
+                throw new ArgumentException("Type is most likely saved as WellKnown!");
             }
 
             Type type = null;

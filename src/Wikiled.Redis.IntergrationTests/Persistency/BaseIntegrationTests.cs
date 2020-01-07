@@ -40,7 +40,7 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
         protected IResilience Resilience { get; private set; }
 
         [SetUp]
-        public async Task Setup()
+        public virtual async Task Setup()
         {
             redisInstance = new RedisInside.Redis(i => i.Port(6666).LogTo(item => log.LogDebug(item)));
             var config = XDocument.Load(Path.Combine(TestContext.CurrentContext.TestDirectory, @"Config\redis.config")).XmlDeserialize<RedisConfiguration>();

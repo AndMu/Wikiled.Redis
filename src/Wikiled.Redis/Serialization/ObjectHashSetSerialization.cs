@@ -64,8 +64,7 @@ namespace Wikiled.Redis.Serialization
             for (int i = 0; i < values.Length; i += 3)
             {
                 byte[] data = values[i];
-                if ((data == null) ||
-                   (data.Length == 0))
+                if (data == null || data.Length == 0)
                 {
                     log.LogWarning("Not Data Found in redis record");
                     continue;
