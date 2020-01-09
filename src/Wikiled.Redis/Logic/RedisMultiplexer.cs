@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
@@ -18,6 +19,8 @@ namespace Wikiled.Redis.Logic
         private IConnectionMultiplexer connection;
 
         private bool enabledNotifications;
+
+        private IDisposable reconnection;
 
         private readonly Func<ConfigurationOptions, Task<IConnectionMultiplexer>> multiplexerFactory;
 
@@ -60,6 +63,10 @@ namespace Wikiled.Redis.Logic
                 connection.ConnectionRestored -= OnConnectionRestored;
                 connection.ErrorMessage -= OnErrorMessage;
                 connection.InternalError -= OnInternalError;
+                
+                reconnection?.Dispose();
+                reconnection = null;
+                
                 connection.Dispose();
                 connection.Close();
                 connection = null;
@@ -259,6 +266,9 @@ namespace Wikiled.Redis.Logic
 
         private void OnConnectionRestored(object sender, ConnectionFailedEventArgs eventArgs)
         {
+            reconnection?.Dispose();
+            reconnection = null;
+
             log.LogInformation(
                 "Connection Restored: EndPoint='{0}'.",
                 eventArgs.EndPoint);
@@ -266,6 +276,20 @@ namespace Wikiled.Redis.Logic
 
         private void OnConnectionFailed(object sender, ConnectionFailedEventArgs eventArgs)
         {
+            if (reconnection == null)
+            {
+                reconnection = Observable.Timer(TimeSpan.FromMinutes(1))
+                                         .Select(item =>
+                                         {
+                                             // this required to use sentinel based failover
+                                             log.LogWarning("Stale connection detected. Reconnecting...");
+                                             Close();
+
+                                             return Open();
+                                         })
+                                         .Subscribe(item => { });
+            }
+
             log.LogError(
                 "Connection Failed: EndPoint='{0}', FailureType='{1}', Exception='{2}'.",
                 eventArgs.EndPoint,
