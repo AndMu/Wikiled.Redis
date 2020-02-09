@@ -24,7 +24,7 @@ namespace Wikiled.Redis.Data
 
         public object Deserialize(Type type, byte[] data)
         {
-            return jsonSerializer.Deserialize(data);
+            return jsonSerializer.Deserialize(data, type);
         }
     }
 }
