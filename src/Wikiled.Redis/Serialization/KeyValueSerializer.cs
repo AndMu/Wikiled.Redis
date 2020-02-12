@@ -65,7 +65,7 @@ namespace Wikiled.Redis.Serialization
                 }
                 catch (Exception e)
                 {
-                    log.LogError(e, "Property serializstion error");
+                    log.LogError(e, "Property serialisation error");
                 }
 
                 if (total != Properties.Length)
