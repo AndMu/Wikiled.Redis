@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using Microsoft.Extensions.Logging.Abstractions;
 using NUnit.Framework;
 using Wikiled.Common.Extensions;
 using Wikiled.Redis.Serialization;
@@ -16,7 +17,7 @@ namespace Wikiled.Redis.UnitTests.Serialization
         [SetUp]
         public void Setup()
         {
-            serializer = new KeyValueSerializer<TestType>();
+            serializer = new KeyValueSerializer<TestType>(new NullLogger<KeyValueSerializer<TestType>>());
             data = new TestType();
             data.Status1 = BasicTypes.Char;
             data.Data = "TestId";

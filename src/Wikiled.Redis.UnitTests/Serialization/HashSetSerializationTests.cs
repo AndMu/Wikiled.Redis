@@ -23,7 +23,7 @@ namespace Wikiled.Redis.UnitTests.Serialization
             link = new Mock<IRedisLink>();
             link.Setup(item => item.State).Returns(ChannelState.Open);
             link.Setup(item => item.LinkId).Returns(0);
-            instance = new HashSetSerialization<Identity>(new NullLogger<HashSetSerialization<Identity>>(), new KeyValueSerializer<Identity>());
+            instance = new HashSetSerialization<Identity>(new NullLogger<HashSetSerialization<Identity>>(), new KeyValueSerializer<Identity>(new NullLogger<KeyValueSerializer<Identity>>()));
         }
 
         [Test]

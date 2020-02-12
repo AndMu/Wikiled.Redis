@@ -40,7 +40,7 @@ namespace Wikiled.Redis.Logic
         public void RegisterHashsetSingle<T>(IKeyValueSerializer<T> serializer = null)
             where T : class, new()
         {
-            serializer ??= new KeyValueSerializer<T>();
+            serializer ??= new KeyValueSerializer<T>(loggerFactory.CreateLogger< KeyValueSerializer<T>>());
 
             var serialization = new HashSetSerialization<T>(loggerFactory.CreateLogger<HashSetSerialization<T>>(), serializer);
 
@@ -54,7 +54,7 @@ namespace Wikiled.Redis.Logic
         public void RegisterHashsetList<T>(IKeyValueSerializer<T> serializer = null)
             where T : class, new()
         {
-            serializer ??= new KeyValueSerializer<T>();
+            serializer ??= new KeyValueSerializer<T>(loggerFactory.CreateLogger<KeyValueSerializer<T>>());
             var serialization = new HashSetSerialization<T>(loggerFactory.CreateLogger<HashSetSerialization<T>>(), serializer);
             var persistency = new ObjectListSerialization<T>(link, serialization, new RedisSet(link, link.IndexManager), link.IndexManager);
             link.Register(persistency);

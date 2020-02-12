@@ -14,15 +14,16 @@ namespace Wikiled.Redis.Serialization
     public class KeyValueSerializer<T> : IKeyValueSerializer<T>
         where T : class, new()
     {
-        private static readonly ILogger log = ApplicationLogging.CreateLogger("KeyValueSerializer");
+        private readonly ILogger<KeyValueSerializer<T>> log;
 
         private readonly List<Func<T, KeyValuePair<string, string>>> readActions = new List<Func<T, KeyValuePair<string, string>>>();
 
         private readonly Dictionary<string, Action<KeyValuePair<string, string>, T>> writeActions =
             new Dictionary<string, Action<KeyValuePair<string, string>, T>>();
 
-        public KeyValueSerializer()
+        public KeyValueSerializer(ILogger<KeyValueSerializer<T>> log)
         {
+            this.log = log ?? throw new ArgumentNullException(nameof(log));
             BuildTypeMap();
         }
 
@@ -42,30 +43,40 @@ namespace Wikiled.Redis.Serialization
 
             int total = 0;
             T instance = null;
-            foreach(var hashEntry in entries)
+            foreach (var hashEntry in entries)
             {
-                if(total == 0)
+                if (total == 0)
                 {
                     instance = new T();
                 }
 
                 total++;
-                if (writeActions.TryGetValue(hashEntry.Key, out Action<KeyValuePair<string, string>, T> setAction))
+
+                try
                 {
-                    setAction(hashEntry, instance);
+                    if (writeActions.TryGetValue(hashEntry.Key, out Action<KeyValuePair<string, string>, T> setAction))
+                    {
+                        setAction(hashEntry, instance);
+                    }
+                    else
+                    {
+                        log.LogError("Failed to find entry: {0} in instance: {1}", hashEntry.Key, typeof(T));
+                    }
                 }
-                else
+                catch (Exception e)
                 {
-                    log.LogError("Failed to find entry: {0} in instance: {1}", hashEntry.Key, typeof(T));
+                    log.LogError(e, "Property serializstion error");
                 }
 
-                if (total == Properties.Length)
+                if (total != Properties.Length)
                 {
-                    total = 0;
-                    if(instance != null)
-                    {
-                        yield return instance;
-                    }
+                    continue;
+                }
+
+                total = 0;
+                if (instance != null)
+                {
+                    yield return instance;
                 }
             }
         }
@@ -83,33 +94,36 @@ namespace Wikiled.Redis.Serialization
         private void BuildTypeMap()
         {
             var type = typeof(T);
-            foreach(var property in type.GetProperties())
+            foreach (var property in type.GetProperties())
             {
                 var currentProperty = property;
                 var getter = property.GetValueGetter<T>();
                 var isStringType = currentProperty.PropertyType == typeof(string);
-                Func<T, KeyValuePair<string, string>> read = instance =>
+
+                KeyValuePair<string, string> Read(T instance)
                 {
                     var value = getter(instance);
-                    return new KeyValuePair<string, string>(currentProperty.Name, value);
-                };
 
-                readActions.Add(read);
+                    return new KeyValuePair<string, string>(currentProperty.Name, value);
+                }
+
+                readActions.Add(Read);
                 var setter = currentProperty.GetValueSetter<T, object>();
                 var parser = ReflectionExtension.GetParser(currentProperty.PropertyType);
-                Action<KeyValuePair<string, string>, T> write = (entry, instance) =>
+
+                void Write(KeyValuePair<string, string> entry, T instance)
                 {
-                    if(isStringType)
+                    if (isStringType)
                     {
                         setter(instance, entry.Value);
                     }
-                    else if(!string.IsNullOrEmpty(entry.Value))
+                    else if (!string.IsNullOrEmpty(entry.Value))
                     {
                         setter(instance, parser(entry.Value));
                     }
-                };
+                }
 
-                writeActions.Add(property.Name, write);
+                writeActions.Add(property.Name, Write);
             }
 
             Properties = writeActions.Keys.ToArray();
