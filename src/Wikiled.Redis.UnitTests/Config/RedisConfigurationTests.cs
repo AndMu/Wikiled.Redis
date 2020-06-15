@@ -51,7 +51,6 @@ namespace Wikiled.Redis.UnitTests.Config
             Assert.AreEqual(5000, options.ConnectTimeout);
             Assert.AreEqual(60, options.KeepAlive);
             Assert.AreEqual(5000, options.SyncTimeout);
-            Assert.AreEqual("Wikiled", options.ServiceName);
         }
 
         [Test]
