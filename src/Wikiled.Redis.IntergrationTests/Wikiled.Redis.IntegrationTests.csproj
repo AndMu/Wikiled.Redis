@@ -9,7 +9,7 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="3.1.19" />
     <PackageReference Include="Moq" version="4.14.1" />
     <PackageReference Include="NUnit" Version="3.13.2" />
-    <packagereference Include="Microsoft.NET.Test.Sdk" Version="16.6.1"></packagereference>
+    <packagereference Include="Microsoft.NET.Test.Sdk" Version="16.11.0"></packagereference>
     <PackageReference Include="NUnit3TestAdapter" Version="4.0.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

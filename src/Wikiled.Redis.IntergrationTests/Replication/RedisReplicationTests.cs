@@ -21,8 +21,6 @@ namespace Wikiled.Redis.IntegrationTests.Replication
     [TestFixture]
     public class RedisReplicationTests
     {
-        private static readonly ILogger log = ApplicationLogging.CreateLogger<RedisReplicationTests>();
-
         private RedisInside.Redis redisOne;
 
         private RedisInside.Redis redisTwo;
@@ -38,8 +36,8 @@ namespace Wikiled.Redis.IntegrationTests.Replication
         [SetUp]
         public async Task Setup()
         {
-            redisOne = new RedisInside.Redis(i => i.LogTo(item => log.LogDebug(item)).WithPersistence());
-            redisTwo = new RedisInside.Redis(i => i.LogTo(item => log.LogDebug(item)).WithPersistence());
+            redisOne = new RedisInside.Redis(i => i.LogTo(item => Global.Logger.LogDebug(item)).WithPersistence());
+            redisTwo = new RedisInside.Redis(i => i.LogTo(item => Global.Logger.LogDebug(item)).WithPersistence());
 
             await Task.Delay(500).ConfigureAwait(false);
             var config = XDocument.Load(Path.Combine(TestContext.CurrentContext.TestDirectory, @"Config\redis.config")).XmlDeserialize<RedisConfiguration>();

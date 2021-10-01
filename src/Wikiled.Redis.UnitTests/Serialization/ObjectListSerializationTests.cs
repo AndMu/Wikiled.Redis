@@ -52,7 +52,7 @@ namespace Wikiled.Redis.UnitTests.Serialization
             database = new Mock<IDatabaseAsync>();
             key = new ObjectKey("Test");
             data = new Identity();
-            instance = new ObjectListSerialization<Identity>(link.Object, objecMock.Object, redisSetList.Object, mainIndexManager.Object);
+            instance = new ObjectListSerialization<Identity>(new NullLogger<ObjectListSerialization<Identity>>(), link.Object, objecMock.Object, redisSetList.Object, mainIndexManager.Object);
         }
 
         [Test]

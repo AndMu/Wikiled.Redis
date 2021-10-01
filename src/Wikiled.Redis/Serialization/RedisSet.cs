@@ -14,16 +14,17 @@ namespace Wikiled.Redis.Serialization
 {
     public class RedisSet : IRedisSetList
     {
-        private static readonly ILogger log = ApplicationLogging.CreateLogger<RedisSet>();
+        private readonly ILogger<RedisSet> logger;
 
         private readonly IRedisLink link;
 
         private readonly IMainIndexManager indexManager;
 
-        public RedisSet(IRedisLink link, IMainIndexManager indexManager)
+        public RedisSet(ILogger<RedisSet> logger, IRedisLink link, IMainIndexManager indexManager)
         {
             this.link = link ?? throw new ArgumentNullException(nameof(link));
             this.indexManager = indexManager ?? throw new ArgumentNullException(nameof(indexManager));
+            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public Task<long> GetLength(IDatabaseAsync database, RedisKey key)
@@ -46,7 +47,7 @@ namespace Wikiled.Redis.Serialization
         public Task SaveItems(IDatabaseAsync database, IDataKey key, params RedisValue[] redisValues)
         {
             var redisKey = link.GetKey(key);
-            log.LogDebug("AddSet: <{0}>", key);
+            logger.LogDebug("AddSet: <{0}>", key);
 
             var time = DateTime.UtcNow.ToUnixTime();
             var saveTask = database.SortedSetAddAsync(

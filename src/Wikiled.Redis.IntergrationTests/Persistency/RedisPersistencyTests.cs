@@ -154,7 +154,7 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
             count = await manager.Count(Redis.Database, ListAll).ConfigureAwait(false);
             Assert.AreEqual(0, count);
 
-            await Redis.Reindex(key2).ConfigureAwait(false);
+            await Redis.Reindex(new NullLoggerFactory(), key2).ConfigureAwait(false);
             count = await manager.Count(Redis.Database, ListAll).ConfigureAwait(false);
             Assert.AreEqual(3, count);
         }

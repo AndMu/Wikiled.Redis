@@ -21,7 +21,7 @@ namespace Wikiled.Redis.Logic
         {
             var persistency = new ListSerialization<T>(loggerFactory.CreateLogger<ListSerialization<T>>(),
                                                    link,
-                                                   new RedisList(link, link.IndexManager),
+                                                   new RedisList(loggerFactory.CreateLogger<RedisList>(), link, link.IndexManager),
                                                    link.IndexManager,
                                                    serializer);
             link.Register(persistency);
@@ -31,7 +31,7 @@ namespace Wikiled.Redis.Logic
         {
             var persistency = new ListSerialization<T>(loggerFactory.CreateLogger<ListSerialization<T>>(),
                                                        link,
-                                                       new RedisSet(link, link.IndexManager),
+                                                       new RedisSet(loggerFactory.CreateLogger<RedisSet>(), link, link.IndexManager),
                                                        link.IndexManager,
                                                        serializer);
             link.Register(persistency);
@@ -40,7 +40,7 @@ namespace Wikiled.Redis.Logic
         public void RegisterHashsetSingle<T>(IKeyValueSerializer<T> serializer = null)
             where T : class, new()
         {
-            serializer ??= new KeyValueSerializer<T>(loggerFactory.CreateLogger< KeyValueSerializer<T>>());
+            serializer ??= new KeyValueSerializer<T>(loggerFactory.CreateLogger<KeyValueSerializer<T>>());
 
             var serialization = new HashSetSerialization<T>(loggerFactory.CreateLogger<HashSetSerialization<T>>(), serializer);
 
@@ -56,7 +56,7 @@ namespace Wikiled.Redis.Logic
         {
             serializer ??= new KeyValueSerializer<T>(loggerFactory.CreateLogger<KeyValueSerializer<T>>());
             var serialization = new HashSetSerialization<T>(loggerFactory.CreateLogger<HashSetSerialization<T>>(), serializer);
-            var persistency = new ObjectListSerialization<T>(link, serialization, new RedisSet(link, link.IndexManager), link.IndexManager);
+            var persistency = new ObjectListSerialization<T>(loggerFactory.CreateLogger<ObjectListSerialization<T>>(), link, serialization, new RedisSet(loggerFactory.CreateLogger<RedisSet>(), link, link.IndexManager), link.IndexManager);
             link.Register(persistency);
         }
 
@@ -69,7 +69,7 @@ namespace Wikiled.Redis.Logic
                 throw new ArgumentOutOfRangeException(nameof(isWellKnown), "Primitive type can't be well known ");
             }
 
-            var serialization = new ObjectHashSetSerialization<T>(link, serializer, isWellKnown);
+            var serialization = new ObjectHashSetSerialization<T>(loggerFactory.CreateLogger<ObjectHashSetSerialization<T>>(), link, serializer, isWellKnown);
             var persistency = new SingleItemSerialization<T>(loggerFactory.CreateLogger<SingleItemSerialization<T>>(),
                                                              link,
                                                              serialization,
@@ -86,8 +86,8 @@ namespace Wikiled.Redis.Logic
                 throw new ArgumentOutOfRangeException(nameof(isWellKnown), "Primitive type can't be well known ");
             }
 
-            var serialization = new ObjectHashSetSerialization<T>(link, serializer, isWellKnown);
-            var persistency = new ObjectListSerialization<T>(link, serialization, new RedisSet(link, link.IndexManager), link.IndexManager);
+            var serialization = new ObjectHashSetSerialization<T>(loggerFactory.CreateLogger<ObjectHashSetSerialization<T>>(), link, serializer, isWellKnown);
+            var persistency = new ObjectListSerialization<T>(loggerFactory.CreateLogger<ObjectListSerialization<T>>(), link, serialization, new RedisSet(loggerFactory.CreateLogger<RedisSet>(), link, link.IndexManager), link.IndexManager);
             link.Register(persistency);
         }
     }

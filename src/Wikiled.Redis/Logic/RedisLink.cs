@@ -104,7 +104,7 @@ namespace Wikiled.Redis.Logic
                 log.LogDebug("Creating default list persistency handler");
                 persistency = new ListSerialization<T>(loggerFactory.CreateLogger<ListSerialization<T>>(),
                                                      this,
-                                                     new RedisList(this, IndexManager),
+                                                     new RedisList(loggerFactory.CreateLogger<RedisList>(), this, IndexManager),
                                                      IndexManager,
                                                      defaultSerialiser);
             }

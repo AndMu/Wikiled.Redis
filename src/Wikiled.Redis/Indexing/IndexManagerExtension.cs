@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using StackExchange.Redis;
 using Wikiled.Common.Logging;
 using Wikiled.Redis.Keys;
 using Wikiled.Redis.Logic;
@@ -12,9 +11,7 @@ namespace Wikiled.Redis.Indexing
 {
     public static class IndexManagerExtension
     {
-        private static readonly ILogger log = ApplicationLogging.CreateLogger("IndexManagerExtension");
-
-        public static async Task Reindex(this IRedisLink link, IDataKey key)
+        public static async Task Reindex(this IRedisLink link, ILoggerFactory factory, IDataKey key)
         {
             if (link == null)
             {
@@ -26,8 +23,10 @@ namespace Wikiled.Redis.Indexing
                 throw new ArgumentNullException(nameof(key));
             }
 
+            var log = factory.CreateLogger("IndexManagerExtension");
+
             log.LogDebug("Redindex {0}", key);
-            var manager = new IndexManagerFactory(ApplicationLogging.LoggerFactory, link);
+            var manager = new IndexManagerFactory(factory, link);
             var tasks = new List<Task>();
             var total = 0;
             foreach (var index in key.Indexes)

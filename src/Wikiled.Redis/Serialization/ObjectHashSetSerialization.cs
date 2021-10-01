@@ -1,9 +1,8 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using StackExchange.Redis;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using Microsoft.Extensions.Logging;
-using StackExchange.Redis;
-using Wikiled.Common.Logging;
 using Wikiled.Redis.Data;
 using Wikiled.Redis.Logic;
 
@@ -20,17 +19,18 @@ namespace Wikiled.Redis.Serialization
 
         private readonly IRedisLink link;
 
-        private static readonly ILogger log = ApplicationLogging.CreateLogger<ObjectHashSetSerialization<T>>();
-
         private readonly IDataSerializer serializer;
 
         private readonly bool isWellKnown;
 
-        public ObjectHashSetSerialization(IRedisLink link, IDataSerializer serializer, bool isWellKnown)
+        private readonly ILogger<ObjectHashSetSerialization<T>> logger;
+
+        public ObjectHashSetSerialization(ILogger<ObjectHashSetSerialization<T>> logger, IRedisLink link, IDataSerializer serializer, bool isWellKnown)
         {
             this.link = link ?? throw new ArgumentNullException(nameof(link));
             this.serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             this.isWellKnown = isWellKnown;
+            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public string[] GetColumns()
@@ -66,7 +66,7 @@ namespace Wikiled.Redis.Serialization
                 byte[] data = values[i];
                 if (data == null || data.Length == 0)
                 {
-                    log.LogWarning("Not Data Found in redis record");
+                    logger.LogWarning("Not Data Found in redis record");
                     continue;
                 }
 
@@ -79,7 +79,7 @@ namespace Wikiled.Redis.Serialization
                     var type = link.GetTypeByName(values[i + 2]);
                     if (type == null)
                     {
-                        log.LogError("Type is not resolved");
+                        logger.LogError("Type is not resolved");
                         continue;
                     }
 

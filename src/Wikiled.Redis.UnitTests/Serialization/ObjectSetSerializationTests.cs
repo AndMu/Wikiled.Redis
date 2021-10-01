@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using Microsoft.Extensions.Logging.Abstractions;
 using Wikiled.Redis.Logic;
 using Wikiled.Redis.Serialization;
 using Moq;
@@ -24,7 +25,7 @@ namespace Wikiled.Redis.UnitTests.Serialization
             link = new Mock<IRedisLink>();
             link.Setup(item => item.State).Returns(ChannelState.Open);
             link.Setup(item => item.LinkId).Returns(0);
-            instance = new ObjectHashSetSerialization<MainDataOne>(link.Object, new BinaryDataSerializer(), false);
+            instance = new ObjectHashSetSerialization<MainDataOne>(new NullLogger<ObjectHashSetSerialization<MainDataOne>>(), link.Object, new BinaryDataSerializer(), false);
         }
 
         [Test]

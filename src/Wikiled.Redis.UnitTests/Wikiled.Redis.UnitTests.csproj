@@ -14,7 +14,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <packagereference Include="Microsoft.NET.Test.Sdk" Version="16.6.1"></packagereference>
+    <packagereference Include="Microsoft.NET.Test.Sdk" Version="16.11.0"></packagereference>
     <PackageReference Include="protobuf-net" version="3.0.101" />
     <PackageReference Include="StackExchange.Redis" version="2.2.50" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="3.1.19" />

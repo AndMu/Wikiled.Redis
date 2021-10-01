@@ -19,8 +19,6 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
 {
     public class BaseIntegrationTests
     {
-        private static readonly ILogger log = ApplicationLogging.CreateLogger<RedisPersistencyTests>();
-
         private RedisInside.Redis redisInstance;
 
         protected ObjectKey Key { get; private set; }
@@ -42,7 +40,7 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
         [SetUp]
         public virtual async Task Setup()
         {
-            redisInstance = new RedisInside.Redis(i => i.Port(6666).LogTo(item => log.LogDebug(item)));
+            redisInstance = new RedisInside.Redis(i => i.Port(6666).LogTo(item => Global.Logger.LogDebug(item)));
             var config = XDocument.Load(Path.Combine(TestContext.CurrentContext.TestDirectory, @"Config\redis.config")).XmlDeserialize<RedisConfiguration>();
             var provider = new ModuleHelper(config).Provider;
             Redis = provider.GetService<IRedisLink>();

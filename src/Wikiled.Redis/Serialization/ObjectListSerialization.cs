@@ -7,7 +7,6 @@ using System.Linq;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Wikiled.Common.Logging;
 using Wikiled.Redis.Indexing;
 using Wikiled.Redis.Keys;
 using Wikiled.Redis.Logic;
@@ -22,19 +21,20 @@ namespace Wikiled.Redis.Serialization
 
         private readonly IRedisLink link;
 
-        private static readonly ILogger log = ApplicationLogging.CreateLogger<ObjectListSerialization<T>>();
-
         private readonly IObjectSerialization<T> objectSerialization;
 
         private readonly IRedisSetList redisSetList;
 
         private readonly IMainIndexManager mainIndexManager;
 
-        public ObjectListSerialization(IRedisLink link, IObjectSerialization<T> objectSerialization, IRedisSetList redisSetList, IMainIndexManager mainIndexManager)
+        private readonly ILogger<ObjectListSerialization<T>> logger;
+
+        public ObjectListSerialization(ILogger<ObjectListSerialization<T>> logger, IRedisLink link, IObjectSerialization<T> objectSerialization, IRedisSetList redisSetList, IMainIndexManager mainIndexManager)
         {
             this.objectSerialization = objectSerialization ?? throw new ArgumentNullException(nameof(objectSerialization));
             this.redisSetList = redisSetList ?? throw new ArgumentNullException(nameof(redisSetList));
             this.mainIndexManager = mainIndexManager ?? throw new ArgumentNullException(nameof(mainIndexManager));
+            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
             this.link = link ?? throw new ArgumentNullException(nameof(link));
         }
 
@@ -90,7 +90,7 @@ namespace Wikiled.Redis.Serialization
                 throw new ArgumentNullException(nameof(key));
             }
 
-            log.LogDebug("DeleteAll: [{0}]", key);
+            logger.LogDebug("DeleteAll: [{0}]", key);
 
             var deleteKeys = mainIndexManager.Delete(database, key);
             var keys = await GetAllKeys(database, key).ConfigureAwait(false);
@@ -110,7 +110,7 @@ namespace Wikiled.Redis.Serialization
                 throw new ArgumentNullException(nameof(key));
             }
 
-            log.LogDebug("SetExpire: [{0}] - {1}", key, timeSpan);
+            logger.LogDebug("SetExpire: [{0}] - {1}", key, timeSpan);
             var keys = await GetAllKeys(database, key).ConfigureAwait(false);
             var tasks = keys.Select(item => database.KeyExpireAsync(item, timeSpan));
             await Task.WhenAll(tasks).ConfigureAwait(false);
@@ -128,7 +128,7 @@ namespace Wikiled.Redis.Serialization
                 throw new ArgumentNullException(nameof(key));
             }
 
-            log.LogDebug("SetExpire: [{0}] - {1}", key, dateTime);
+            logger.LogDebug("SetExpire: [{0}] - {1}", key, dateTime);
             var keys = await GetAllKeys(database, key).ConfigureAwait(false);
             var tasks = keys.Select(item => database.KeyExpireAsync(item, dateTime));
             await Task.WhenAll(tasks).ConfigureAwait(false);
@@ -152,7 +152,7 @@ namespace Wikiled.Redis.Serialization
             }
 
             var key = link.GetKey(dataKey);
-            log.LogDebug("GetRecords: {0} {1}:{2}", key, fromRecord, toRecord);
+            logger.LogDebug("GetRecords: {0} {1}:{2}", key, fromRecord, toRecord);
             return Observable.Create<T>(
                 async observer =>
                 {
@@ -171,7 +171,7 @@ namespace Wikiled.Redis.Serialization
 
                     if (!exist)
                     {
-                        log.LogDebug("Key doesn't exist: {0}", key);
+                        logger.LogDebug("Key doesn't exist: {0}", key);
                         observer.OnCompleted();
                         return;
                     }
@@ -189,7 +189,7 @@ namespace Wikiled.Redis.Serialization
                                            .ConfigureAwait(false);
                     if (result.Length % columns.Length != 0)
                     {
-                        log.LogError(
+                        logger.LogError(
                             "Result {0} mismatched with requested number of columns {1}",
                             result.Length,
                             columns.Length);
