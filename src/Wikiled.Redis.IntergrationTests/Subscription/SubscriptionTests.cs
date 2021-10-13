@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NUnit.Framework;
 using Wikiled.Common.Serialization;
+using Wikiled.Common.Utilities.Modules;
 using Wikiled.Redis.Channels;
 using Wikiled.Redis.Config;
 using Wikiled.Redis.IntegrationTests.Helpers;
@@ -31,7 +32,7 @@ namespace Wikiled.Redis.IntegrationTests.Subscription
             redisInstance = new RedisInside.Redis(i => i.Port(6666).LogTo(item => Global.Logger.LogDebug(item)));
             var config = XDocument.Load(Path.Combine(TestContext.CurrentContext.TestDirectory, @"Config\redis.config")).XmlDeserialize<RedisConfiguration>();
             config.ServiceName = "IT";
-            redis = await new ModuleHelper(config).Provider.GetService<Task<IRedisLink>>().ConfigureAwait(false);
+            redis = await new ModuleHelper(config).Provider.GetService<IAsyncServiceFactory<IRedisLink>>().GetService(true);
             redis.Multiplexer.Flush();
             key = new ObjectKey("Test", "Key");
         }

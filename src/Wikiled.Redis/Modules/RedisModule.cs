@@ -25,8 +25,6 @@ namespace Wikiled.Redis.Modules
 
         public ResilienceConfig ResilienceConfig { get; set; } = new ResilienceConfig { LongDelay = 1000, ShortDelay = 100 };
 
-        public bool IsSingleInstance { get; set; }
-
         public bool OpenOnConstruction { get; set; } = true;
 
         public IServiceCollection ConfigureServices(IServiceCollection services)
@@ -53,18 +51,7 @@ namespace Wikiled.Redis.Modules
                 return link;
             }
 
-            if (IsSingleInstance)
-            {
-                services.AddSingleton(ImplementationFactory);
-                services.AddSingleton(ctx => ctx.GetService<Task<IRedisLink>>().Result);
-            }
-            else
-            {
-                services.AddTransient(ImplementationFactory);
-                services.AddTransient(ctx => ctx.GetService<Task<IRedisLink>>().Result);
-            }
-
-            services.AddFactory<IRedisLink>();
+            services.AddAsyncFactory(ImplementationFactory);
             services.AddTransient<IRedisMultiplexer, RedisMultiplexer>();
 
             services.AddTransient<Func<ConfigurationOptions, Task<IConnectionMultiplexer>>>(

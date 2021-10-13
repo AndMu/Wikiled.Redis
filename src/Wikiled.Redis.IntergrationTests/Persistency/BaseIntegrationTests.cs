@@ -5,8 +5,8 @@ using System.IO;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.Extensions.Logging;
-using Wikiled.Common.Logging;
 using Wikiled.Common.Serialization;
+using Wikiled.Common.Utilities.Modules;
 using Wikiled.Redis.Channels;
 using Wikiled.Redis.Config;
 using Wikiled.Redis.IntegrationTests.Helpers;
@@ -43,10 +43,9 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
             redisInstance = new RedisInside.Redis(i => i.Port(6666).LogTo(item => Global.Logger.LogDebug(item)));
             var config = XDocument.Load(Path.Combine(TestContext.CurrentContext.TestDirectory, @"Config\redis.config")).XmlDeserialize<RedisConfiguration>();
             var provider = new ModuleHelper(config).Provider;
-            Redis = provider.GetService<IRedisLink>();
+            Redis = await provider.GetService<IAsyncServiceFactory<IRedisLink>>().GetService(true);
             Redis.Multiplexer.Flush();
 
-            var redis2 = await provider.GetService<Task<IRedisLink>>().ConfigureAwait(false);
             Resilience = provider.GetService<IResilience>();
             Key = new ObjectKey("Key1");
             Routing = new Identity();
