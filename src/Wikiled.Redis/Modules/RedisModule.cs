@@ -16,25 +16,19 @@ namespace Wikiled.Redis.Modules
 {
     public class RedisModule : IModule
     {
-        private readonly ILogger logger;
-
-        public RedisModule(ILogger logger, RedisConfiguration redisConfiguration)
+        public RedisModule(RedisConfiguration redisConfiguration)
         {
             RedisConfiguration = redisConfiguration ?? throw new ArgumentNullException(nameof(redisConfiguration));
-            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public RedisConfiguration RedisConfiguration { get; }
 
         public ResilienceConfig ResilienceConfig { get; set; } = new ResilienceConfig { LongDelay = 1000, ShortDelay = 100 };
 
-        public bool IsSingleInstance { get; set; }
-
         public bool OpenOnConstruction { get; set; } = true;
 
         public IServiceCollection ConfigureServices(IServiceCollection services)
         {
-            logger.LogDebug("Using Redis cache");
             services.AddSingleton<IRedisConfiguration>(RedisConfiguration);
             services.AddSingleton<IResilience, ResilienceHandler>();
             services.AddSingleton<IEntitySubscriber, EntitySubscriber>();
@@ -45,42 +39,35 @@ namespace Wikiled.Redis.Modules
 
             async Task<IRedisLink> ImplementationFactory(IServiceProvider ctx)
             {
+                var logger = ctx.GetRequiredService<ILogger<RedisModule>>();
+                logger.LogInformation("Redis Link Initialisation");
                 var link = ctx.GetService<RedisLink>();
                 if (OpenOnConstruction)
                 {
+                    logger.LogInformation("Open On Construction");
                     await ctx.GetService<IResilience>().AsyncRetryPolicy.ExecuteAsync(link.Open).ConfigureAwait(false);
                 }
 
                 return link;
             }
 
-            if (IsSingleInstance)
-            {
-                services.AddSingleton(ImplementationFactory);
-                services.AddSingleton(ctx => ctx.GetService<Task<IRedisLink>>().Result);
-            }
-            else
-            {
-                services.AddTransient(ImplementationFactory);
-                services.AddTransient(ctx => ctx.GetService<Task<IRedisLink>>().Result);
-            }
-
-            services.AddFactory<IRedisLink>();
+            services.AddAsyncFactory(ImplementationFactory);
             services.AddTransient<IRedisMultiplexer, RedisMultiplexer>();
 
-            services.AddSingleton<Func<ConfigurationOptions, Task<IConnectionMultiplexer>>>(
-                ctx =>
-                    async option => (await ConnectionMultiplexer.ConnectAsync(option).ConfigureAwait(false)) as IConnectionMultiplexer);
+            services.AddTransient<Func<ConfigurationOptions, Task<IConnectionMultiplexer>>>(
+                ctx => async option => await ConnectionMultiplexer.ConnectAsync(option).ConfigureAwait(false));
             services.AddTransient<IReplicationFactory, ReplicationFactory>();
 
             services.AddSingleton<Func<IRedisConfiguration, IRedisMultiplexer>>(
-                x =>
+                ctx =>
                 {
+                    var logger = ctx.GetRequiredService<ILogger<RedisModule>>();
                     IRedisMultiplexer Construct(IRedisConfiguration config)
                     {
-                        return new RedisMultiplexer(x.GetService<ILogger<RedisMultiplexer>>(),
+                        logger.LogInformation("Constructing: {0}", config);
+                        return new RedisMultiplexer(ctx.GetService<ILogger<RedisMultiplexer>>(),
                                                     config,
-                                                    x.GetService<Func<ConfigurationOptions, Task<IConnectionMultiplexer>>>());
+                                                    ctx.GetService<Func<ConfigurationOptions, Task<IConnectionMultiplexer>>>());
                     }
 
                     return Construct;

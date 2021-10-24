@@ -11,6 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Wikiled.Common.Logging;
 using Wikiled.Common.Serialization;
+using Wikiled.Common.Utilities.Modules;
 using Wikiled.Redis.Config;
 using Wikiled.Redis.IntegrationTests.Helpers;
 using Wikiled.Redis.Logic;
@@ -42,12 +43,12 @@ namespace Wikiled.Redis.IntegrationTests.Replication
             await Task.Delay(500).ConfigureAwait(false);
             var config = XDocument.Load(Path.Combine(TestContext.CurrentContext.TestDirectory, @"Config\redis.config")).XmlDeserialize<RedisConfiguration>();
             config.Endpoints[0].Port = ((IPEndPoint)redisOne.Endpoint).Port;
-            linkOne = await new ModuleHelper(config).Provider.GetService<Task<IRedisLink>>().ConfigureAwait(false);
+            linkOne = await new ModuleHelper(config).Provider.GetService<IAsyncServiceFactory<IRedisLink>>().GetService(true);
 
             config = XDocument.Load(Path.Combine(TestContext.CurrentContext.TestDirectory, @"Config\redis.config")).XmlDeserialize<RedisConfiguration>();
             config.Endpoints[0].Port = ((IPEndPoint)redisTwo.Endpoint).Port;
             var provider = new ModuleHelper(config).Provider;
-            linkTwo = await provider.GetService<Task<IRedisLink>>().ConfigureAwait(false);
+            linkTwo = await provider.GetService<IAsyncServiceFactory<IRedisLink>>().GetService(true);
 
             factory = provider.GetService<IReplicationFactory>();
 
