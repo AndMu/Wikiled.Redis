@@ -12,11 +12,19 @@ namespace Wikiled.Redis.Persistency
     {
         private IObservable<(IDataKey Key, string Command, T Intance)> subscription;
 
-        protected EntityRepository(ILogger<EntityRepository<T>> log, IRedisLink redis, string entity, bool extended = false)
+        protected EntityRepository(ILogger<EntityRepository<T>> log, IRedisLink redis, string entity, bool extended = false, Action<IPersistencyRegistrationHandler> register = null)
         {
             Log = log ?? throw new ArgumentNullException(nameof(log));
             Redis = redis ?? throw new ArgumentNullException(nameof(redis));
-            redis.PersistencyRegistration.RegisterHashsetSingle<T>();
+            if (register != null)
+            {
+                register(redis.PersistencyRegistration);
+            }
+            else
+            {
+                redis.PersistencyRegistration.RegisterHashsetSingle<T>();
+            }
+            
             Name = $"{entity}s";
             Entity = new EntityKey(extended ? entity : string.Empty, this);
         }
