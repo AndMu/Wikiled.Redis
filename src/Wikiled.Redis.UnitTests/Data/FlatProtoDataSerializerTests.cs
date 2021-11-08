@@ -36,6 +36,23 @@ namespace Wikiled.Redis.UnitTests.Data
             Assert.AreEqual("Test", orderResult.Name);
         }
 
+        [Test]
+        public void SerializeComplex()
+        {
+            var order = new MainDataComplex();
+            order.One = new MainDataOne();
+            order.One.Name = "Test1";
+            order.Two = new MainDataTwo();
+            order.Two.Name = "Test2";
+
+            var serializerTests = new FlatProtoDataSerializer(false, stream);
+            var data = serializerTests.Serialize(order);
+            var orderResult = (MainDataComplex)serializerTests.Deserialize(typeof(MainDataComplex), data);
+            Assert.AreNotSame(order, orderResult);
+            Assert.AreEqual(116, data.Length);
+            Assert.AreEqual("Test1", orderResult.One.Name);
+        }
+
 
         [Test]
         public void SerializeWellknown()

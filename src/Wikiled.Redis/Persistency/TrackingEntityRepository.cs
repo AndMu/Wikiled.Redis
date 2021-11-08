@@ -21,7 +21,6 @@ namespace Wikiled.Redis.Persistency
             inactive = new Lazy<IIndexKey>(() => Entity.GenerateIndex("Inactive"));
         }
 
-
         public IIndexKey Active => active.Value;
 
         public IIndexKey InActive => inactive.Value;

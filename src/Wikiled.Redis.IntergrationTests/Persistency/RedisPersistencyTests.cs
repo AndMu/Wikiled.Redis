@@ -6,6 +6,8 @@ using System.Linq;
 using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
 using System.Threading.Tasks;
+using Microsoft.IO;
+using Wikiled.Common.Utilities.Serialization;
 using Wikiled.Redis.Channels;
 using Wikiled.Redis.Data;
 using Wikiled.Redis.Helpers;
@@ -18,6 +20,8 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
     [TestFixture]
     public class RedisPersistencyTests : BaseIntegrationTests
     {
+        private RecyclableMemoryStreamManager stream = new RecyclableMemoryStreamManager();
+
         [Test]
         public async Task AddToLimitedList()
         {
@@ -68,6 +72,7 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
         [TestCase(4, 3)]
         [TestCase(5, 3)]
         [TestCase(6, 1)]
+        [TestCase(7, 3)]
         public async Task TestMultiple(int type, int total)
         {
             SertupPersistency(type);
@@ -92,6 +97,8 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
         [TestCase(5, 1)]
         [TestCase(6, 10)]
         [TestCase(6, 1)]
+        [TestCase(7, 1)]
+        [TestCase(7, 10)]
         public async Task TestIndex(int type, int batchSize)
         {
             Redis.Client.BatchSize = batchSize;
@@ -293,6 +300,9 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
                     break;
                 case 6:
                     Redis.PersistencyRegistration.RegisterObjectHashSingle<Identity>(new XmlDataSerializer());
+                    break;
+                case 7:
+                    Redis.PersistencyRegistration.RegisterSet<Identity>(new JsonDataSerializer(new BasicJsonSerializer(stream)));
                     break;
             }
         }

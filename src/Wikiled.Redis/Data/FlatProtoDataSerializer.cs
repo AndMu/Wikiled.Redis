@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using Microsoft.IO;
 using Wikiled.Common.Reflection;
 using Wikiled.FlatBuffers;
@@ -72,10 +71,8 @@ namespace Wikiled.Redis.Data
             int message = RedisData.EndRedisData(builder);
             RedisData.FinishRedisDataBuffer(builder, message);
 
-            using (var memoryStream = memoryStreamManager.GetStream("Redis.FlatBuffers", builder.DataBuffer.Data, builder.DataBuffer.Position, builder.Offset))
-            {
-                return memoryStream.ToArray();
-            }
+            using var memoryStream = memoryStreamManager.GetStream("Redis.FlatBuffers", builder.DataBuffer.Data, builder.DataBuffer.Position, builder.Offset);
+            return memoryStream.ToArray();
         }
 
         private static object DeserializeInternal(Type type, RedisData redisData)

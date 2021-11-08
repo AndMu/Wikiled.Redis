@@ -27,7 +27,7 @@ namespace Wikiled.Redis.Data
 
         public static bool TryParsePrimitive<T>(T instance, out RedisValue value)
         {
-            value = default(RedisValue);
+            value = default;
             if ((instance != null && !primitive.ContainsKey(instance.GetType())) ||
                 (instance == null && !IsPrimitive<T>()))
             {

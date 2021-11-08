@@ -7,12 +7,12 @@ using Wikiled.Redis.Logic;
 
 namespace Wikiled.Redis.Persistency
 {
-    public abstract class EntityRepository<T> : IEntityRepository<T> 
+    public abstract class EntityRepository<T> : IEntityRepository<T>
         where T : class, new()
     {
         private IObservable<(IDataKey Key, string Command, T Intance)> subscription;
 
-        protected EntityRepository(ILogger<EntityRepository<T>> log, IRedisLink redis, string entity, bool extended=false)
+        protected EntityRepository(ILogger<EntityRepository<T>> log, IRedisLink redis, string entity, bool extended = false)
         {
             Log = log ?? throw new ArgumentNullException(nameof(log));
             Redis = redis ?? throw new ArgumentNullException(nameof(redis));
@@ -79,7 +79,7 @@ namespace Wikiled.Redis.Persistency
         {
             return Redis.Client.GetRecords<T>(key);
         }
-        
+
         public async Task<T> LoadSingle(string id)
         {
             if (id == null)
