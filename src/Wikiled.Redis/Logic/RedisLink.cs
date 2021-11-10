@@ -120,9 +120,13 @@ namespace Wikiled.Redis.Logic
                 throw new ArgumentException("Type is most likely saved as WellKnown!");
             }
 
-            if (string.IsNullOrEmpty(id) || !typeNameTable.TryGetValue(id, out var type))
+            if (!typeNameTable.TryGetValue(id, out var type))
             {
-                throw new Exception($"Type not found: {id}");
+                var result = PopulateTypes(id);
+                if (result != null)
+                {
+                    throw new Exception($"Unknown Type {id}");
+                }
             }
 
             return type;
@@ -137,19 +141,10 @@ namespace Wikiled.Redis.Logic
             }
 
             typeName = type.GetTypeName();
-            var typeKey = this.GetKey(new SimpleKey("Type", type.Name));
-            var keys = Multiplexer.Database.SetMembers(typeKey);
-            if (keys.Length > 0)
+            var result = PopulateTypes(typeName);
+            if (result != null)
             {
-                if (keys.Length > 1)
-                {
-                    log.LogWarning("Too many types found: {0} for type: {1}", keys.Length, type);
-                }
-
-                log.LogDebug("Type found in Redis [{0}:{1}]", type, keys[0]);
-                typeIdTable[type] = keys[0];
-                typeNameTable[keys[0]] = type;
-                return keys[0];
+                return typeIdTable[type];
             }
 
             log.LogDebug("Registering new type");
@@ -159,6 +154,7 @@ namespace Wikiled.Redis.Logic
             var typeIdKey = new SimpleKey("Type", id.ToString());
 
             var batch = Multiplexer.Database.CreateBatch();
+            var typeKey = this.GetKey(new SimpleKey("Type", type.Name));
             batch.SetAddAsync(this.GetKey(typeIdKey), typeName);
             batch.SetAddAsync(typeKey, typeIdKey.FullKey);
             batch.Execute();
@@ -242,6 +238,27 @@ namespace Wikiled.Redis.Logic
             }
 
             return await base.OpenInternal().ConfigureAwait(false);
+        }
+
+        private Type PopulateTypes(string name)
+        {
+            var typeKey = this.GetKey(new SimpleKey("Type", name));
+            var keys = Multiplexer.Database.SetMembers(typeKey);
+            if (keys.Length > 0)
+            {
+                if (keys.Length > 1)
+                {
+                    log.LogWarning("Too many types found: {0} for type: {1}", keys.Length, name);
+                }
+
+                log.LogDebug("Type found in Redis [{0}:{1}]", name, keys[0]);
+                var type = Type.GetType(keys[0]);
+                typeIdTable[type] = keys[0];
+                typeNameTable[keys[0]] = type;
+                return type;
+            }
+
+            return null;
         }
     }
 }
