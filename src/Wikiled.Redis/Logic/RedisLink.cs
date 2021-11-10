@@ -120,10 +120,9 @@ namespace Wikiled.Redis.Logic
                 throw new ArgumentException("Type is most likely saved as WellKnown!");
             }
 
-            Type type = null;
-            if (string.IsNullOrEmpty(id) || !typeNameTable.TryGetValue(id, out type))
+            if (string.IsNullOrEmpty(id) || !typeNameTable.TryGetValue(id, out var type))
             {
-                log.LogError("Type not found: {0}", id);
+                throw new Exception($"Type not found: {id}");
             }
 
             return type;

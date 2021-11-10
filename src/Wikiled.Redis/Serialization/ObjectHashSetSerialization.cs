@@ -79,8 +79,7 @@ namespace Wikiled.Redis.Serialization
                     var type = link.GetTypeByName(values[i + 2]);
                     if (type == null)
                     {
-                        logger.LogError("Type is not resolved");
-                        continue;
+                        throw new Exception("Type is not resolved");
                     }
 
                     yield return (T)serializer.Deserialize(type, data);
