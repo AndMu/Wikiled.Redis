@@ -3,6 +3,7 @@ using StackExchange.Redis;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Wikiled.Common.Reflection;
 using Wikiled.Redis.Data;
 using Wikiled.Redis.Logic;
 
@@ -50,7 +51,7 @@ namespace Wikiled.Redis.Serialization
             yield return new HashEntry(FieldConstants.TimeStamp, Stopwatch.GetTimestamp());
             if (!isWellKnown)
             {
-                yield return new HashEntry(FieldConstants.Type, link.GetTypeID(instance.GetType()));
+                yield return new HashEntry(FieldConstants.Type, instance.GetType().GetTypeName());
             }
         }
 
@@ -76,7 +77,7 @@ namespace Wikiled.Redis.Serialization
                 }
                 else
                 {
-                    var type = link.GetTypeByName(values[i + 2]);
+                    var type = Type.GetType(values[i + 2]);
                     if (type == null)
                     {
                         throw new Exception("Type is not resolved");

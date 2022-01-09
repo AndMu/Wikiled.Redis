@@ -1,10 +1,8 @@
 ﻿using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Wikiled.Common.Reflection;
 using Wikiled.Redis.Channels;
 using Wikiled.Redis.Config;
 using Wikiled.Redis.Data;
@@ -26,10 +24,6 @@ namespace Wikiled.Redis.Logic
         private readonly ILogger<RedisLink> log;
 
         private readonly Dictionary<Type, object> persistencyTable = new Dictionary<Type, object>();
-
-        private readonly ConcurrentDictionary<Type, string> typeIdTable = new ConcurrentDictionary<Type, string>();
-
-        private readonly ConcurrentDictionary<string, Type> typeNameTable = new ConcurrentDictionary<string, Type>();
 
         private readonly IDataSerializer defaultSerialiser; 
 
@@ -113,57 +107,6 @@ namespace Wikiled.Redis.Logic
             return (ISpecificPersistency<T>) persistency;
         }
 
-        public Type GetTypeByName(string id)
-        {
-            if (string.IsNullOrEmpty(id))
-            {
-                throw new ArgumentException("Type is most likely saved as WellKnown!");
-            }
-
-            if (!typeNameTable.TryGetValue(id, out var type))
-            {
-                var result = PopulateTypes(id);
-                if (result != null)
-                {
-                    throw new Exception($"Unknown Type {id}");
-                }
-            }
-
-            return type;
-        }
-
-        public string GetTypeID(Type type)
-        {
-            log.LogDebug("Resolving {0}", type);
-            if (typeIdTable.TryGetValue(type, out var typeName))
-            {
-                return typeName;
-            }
-
-            typeName = type.GetTypeName();
-            var result = PopulateTypes(typeName);
-            if (result != null)
-            {
-                return typeIdTable[type];
-            }
-
-            log.LogDebug("Registering new type");
-            var counterKey = this.GetKey(new SimpleKey("Type", "Counter"));
-
-            var id = Multiplexer.Database.StringIncrement(counterKey);
-            var typeIdKey = new SimpleKey("Type", id.ToString());
-
-            var batch = Multiplexer.Database.CreateBatch();
-            var typeKey = this.GetKey(new SimpleKey("Type", type.Name));
-            batch.SetAddAsync(this.GetKey(typeIdKey), typeName);
-            batch.SetAddAsync(typeKey, typeIdKey.FullKey);
-            batch.Execute();
-            log.LogDebug("Key added: {0} for type: {1}", typeName, type);
-            typeIdTable[type] = typeIdKey.FullKey;
-            typeNameTable[typeIdKey.FullKey] = type;
-            return typeIdKey.FullKey;
-        }
-
         public IRedisTransaction StartTransaction()
         {
             log.LogDebug("StartTransaction");
@@ -238,27 +181,6 @@ namespace Wikiled.Redis.Logic
             }
 
             return await base.OpenInternal().ConfigureAwait(false);
-        }
-
-        private Type PopulateTypes(string name)
-        {
-            var typeKey = this.GetKey(new SimpleKey("Type", name));
-            var keys = Multiplexer.Database.SetMembers(typeKey);
-            if (keys.Length > 0)
-            {
-                if (keys.Length > 1)
-                {
-                    log.LogWarning("Too many types found: {0} for type: {1}", keys.Length, name);
-                }
-
-                log.LogDebug("Type found in Redis [{0}:{1}]", name, keys[0]);
-                var type = Type.GetType(keys[0]);
-                typeIdTable[type] = keys[0];
-                typeNameTable[keys[0]] = type;
-                return type;
-            }
-
-            return null;
         }
     }
 }
