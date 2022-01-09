@@ -51,20 +51,6 @@ namespace Wikiled.Redis.Logic
         ISpecificPersistency<T> GetSpecific<T>();
 
         /// <summary>
-        ///     Resolve type by name
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
-        Type GetTypeByName(string id);
-
-        /// <summary>
-        ///     Get Type id
-        /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        string GetTypeID(Type type);
-
-        /// <summary>
         ///     Get client which performs actions in transaction
         /// </summary>
         /// <returns></returns>

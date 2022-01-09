@@ -121,32 +121,6 @@ namespace Wikiled.Redis.UnitTests.Logic
         }
 
         [Test]
-        public void GetTypeIDExist()
-        {
-            database.Setup(item => item.SetMembers("Redis:Type:Identity", CommandFlags.None)).Returns(new RedisValue[] { "One" });
-            var id = redisLink.GetTypeID(typeof(Identity));
-            Assert.AreEqual("One", id);
-            var type = redisLink.GetTypeByName(id);
-            Assert.AreEqual(typeof(Identity), type);
-        }
-
-        [Test]
-        public void GetTypeIDNew()
-        {
-            var batch = new Mock<IBatch>();
-            database.Setup(item => item.CreateBatch(null)).Returns(batch.Object);
-            database.Setup(item => item.StringIncrement("Redis:Type:Counter", 1, CommandFlags.None)).Returns(2);
-            var id = redisLink.GetTypeID(typeof(Identity));
-            Assert.AreEqual("Type:2", id);
-            var type = redisLink.GetTypeByName(id);
-            Assert.AreEqual(typeof(Identity), type);
-            batch.Verify(
-                item => item.SetAddAsync("Redis:Type:2", "Wikiled.Redis.Channels.Identity,Wikiled.Redis", CommandFlags.PreferMaster));
-            batch.Verify(item => item.SetAddAsync("Redis:Type:Identity", "Type:2", CommandFlags.PreferMaster));
-            batch.Verify(item => item.Execute());
-        }
-
-        [Test]
         public void Create()
         {
             Assert.Throws<ArgumentNullException>(() => new RedisLink(new NullLoggerFactory(), configuration, null, resilience.Object, entitySubscriber.Object, defaultSerialiser.Object));

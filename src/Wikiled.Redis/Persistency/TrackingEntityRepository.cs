@@ -14,8 +14,8 @@ namespace Wikiled.Redis.Persistency
 
         private readonly Lazy<IIndexKey> inactive;
 
-        protected TrackingEntityRepository(ILogger<EntityRepository<T>> log, IRedisLink redis, string entity, bool extended = false) 
-            : base(log, redis, entity, extended)
+        protected TrackingEntityRepository(ILogger<EntityRepository<T>> log, IRedisLink redis, string entity, bool extended = false, Action<IPersistencyRegistrationHandler> register = null) 
+            : base(log, redis, entity, extended, register)
         {
             active = new Lazy<IIndexKey>(() => Entity.GenerateIndex("Active"));
             inactive = new Lazy<IIndexKey>(() => Entity.GenerateIndex("Inactive"));

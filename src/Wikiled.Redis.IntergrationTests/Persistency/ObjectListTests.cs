@@ -58,8 +58,8 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
             var newKey = new ObjectKey("Complex");
             await Redis.Client.AddRecord(newKey, data).ConfigureAwait(false);
 
-            Redis.PersistencyRegistration.RegisterObjectHashList<Identity>(new FlatProtoDataSerializer(false, MemoryStreamInstances.MemoryStream), false);
-            Assert.ThrowsAsync<ArgumentException>(async () => await Redis.Client.GetRecords<Identity>(newKey).FirstAsync());
+            Redis.PersistencyRegistration.RegisterObjectHashList<Identity>(new FlatProtoDataSerializer(false, MemoryStreamInstances.MemoryStream));
+            Assert.ThrowsAsync<ArgumentNullException>(async () => await Redis.Client.GetRecords<Identity>(newKey).FirstAsync());
         }
     }
 }
