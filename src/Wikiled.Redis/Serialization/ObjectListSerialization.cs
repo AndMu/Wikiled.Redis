@@ -3,9 +3,9 @@ using StackExchange.Redis;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Reactive.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Wikiled.Redis.Indexing;
 using Wikiled.Redis.Keys;
@@ -15,8 +15,6 @@ namespace Wikiled.Redis.Serialization
 {
     public class ObjectListSerialization<T> : ISpecificPersistency<T>
     {
-        private long counter;
-
         private readonly ConcurrentDictionary<Type, RedisValue[]> columnsCache = new ConcurrentDictionary<Type, RedisValue[]>();
 
         private readonly IRedisLink link;
@@ -245,7 +243,7 @@ namespace Wikiled.Redis.Serialization
 
         private string GetNextId()
         {
-            return $"L{link.LinkId}:{Interlocked.Increment(ref counter)}";
+            return $"L{link.LinkId}:{Guid.NewGuid().ToString("N").ToUpper(CultureInfo.InvariantCulture)}";
         }
     }
 }
