@@ -18,17 +18,14 @@ namespace Wikiled.Redis.Serialization
             FieldConstants.Type
         };
 
-        private readonly IRedisLink link;
-
         private readonly IDataSerializer serializer;
 
         private readonly bool isWellKnown;
 
         private readonly ILogger<ObjectHashSetSerialization<T>> logger;
 
-        public ObjectHashSetSerialization(ILogger<ObjectHashSetSerialization<T>> logger, IRedisLink link, IDataSerializer serializer, bool isWellKnown)
+        public ObjectHashSetSerialization(ILogger<ObjectHashSetSerialization<T>> logger, IDataSerializer serializer, bool isWellKnown)
         {
-            this.link = link ?? throw new ArgumentNullException(nameof(link));
             this.serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             this.isWellKnown = isWellKnown;
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));

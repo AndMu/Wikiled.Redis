@@ -9,6 +9,7 @@ using Wikiled.Common.Utilities.Serialization;
 using Wikiled.Redis.Channels;
 using Wikiled.Redis.IntegrationTests.Helpers;
 using Wikiled.Redis.IntegrationTests.MockData;
+using Wikiled.Redis.Persistency;
 
 namespace Wikiled.Redis.IntegrationTests.Persistency
 {
@@ -113,8 +114,7 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
             for (int i = 0; i < 10; i++)
             {
                 await Resilience.AsyncRetryPolicy
-                                .ExecuteAsync(() => repository.Save(new SimpleItem { Id = i }, repository.Entity.AllIndex))
-                                ;
+                                .ExecuteAsync(() => repository.Save(new SimpleItem { Id = i }, repository.Entity.AllIndex));
             }
         }
 
@@ -152,6 +152,36 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
 
             loaded = await repository.LoadInActive().ToArray();
             Assert.AreEqual(1, loaded.Length);
+        }
+
+        [Test]
+        public async Task SaveSetRepo()
+        {
+            var repo = new IdentityObjectSetRepository(new NullLogger<EntityRepository<Identity>>(),
+                                                        Redis,
+                                                        new BasicJsonSerializer(new RecyclableMemoryStreamManager()));
+            await repo.Save(new Identity { InstanceId = "1" });
+            await repo.Save(new Identity { InstanceId = "1" });
+            var total = await repo.Count();
+            Assert.AreEqual(1, total);
+        }
+
+        [Test]
+        public async Task SaveListRepo()
+        {
+            var repo = new IdentityListRepository(new NullLogger<EntityRepository<Identity>>(),
+                                                       Redis,
+                                                       new BasicJsonSerializer(new RecyclableMemoryStreamManager()));
+            await repo.Save(new Identity { InstanceId = "1" });
+            await repo.Save(new Identity { InstanceId = "1" });
+            var total = await repo.Count();
+            Assert.AreEqual(1, total);
+
+            total = await repo.Count(repo.Entity.GetKey("1"));
+            Assert.AreEqual(2, total);
+
+            var data = await repo.LoadAll(repo.Entity.GetKey("1")).ToArray();
+            Assert.AreEqual(2, data.Length);
         }
     }
 }

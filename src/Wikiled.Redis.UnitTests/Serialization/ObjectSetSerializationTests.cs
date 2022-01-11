@@ -1,13 +1,11 @@
-﻿using System;
-using System.Linq;
-using Microsoft.Extensions.Logging.Abstractions;
-using Wikiled.Redis.Logic;
-using Wikiled.Redis.Serialization;
-using Moq;
+﻿using Microsoft.Extensions.Logging.Abstractions;
 using NUnit.Framework;
+using System;
+using System.Linq;
 using Wikiled.Common.Testing.Utilities.Reflection;
 using Wikiled.Redis.Channels;
 using Wikiled.Redis.Data;
+using Wikiled.Redis.Serialization;
 using Wikiled.Redis.UnitTests.MockData;
 
 namespace Wikiled.Redis.UnitTests.Serialization
@@ -17,15 +15,10 @@ namespace Wikiled.Redis.UnitTests.Serialization
     {
         private ObjectHashSetSerialization<MainDataOne> instance;
 
-        private Mock<IRedisLink> link;
-
         [SetUp]
         public void Setup()
         {
-            link = new Mock<IRedisLink>();
-            link.Setup(item => item.State).Returns(ChannelState.Open);
-            link.Setup(item => item.LinkId).Returns(0);
-            instance = new ObjectHashSetSerialization<MainDataOne>(new NullLogger<ObjectHashSetSerialization<MainDataOne>>(), link.Object, new BinaryDataSerializer(), false);
+            instance = new ObjectHashSetSerialization<MainDataOne>(new NullLogger<ObjectHashSetSerialization<MainDataOne>>(), new BinaryDataSerializer(), false);
         }
 
         [Test]

@@ -26,7 +26,7 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
         [TestCase(false)]
         public async Task SaveSingle(bool isWellKnown)
         {
-            Redis.PersistencyRegistration.RegisterObjectHashList<ComplexData>(new FlatProtoDataSerializer(isWellKnown, MemoryStreamInstances.MemoryStream), isWellKnown);
+            Redis.PersistencyRegistration.RegisterObjectHashSet<ComplexData>(new FlatProtoDataSerializer(isWellKnown, MemoryStreamInstances.MemoryStream), isWellKnown);
             var newKey = new ObjectKey("Complex");
             await Redis.Client.AddRecord(newKey, data).ConfigureAwait(false);
             var result = await Redis.Client.GetRecords<ComplexData>(newKey).FirstAsync();
@@ -37,7 +37,7 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
         [TestCase(false)]
         public async Task SaveMultiple(bool isWellKnown)
         {
-            Redis.PersistencyRegistration.RegisterObjectHashList<ComplexData>(new FlatProtoDataSerializer(isWellKnown, MemoryStreamInstances.MemoryStream), isWellKnown);
+            Redis.PersistencyRegistration.RegisterObjectHashSet<ComplexData>(new FlatProtoDataSerializer(isWellKnown, MemoryStreamInstances.MemoryStream), isWellKnown);
             var newKey = new ObjectKey("Complex");
 
             for (int i = 0; i < 10; i++)
@@ -52,13 +52,13 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
         [Test]
         public async Task SaveKnowLoadUnknown()
         {
-            Redis.PersistencyRegistration.RegisterObjectHashList<ComplexData>(
+            Redis.PersistencyRegistration.RegisterObjectHashSet<ComplexData>(
                 new FlatProtoDataSerializer(true, MemoryStreamInstances.MemoryStream),
                 true);
             var newKey = new ObjectKey("Complex");
             await Redis.Client.AddRecord(newKey, data).ConfigureAwait(false);
 
-            Redis.PersistencyRegistration.RegisterObjectHashList<Identity>(new FlatProtoDataSerializer(false, MemoryStreamInstances.MemoryStream));
+            Redis.PersistencyRegistration.RegisterObjectHashSet<Identity>(new FlatProtoDataSerializer(false, MemoryStreamInstances.MemoryStream));
             Assert.ThrowsAsync<ArgumentNullException>(async () => await Redis.Client.GetRecords<Identity>(newKey).FirstAsync());
         }
     }

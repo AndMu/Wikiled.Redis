@@ -228,7 +228,6 @@ namespace Wikiled.Redis.Serialization
             {
                 task = redisSetList.SaveItems(database, currentKey, objectKey.RecordId);
                 tasks.Add(task);
-                tasks.AddRange(mainIndexManager.Add(database, currentKey));
             }
 
             return Task.WhenAll(tasks);

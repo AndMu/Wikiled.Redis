@@ -18,7 +18,7 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
         [TestCase(false)]
         public async Task KeyValue(bool isSet)
         {
-            Redis.PersistencyRegistration.RegisterHashsetList<Identity>();
+            Redis.PersistencyRegistration.RegisterHashSet<Identity>();
             Key.AddIndex(new IndexKey("Data", isSet));
             await Redis.Client.AddRecord(Key, Routing).ConfigureAwait(false);
             var result = await Redis.Client.GetRecords<Identity>(Key).FirstAsync();
@@ -29,7 +29,7 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
         [Test]
         public async Task SaveComplex()
         {
-            Redis.PersistencyRegistration.RegisterHashsetList<ComplexData>();
+            Redis.PersistencyRegistration.RegisterHashSet<ComplexData>();
             var data = new ComplexData();
             data.Date = new DateTime(2012, 02, 02);
             var newKey = new ObjectKey("Complex");
@@ -97,7 +97,7 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
         [Test]
         public async Task SaveDictionary()
         {
-            Redis.PersistencyRegistration.RegisterHashsetList(new DictionarySerializer(new[] { "Result" }));
+            Redis.PersistencyRegistration.RegisterHashSet(new DictionarySerializer(new[] { "Result" }));
             var table = new Dictionary<string, string>();
             table["Result"] = "one";
             await Redis.Client.AddRecord(Key, table).ConfigureAwait(false);

@@ -60,7 +60,7 @@ namespace Wikiled.Redis.IntegrationTests.Subscription
         public void TestTypeSubscription()
         {
             var events = new List<KeyspaceEvent>();
-            redis.PersistencyRegistration.RegisterHashsetList<Identity>();
+            redis.PersistencyRegistration.RegisterHashSet<Identity>();
             redis.SubscribeTypeEvents<Identity>(@event => events.Add(@event));
             redis.Client.AddRecord(key, new Identity { ApplicationId = "Test" });
             Thread.Sleep(1000);

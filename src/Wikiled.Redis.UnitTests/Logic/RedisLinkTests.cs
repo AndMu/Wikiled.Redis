@@ -65,7 +65,7 @@ namespace Wikiled.Redis.UnitTests.Logic
         [Test]
         public void SubscribeTypeEvents()
         {
-            redisLink.PersistencyRegistration.RegisterHashsetList<Identity>();
+            redisLink.PersistencyRegistration.RegisterHashSet<Identity>();
             Assert.Throws<ArgumentNullException>(() => redisLink.SubscribeTypeEvents<Identity>(null));
             var subscriber = new Mock<ISubscriber>();
             multiplexer.Setup(item => item.SubscribeKeyEvents("Redis:object:Identity:*", It.IsAny<Action<KeyspaceEvent>>()))
@@ -91,7 +91,7 @@ namespace Wikiled.Redis.UnitTests.Logic
         [Test]
         public void RegisterHashsetList()
         {
-            redisLink.PersistencyRegistration.RegisterHashsetList<Identity>();
+            redisLink.PersistencyRegistration.RegisterHashSet<Identity>();
             var specificClient = redisLink.GetSpecific<Identity>();
             Assert.IsInstanceOf<ObjectListSerialization<Identity>>(specificClient);
         }
@@ -107,7 +107,7 @@ namespace Wikiled.Redis.UnitTests.Logic
         [Test]
         public void RegisterObjectHashList()
         {
-            redisLink.PersistencyRegistration.RegisterObjectHashList<Identity>(new BinaryDataSerializer());
+            redisLink.PersistencyRegistration.RegisterObjectHashSet<Identity>(new BinaryDataSerializer());
             var specificClient = redisLink.GetSpecific<Identity>();
             Assert.IsInstanceOf<ObjectListSerialization<Identity>>(specificClient);
         }

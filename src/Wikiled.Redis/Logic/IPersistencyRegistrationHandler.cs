@@ -12,13 +12,13 @@ namespace Wikiled.Redis.Logic
         void RegisterHashsetSingle<T>(IKeyValueSerializer<T> serializer = null)
             where T : class, new();
 
-        void RegisterHashsetList<T>(IKeyValueSerializer<T> serializer = null)
+        void RegisterHashSet<T>(IKeyValueSerializer<T> serializer = null)
             where T : class, new();
 
         void RegisterObjectHashSingle<T>(IDataSerializer serializer, bool isWellKnown = false)
             where T : class;
 
-        void RegisterObjectHashList<T>(IDataSerializer serializer, bool isWellKnown = false)
+        void RegisterObjectHashSet<T>(IDataSerializer serializer, bool isWellKnown = false)
             where T : class;
     }
 }

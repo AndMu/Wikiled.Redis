@@ -76,7 +76,7 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
         [TestCase(8, 1)]
         public async Task TestMultiple(int type, int total)
         {
-            SertupPersistency(type);
+            SetupPersistency(type);
             var key1 = new RepositoryKey(Repository.Object, new ObjectKey("Test1"));
             await Redis.Client.AddRecord(key1, new Identity { Environment = "Test1" }).ConfigureAwait(false);
             await Redis.Client.AddRecord(key1, new Identity { Environment = "Test2" }).ConfigureAwait(false);
@@ -105,7 +105,7 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
         public async Task TestIndex(int type, int batchSize)
         {
             Redis.Client.BatchSize = batchSize;
-            SertupPersistency(type);
+            SetupPersistency(type);
             
             var key1 = new RepositoryKey(Repository.Object, new ObjectKey("Test1"));
             key1.AddIndex(ListAll);
@@ -271,7 +271,7 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
         [Test]
         public async Task Wellknown()
         {
-            Redis.PersistencyRegistration.RegisterObjectHashList<Identity>(new XmlDataSerializer(), true);
+            Redis.PersistencyRegistration.RegisterObjectHashSet<Identity>(new XmlDataSerializer(), true);
             await Redis.Client.AddRecord(Key, Routing).ConfigureAwait(false);
             var result = await Redis.Client.GetRecords<Identity>(Key).FirstAsync();
             Assert.AreEqual("Test", result.ApplicationId);
@@ -282,7 +282,7 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
             Assert.AreEqual(0, total.Length);
         }
 
-        private void SertupPersistency(int type)
+        private void SetupPersistency(int type)
         {
             switch (type)
             {
@@ -296,10 +296,10 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
                     Redis.PersistencyRegistration.RegisterHashsetSingle<Identity>();
                     break;
                 case 4:
-                    Redis.PersistencyRegistration.RegisterHashsetList<Identity>();
+                    Redis.PersistencyRegistration.RegisterHashSet<Identity>();
                     break;
                 case 5:
-                    Redis.PersistencyRegistration.RegisterObjectHashList<Identity>(new XmlDataSerializer());
+                    Redis.PersistencyRegistration.RegisterObjectHashSet<Identity>(new XmlDataSerializer());
                     break;
                 case 6:
                     Redis.PersistencyRegistration.RegisterObjectHashSingle<Identity>(new XmlDataSerializer());

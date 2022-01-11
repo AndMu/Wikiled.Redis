@@ -25,7 +25,7 @@ namespace Wikiled.Redis.Persistency
                 redis.PersistencyRegistration.RegisterHashsetSingle<T>();
             }
             
-            Name = $"{entity}s";
+            Name = $"{entity}Repo";
             Entity = new EntityKey(extended ? entity : string.Empty, this);
         }
 
@@ -46,6 +46,11 @@ namespace Wikiled.Redis.Persistency
         public Task<long> Count(IIndexKey key)
         {
             return Redis.Client.Count(key);
+        }
+
+        public Task<long> Count(IDataKey key)
+        {
+            return Redis.Client.Count<T>(key);
         }
 
         public Task<long> Count()
@@ -81,6 +86,11 @@ namespace Wikiled.Redis.Persistency
         public Task Save(T entity, IRedisTransaction transaction, params IIndexKey[] indexes)
         {
             return SaveInternal(entity, transaction, indexes);
+        }
+
+        public IObservable<T> LoadAll(IDataKey key)
+        {
+            return Redis.Client.GetRecords<T>(key);
         }
 
         public IObservable<T> LoadAll(IIndexKey key)

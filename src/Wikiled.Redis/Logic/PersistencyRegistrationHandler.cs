@@ -51,7 +51,7 @@ namespace Wikiled.Redis.Logic
             link.Register(persistency);
         }
 
-        public void RegisterHashsetList<T>(IKeyValueSerializer<T> serializer = null)
+        public void RegisterHashSet<T>(IKeyValueSerializer<T> serializer = null)
             where T : class, new()
         {
             serializer ??= new KeyValueSerializer<T>(loggerFactory.CreateLogger<KeyValueSerializer<T>>());
@@ -69,7 +69,7 @@ namespace Wikiled.Redis.Logic
                 throw new ArgumentOutOfRangeException(nameof(isWellKnown), "Primitive type can't be well known ");
             }
 
-            var serialization = new ObjectHashSetSerialization<T>(loggerFactory.CreateLogger<ObjectHashSetSerialization<T>>(), link, serializer, isWellKnown);
+            var serialization = new ObjectHashSetSerialization<T>(loggerFactory.CreateLogger<ObjectHashSetSerialization<T>>(), serializer, isWellKnown);
             var persistency = new SingleItemSerialization<T>(loggerFactory.CreateLogger<SingleItemSerialization<T>>(),
                                                              link,
                                                              serialization,
@@ -77,7 +77,7 @@ namespace Wikiled.Redis.Logic
             link.Register(persistency);
         }
 
-        public void RegisterObjectHashList<T>(IDataSerializer serializer, bool isWellKnown = false)
+        public void RegisterObjectHashSet<T>(IDataSerializer serializer, bool isWellKnown = false)
             where T : class
         {
             if (isWellKnown &&
@@ -86,7 +86,7 @@ namespace Wikiled.Redis.Logic
                 throw new ArgumentOutOfRangeException(nameof(isWellKnown), "Primitive type can't be well known ");
             }
 
-            var serialization = new ObjectHashSetSerialization<T>(loggerFactory.CreateLogger<ObjectHashSetSerialization<T>>(), link, serializer, isWellKnown);
+            var serialization = new ObjectHashSetSerialization<T>(loggerFactory.CreateLogger<ObjectHashSetSerialization<T>>(), serializer, isWellKnown);
             var persistency = new ObjectListSerialization<T>(loggerFactory.CreateLogger<ObjectListSerialization<T>>(), link, serialization, new RedisSet(loggerFactory.CreateLogger<RedisSet>(), link, link.IndexManager), link.IndexManager);
             link.Register(persistency);
         }

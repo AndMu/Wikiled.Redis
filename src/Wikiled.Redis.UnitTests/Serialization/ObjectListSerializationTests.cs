@@ -107,7 +107,6 @@ namespace Wikiled.Redis.UnitTests.Serialization
         {
             key.AddIndex(new HashIndexKey("Test", "Test2"));
             await instance.AddRecord(database.Object, key, data).ConfigureAwait(false);
-            mainIndexManager.Verify(item => item.Add(It.IsAny<IDatabaseAsync>(), It.IsAny<IDataKey>()));
             database.Verify(item => item.HashSetAsync(It.IsAny<RedisKey>(), It.IsAny<HashEntry[]>(), CommandFlags.None));
             redisSetList.Verify(item => item.SaveItems(database.Object, It.IsAny<IDataKey>(), It.IsAny<RedisValue[]>()));
         }
