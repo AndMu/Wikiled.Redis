@@ -1,5 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Wikiled.Redis.Keys;
@@ -150,8 +152,7 @@ namespace Wikiled.Redis.Persistency
             Log.LogDebug("Saving: {0}", id);
 
             var key = Entity.GetKey(id);
-            key.AddIndex(Entity.AllIndex);
-            foreach (var index in indexes)
+            foreach (var index in GetKeys().Union(indexes))
             {
                 key.AddIndex(index);
             }
@@ -168,6 +169,11 @@ namespace Wikiled.Redis.Persistency
 
             await Task.WhenAll(beforeTask, addTask).ConfigureAwait(false);
             await AfterSaving(key, entity).ConfigureAwait(false);
+        }
+
+        protected virtual IEnumerable<IIndexKey> GetKeys()
+        {
+            yield return Entity.AllIndex;
         }
     }
 }
