@@ -81,7 +81,7 @@ namespace Wikiled.Redis.Logic
         public ISpecificPersistency<T> GetSpecific<T>()
         {
             Type type = typeof(T);
-            log.LogDebug("GetSpecific<{0}>", type);
+            log.LogTrace("GetSpecific<{0}>", type);
 
             if (persistencyTable.TryGetValue(type, out var persistency))
             {

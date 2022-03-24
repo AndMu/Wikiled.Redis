@@ -59,7 +59,7 @@ namespace Wikiled.Redis.Indexing
 
         public IObservable<IDataKey> GetKeys(IDatabaseAsync database, IIndexKey indexes, long start = 0, long stop = -1)
         {
-            log.LogDebug("GetKeys");
+            log.LogTrace("GetKeys");
             var keys = GetIds(database, indexes, start, stop);
             return keys.Select(item => GetKey(item, indexes));
         }
