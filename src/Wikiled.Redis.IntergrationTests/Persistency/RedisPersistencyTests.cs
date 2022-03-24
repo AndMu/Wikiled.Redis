@@ -159,7 +159,6 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
             Assert.AreEqual("Test2", (string)result[0]);
             result = await manager.GetIds(Redis.Database, ListAll, 0, 1).ToArray();
             Assert.AreEqual("Test3", (string)result[0]);
-
             await manager.Reset(Redis.Database, ListAll).ConfigureAwait(false);
             count = await manager.Count(Redis.Database, ListAll).ConfigureAwait(false);
             Assert.AreEqual(0, count);
