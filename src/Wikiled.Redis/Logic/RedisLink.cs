@@ -109,7 +109,7 @@ namespace Wikiled.Redis.Logic
 
         public IRedisTransaction StartTransaction()
         {
-            log.LogDebug("StartTransaction");
+            log.LogTrace("StartTransaction");
             Multiplexer.CheckConnection();
             return new RedisTransaction(loggerFactory, this, Multiplexer.Database.CreateTransaction(), IndexManager);
         }
