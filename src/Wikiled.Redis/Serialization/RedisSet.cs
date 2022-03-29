@@ -47,7 +47,7 @@ namespace Wikiled.Redis.Serialization
         public Task SaveItems(IDatabaseAsync database, IDataKey key, params RedisValue[] redisValues)
         {
             var redisKey = link.GetKey(key);
-            logger.LogDebug("AddSet: <{0}>", key);
+            logger.LogTrace("SaveItems: <{0}>", key);
 
             var time = DateTime.UtcNow.ToUnixTime();
             var saveTask = database.SortedSetAddAsync(

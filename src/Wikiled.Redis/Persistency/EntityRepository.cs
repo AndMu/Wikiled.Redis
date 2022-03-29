@@ -149,7 +149,7 @@ namespace Wikiled.Redis.Persistency
             }
 
             var id = GetRecordId(entity);
-            Log.LogDebug("Saving: {0}", id);
+            Log.LogTrace("Saving: {0}", id);
 
             var key = Entity.GetKey(id);
             foreach (var index in GetKeys().Union(indexes))

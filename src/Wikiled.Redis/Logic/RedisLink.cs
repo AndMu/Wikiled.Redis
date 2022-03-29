@@ -81,7 +81,7 @@ namespace Wikiled.Redis.Logic
         public ISpecificPersistency<T> GetSpecific<T>()
         {
             Type type = typeof(T);
-            log.LogDebug("GetSpecific<{0}>", type);
+            log.LogTrace("GetSpecific<{0}>", type);
 
             if (persistencyTable.TryGetValue(type, out var persistency))
             {
@@ -109,7 +109,7 @@ namespace Wikiled.Redis.Logic
 
         public IRedisTransaction StartTransaction()
         {
-            log.LogDebug("StartTransaction");
+            log.LogTrace("StartTransaction");
             Multiplexer.CheckConnection();
             return new RedisTransaction(loggerFactory, this, Multiplexer.Database.CreateTransaction(), IndexManager);
         }

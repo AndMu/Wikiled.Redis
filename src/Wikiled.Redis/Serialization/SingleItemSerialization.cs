@@ -96,7 +96,7 @@ namespace Wikiled.Redis.Serialization
             }
 
             var key = link.GetKey(dataKey);
-            log.LogDebug("GetRecords: {0}", key);
+            log.LogTrace("GetRecords: {0}", key);
             if (fromRecord != 0 &&
                 toRecord != -1)
             {
