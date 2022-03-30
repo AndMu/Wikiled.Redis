@@ -24,7 +24,7 @@ namespace Wikiled.Redis.UnitTests.Serialization
         [Test]
         public void Construct()
         {
-            ConstructorHelper.ConstructorMustThrowArgumentNullException<ObjectHashSetSerialization<Identity>>(true);
+            ConstructorHelper.ConstructorMustThrowArgumentNullException<ObjectHashSetSerialization<Identity>>();
         }
 
         [Test]
