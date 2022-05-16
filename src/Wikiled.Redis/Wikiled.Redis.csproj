@@ -1,7 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>NETSTANDARD2.0</TargetFrameworks>    
+	  <TargetFramework>net6.0</TargetFramework>
+	  <LangVersion>Latest</LangVersion>
+	  <TieredCompilation>true</TieredCompilation>
+	  <ServerGarbageCollection>true</ServerGarbageCollection>
+	  <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
+	  <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+	  <NullableReferenceTypes>true</NullableReferenceTypes>
+	  <IsPackable>false</IsPackable>
+	  <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -17,15 +25,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="3.3.2">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
     <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="2.2.0" />
     <PackageReference Include="Polly" Version="7.2.3" />
-    <PackageReference Include="protobuf-net" version="3.0.101" />
+    <PackageReference Include="protobuf-net" version="3.1.4" />
     <PackageReference Include="Snappy.Standard" Version="0.2.0" />
-    <PackageReference Include="StackExchange.Redis" version="2.5.43" />
+    <PackageReference Include="StackExchange.Redis" version="2.5.61" />
     <PackageReference Include="System.Reactive" Version="5.0.0" />
     <PackageReference Include="Wikiled.Common" Version="1.2.2" />
     <PackageReference Include="Wikiled.Common.Utilities" Version="1.5.6" />
