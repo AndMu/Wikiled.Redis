@@ -14,7 +14,6 @@ namespace Wikiled.Redis.IntegrationTests.Helpers
         {
         }
 
-
         protected override string GetRecordId(Identity instance)
         {
             return instance.InstanceId;
