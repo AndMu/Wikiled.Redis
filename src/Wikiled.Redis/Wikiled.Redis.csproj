@@ -8,7 +8,7 @@
 	  <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
 	  <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
 	  <NullableReferenceTypes>true</NullableReferenceTypes>
-	  <IsPackable>false</IsPackable>
+	  <IsPackable>true</IsPackable>
 	  <Nullable>enable</Nullable>
   </PropertyGroup>
 
