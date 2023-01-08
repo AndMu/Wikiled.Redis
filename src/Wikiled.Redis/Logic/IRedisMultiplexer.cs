@@ -28,6 +28,11 @@ namespace Wikiled.Redis.Logic
         IDatabase Database { get; }
 
         /// <summary>
+        /// Enable notifications
+        /// </summary>
+        void EnableNotifications();
+
+        /// <summary>
         /// Get Servers
         /// </summary>
         /// <returns></returns>
