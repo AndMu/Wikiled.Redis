@@ -45,6 +45,7 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
             var provider = new ModuleHelper(config).Provider;
             Redis = await provider.GetService<IAsyncServiceFactory<IRedisLink>>().GetService(true);
             Redis.Multiplexer.Flush();
+            Redis.Multiplexer.EnableNotifications();
 
             Resilience = provider.GetService<IResilience>();
             Key = new ObjectKey("Key1");
