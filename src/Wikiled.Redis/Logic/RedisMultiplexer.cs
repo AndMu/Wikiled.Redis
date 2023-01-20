@@ -77,7 +77,7 @@ namespace Wikiled.Redis.Logic
 
         public void Configure(string key, string value)
         {
-            log.LogWarning("Configure");
+            log.LogInformation("Configure");
             CheckConnection();
             foreach (var server in GetServers())
             {
@@ -87,7 +87,7 @@ namespace Wikiled.Redis.Logic
 
         public Task DeleteKeys(string pattern)
         {
-            log.LogWarning("DeleteKeys: <{0}>", pattern);
+            log.LogInformation("DeleteKeys: <{0}>", pattern);
             int total = 0;
             var tasks = new List<Task>();
             foreach (var key in GetKeys(pattern))
@@ -96,13 +96,13 @@ namespace Wikiled.Redis.Logic
                 tasks.Add(Database.KeyDeleteAsync(key));
             }
 
-            log.LogWarning("Deleted Keys: <{0}> - {1} keys", pattern, total);
+            log.LogInformation("Deleted Keys: <{0}> - {1} keys", pattern, total);
             return Task.WhenAll(tasks);
         }
 
         public void Dispose()
         {
-            log.LogInformation("Dispose");
+            log.LogDebug("Dispose");
             var current = connection;
             Close();
             current?.Dispose();
@@ -110,7 +110,7 @@ namespace Wikiled.Redis.Logic
 
         public void Flush()
         {
-            log.LogWarning("Flush");
+            log.LogInformation("Flush");
             CheckConnection();
             foreach (var server in GetServers())
             {
@@ -120,7 +120,7 @@ namespace Wikiled.Redis.Logic
 
         public void Shutdown()
         {
-            log.LogWarning("Shutdown");
+            log.LogDebug("Shutdown");
             CheckConnection();
             foreach (var server in GetServers())
             {
@@ -135,7 +135,7 @@ namespace Wikiled.Redis.Logic
 
         public IEnumerable<RedisKey> GetKeys(string pattern)
         {
-            log.LogWarning("GetKeys: <{0}>", pattern);
+            log.LogInformation("GetKeys: <{0}>", pattern);
             return GetServers().SelectMany(server => server.Keys(pattern: pattern));
         }
 
@@ -149,7 +149,7 @@ namespace Wikiled.Redis.Logic
         {
             if (connection != null)
             {
-                log.LogInformation("Connection is already open");
+                log.LogDebug("Connection is already open");
                 return;
             }
 
@@ -171,10 +171,10 @@ namespace Wikiled.Redis.Logic
 
             foreach (var endpoint in options.EndPoints)
             {
-                log.LogInformation("Host: {0}", endpoint);
+                log.LogDebug("Host: {0}", endpoint);
             }
 
-            log.LogInformation(
+            log.LogDebug(
                 "Other configuration - KeepAlive:[{0}] ConnectTimeout:[{1}] SyncTimeout:[{2}] ServiceName:[{3}] AllowAdmin:[{4}]",
                 Configuration.KeepAlive,
                 Configuration.ConnectTimeout,
