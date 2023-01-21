@@ -49,7 +49,7 @@ namespace Wikiled.Redis.Logic
 
         public void Close()
         {
-            log.LogInformation("Close");
+            log.LogDebug("Close");
             if (connection == null)
             {
                 return;
