@@ -32,6 +32,7 @@ namespace Wikiled.Redis.Persistency
                 throw new ArgumentNullException(nameof(id));
             }
 
+            Log.LogInformation("Deactivate: {0}", id);
             var key = Entity.GetKey(id);
             var client = (IDatabase)transaction?.Transaction ?? Redis.Multiplexer.Database;
             var activeTask = Redis.IndexManager.GetManager(Active).RemoveIndex(client, key, Active);
