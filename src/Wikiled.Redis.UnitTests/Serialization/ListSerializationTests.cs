@@ -66,7 +66,7 @@ namespace Wikiled.Redis.UnitTests.Serialization
         {
             Assert.Throws<ArgumentNullException>(() => instance.DeleteAll(null, key));
             Assert.Throws<ArgumentNullException>(() => instance.DeleteAll(database.Object, null));
-            await instance.DeleteAll(database.Object, key).ConfigureAwait(false);
+            await instance.DeleteAll(database.Object, key);
             database.Verify(item => item.KeyDeleteAsync(It.IsAny<RedisKey>(), CommandFlags.None));
         }
 
@@ -76,7 +76,7 @@ namespace Wikiled.Redis.UnitTests.Serialization
             Assert.Throws<ArgumentNullException>(() => instance.AddRecord(database.Object, null, data));
             Assert.Throws<ArgumentNullException>(() => instance.AddRecord(database.Object, key, null));
             Assert.Throws<ArgumentNullException>(() => instance.AddRecord(null, key, data));
-            await instance.AddRecord(database.Object, key, data).ConfigureAwait(false);
+            await instance.AddRecord(database.Object, key, data);
             redisSetList.Verify(item => item.SaveItems(database.Object, It.IsAny<IDataKey>(), It.IsAny<RedisValue>()));
         }
 

@@ -46,7 +46,7 @@ namespace Wikiled.Redis.UnitTests.Logic
             multiplexer.Setup(item => item.Configuration).Returns(configuration);
             entitySubscriber = new Mock<IEntitySubscriber>();
             redisLink = new RedisLink(new NullLoggerFactory(), configuration, multiplexer.Object, resilience.Object, entitySubscriber.Object, defaultSerialiser.Object);
-            await redisLink.Open().ConfigureAwait(false);
+            await redisLink.Open();
         }
 
         [Test]
@@ -133,7 +133,7 @@ namespace Wikiled.Redis.UnitTests.Logic
         public async Task Open()
         {
             redisLink = new RedisLink(new NullLoggerFactory(), configuration, multiplexer.Object,  resilience.Object, entitySubscriber.Object, defaultSerialiser.Object);
-            await redisLink.Open().ConfigureAwait(false);
+            await redisLink.Open();
             multiplexer.Verify(item => item.Open());
         }
 
@@ -157,7 +157,7 @@ namespace Wikiled.Redis.UnitTests.Logic
             Assert.ThrowsAsync<Exception>(redisLink.Open);
             Assert.AreEqual(ChannelState.Closed, redisLink.State);
             multiplexer.Setup(item => item.Open());
-            await redisLink.Open().ConfigureAwait(false);
+            await redisLink.Open();
             Assert.AreEqual(ChannelState.Open, redisLink.State);
         }
 

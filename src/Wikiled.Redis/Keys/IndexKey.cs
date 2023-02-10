@@ -5,7 +5,7 @@ namespace Wikiled.Redis.Keys
 {
     public class IndexKey : IIndexKey
     {
-        public IndexKey(string key, bool isSet)
+        public IndexKey(string key)
         {
             if (string.IsNullOrEmpty(key))
             {
@@ -13,10 +13,10 @@ namespace Wikiled.Redis.Keys
             }
 
             Key = key;
-            IsSet = isSet;
+            RepositoryKey = string.Empty;
         }
 
-        public IndexKey(IRepository repository, string key, bool isSet)
+        public IndexKey(IRepository repository, string key)
         {
             if (repository == null)
             {
@@ -30,10 +30,7 @@ namespace Wikiled.Redis.Keys
 
             Key = key;
             RepositoryKey = repository.Name;
-            IsSet = isSet;
         }
-
-        public bool IsSet { get; }
 
         public string RepositoryKey { get; }
 

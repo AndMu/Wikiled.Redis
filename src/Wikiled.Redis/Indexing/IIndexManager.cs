@@ -36,7 +36,7 @@ namespace Wikiled.Redis.Indexing
         ///     Get ids in index
         /// </summary>
         /// <returns></returns>
-        IObservable<RedisValue> GetIds(IDatabaseAsync database, IIndexKey indexes, long start = 0, long stop = -1);
+        IObservable<IDataKey> GetIds(IDatabaseAsync database, IIndexKey indexes, long start = 0, long stop = -1);
 
         /// <summary>
         ///     Get Keys

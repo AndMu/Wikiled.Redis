@@ -32,17 +32,17 @@ namespace Wikiled.Redis.Indexing
             return database.HashSetAsync(Link.GetIndexKey(index), new[] { new HashEntry(hashIndex.HashKey, rawKey) });
         }
 
-        protected override IObservable<RedisValue> GetIdsSingle(IDatabaseAsync database, IIndexKey index, long start = 0, long stop = -1)
+        protected override IObservable<IDataKey> GetIdsSingle(IDatabaseAsync database, IIndexKey index, long start = 0, long stop = -1)
         {
             var hashKey = ((HashIndexKey) index).HashKey;
 
-            return Observable.Create<RedisValue>(
+            return Observable.Create<IDataKey>(
                 async observer =>
                 {
                     var result = await Link.Resilience.AsyncRetryPolicy
                                                  .ExecuteAsync(async () => await database.HashGetAsync(Link.GetIndexKey(index), hashKey).ConfigureAwait(false))
                                                  .ConfigureAwait(false);
-                    observer.OnNext(result);
+                    observer.OnNext(GetKey(result, index));
                     observer.OnCompleted();
                 });
         }

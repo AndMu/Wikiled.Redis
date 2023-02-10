@@ -56,8 +56,8 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
             Repository.Setup(item => item.Name).Returns("Test");
             Repository.Setup(item => item.Size).Returns(2);
             RepositoryKey = new RepositoryKey(Repository.Object, Key);
-            ListAll = new IndexKey(Repository.Object, "All", true);
-            ListAll2 = new IndexKey(Repository.Object, "All2", true);
+            ListAll = new IndexKey(Repository.Object, "All");
+            ListAll2 = new IndexKey(Repository.Object, "All2");
         }
 
         [TearDown]

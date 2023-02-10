@@ -64,8 +64,8 @@ namespace Wikiled.Redis.UnitTests.Serialization
         [Test]
         public async Task DeleteAll()
         {
-            Assert.ThrowsAsync<ArgumentNullException>(async () => await instance.DeleteAll(null, key).ConfigureAwait(false));
-            Assert.ThrowsAsync<ArgumentNullException>(async () => await instance.DeleteAll(database.Object, null).ConfigureAwait(false));
+            Assert.ThrowsAsync<ArgumentNullException>(async () => await instance.DeleteAll(null, key));
+            Assert.ThrowsAsync<ArgumentNullException>(async () => await instance.DeleteAll(database.Object, null));
 
             redisSetList.Setup(
                 item =>
@@ -75,7 +75,7 @@ namespace Wikiled.Redis.UnitTests.Serialization
             database.Setup(item => item.KeyDeleteAsync(new[] { (RedisKey)"Test1", (RedisKey)"Test2", (RedisKey)":object:Test" }, CommandFlags.None))
                     .Returns(Task.FromResult(0L));
 
-            await instance.DeleteAll(database.Object, key).ConfigureAwait(false);
+            await instance.DeleteAll(database.Object, key);
             database.Verify(item => item.KeyDeleteAsync(new[] { (RedisKey)"Test1", (RedisKey)"Test2", (RedisKey)":object:Test" }, CommandFlags.None));
 
             mainIndexManager.Verify(item => item.Delete(It.IsAny<IDatabaseAsync>(), It.IsAny<IDataKey>()));
@@ -87,7 +87,7 @@ namespace Wikiled.Redis.UnitTests.Serialization
             Assert.Throws<ArgumentNullException>(() => instance.AddRecord(null, key, data));
             Assert.Throws<ArgumentNullException>(() => instance.AddRecord(database.Object, null, data));
             Assert.Throws<ArgumentNullException>(() => instance.AddRecord(database.Object, key, null));
-            await instance.AddRecord(database.Object, key, data).ConfigureAwait(false);
+            await instance.AddRecord(database.Object, key, data);
             database.Verify(item => item.HashSetAsync(It.IsAny<RedisKey>(), It.IsAny<HashEntry[]>(), CommandFlags.None));
             redisSetList.Verify(
                 item => item.SaveItems(database.Object, It.IsAny<IDataKey>(), It.IsAny<RedisValue[]>()));
@@ -96,8 +96,8 @@ namespace Wikiled.Redis.UnitTests.Serialization
         [Test]
         public async Task ListIndex()
         {
-            key.AddIndex(new IndexKey("Test", false));
-            await instance.AddRecord(database.Object, key, data).ConfigureAwait(false);
+            key.AddIndex(new IndexKey("Test"));
+            await instance.AddRecord(database.Object, key, data);
             database.Verify(item => item.HashSetAsync(It.IsAny<RedisKey>(), It.IsAny<HashEntry[]>(), CommandFlags.None), Times.Exactly(1));
             redisSetList.Verify(item => item.SaveItems(database.Object, It.IsAny<IDataKey>(), It.IsAny<RedisValue[]>()));
         }
@@ -106,7 +106,7 @@ namespace Wikiled.Redis.UnitTests.Serialization
         public async Task HashIndex()
         {
             key.AddIndex(new HashIndexKey("Test", "Test2"));
-            await instance.AddRecord(database.Object, key, data).ConfigureAwait(false);
+            await instance.AddRecord(database.Object, key, data);
             database.Verify(item => item.HashSetAsync(It.IsAny<RedisKey>(), It.IsAny<HashEntry[]>(), CommandFlags.None));
             redisSetList.Verify(item => item.SaveItems(database.Object, It.IsAny<IDataKey>(), It.IsAny<RedisValue[]>()));
         }

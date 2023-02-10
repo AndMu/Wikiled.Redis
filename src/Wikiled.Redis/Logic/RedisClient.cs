@@ -132,7 +132,7 @@ namespace Wikiled.Redis.Logic
 
         public IObservable<T> GetRecords<T>(IIndexKey index, long start = 0, long end = -1)
         {
-            logger.LogDebug($"GetRecords<{typeof(T)}> {start}-{end}");
+            logger.LogDebug($"GetRecords<{typeof(T)}> {start}:{end}");
             var indexManager = mainIndexManager.GetManager(index);
             int batch = BatchSize;
 

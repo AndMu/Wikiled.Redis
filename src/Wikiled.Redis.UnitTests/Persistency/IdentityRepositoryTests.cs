@@ -62,15 +62,15 @@ namespace Wikiled.Redis.UnitTests.Persistency
         [Test]
         public void TestArguments()
         {
-            Assert.ThrowsAsync<ArgumentNullException>(async () => await instance.Save(null).ConfigureAwait(false));
-            Assert.ThrowsAsync<ArgumentNullException>(async () => await instance.LoadSingle(null).ConfigureAwait(false));
-            Assert.ThrowsAsync<ArgumentNullException>(async () => await instance.LoadPage(null).ConfigureAwait(false));
+            Assert.ThrowsAsync<ArgumentNullException>(async () => await instance.Save(null));
+            Assert.ThrowsAsync<ArgumentNullException>(async () => await instance.LoadSingle(null));
+            Assert.ThrowsAsync<ArgumentNullException>(async () => await instance.LoadPage(null));
         }
 
         [Test]
         public async Task Save()
         {
-            await instance.Save(data).ConfigureAwait(false);
+            await instance.Save(data);
             mockClient.Verify(item => item.AddRecord(It.IsAny<IDataKey>(), data));
         }
 
@@ -86,7 +86,7 @@ namespace Wikiled.Redis.UnitTests.Persistency
         public async Task LoadUserNotFound()
         {
             mockClient.Setup(item => item.GetRecords<Identity>(It.IsAny<IDataKey>())).Returns(Observable.Empty<Identity>());
-            var result = await instance.LoadSingle("Test").ConfigureAwait(false);
+            var result = await instance.LoadSingle("Test");
             Assert.IsNull(result);
             mockClient.Verify(item => item.GetRecords<Identity>(It.IsAny<IDataKey>()));
         }
@@ -95,7 +95,7 @@ namespace Wikiled.Redis.UnitTests.Persistency
         public async Task LoadSingle()
         {
             mockClient.Setup(item => item.GetRecords<Identity>(It.IsAny<IDataKey>())).Returns(new[] { new Identity() }.ToObservable);
-            var result = await instance.LoadSingle("Test").ConfigureAwait(false);
+            var result = await instance.LoadSingle("Test");
             Assert.IsNotNull(result);
             mockClient.Verify(item => item.GetRecords<Identity>(It.IsAny<IDataKey>()));
         }

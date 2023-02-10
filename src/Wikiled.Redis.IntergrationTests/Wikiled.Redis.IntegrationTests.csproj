@@ -14,8 +14,8 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="protobuf-net" version="3.1.26" />
-    <PackageReference Include="StackExchange.Redis" version="2.6.86" />
+    <PackageReference Include="protobuf-net" version="3.1.33" />
+    <PackageReference Include="StackExchange.Redis" version="2.6.90" />
     <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
     <PackageReference Include="Wikiled.RedisInside" Version="3.2.101.45" />
     <PackageReference Include="System.Reactive" version="5.0.0" />
