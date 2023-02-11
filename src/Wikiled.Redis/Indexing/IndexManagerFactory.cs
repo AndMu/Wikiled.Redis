@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using Microsoft.Extensions.Logging;
 using Wikiled.Redis.Keys;
 using Wikiled.Redis.Logic;
@@ -12,10 +13,9 @@ namespace Wikiled.Redis.Indexing
         private const string hashName = "hash";
 
         private readonly ILoggerFactory loggerFactory;
-
         private readonly IRedisLink link;
 
-        private Dictionary<string, IIndexManager> table = new Dictionary<string, IIndexManager>();
+        private readonly Dictionary<string, IIndexManager> table = new Dictionary<string, IIndexManager>();
 
         public IndexManagerFactory(ILoggerFactory loggerFactory, IRedisLink link)
         {

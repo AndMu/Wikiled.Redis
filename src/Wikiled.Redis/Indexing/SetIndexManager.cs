@@ -37,6 +37,9 @@ namespace Wikiled.Redis.Indexing
                 async observer =>
                 {
                     var indexKey = Link.GetIndexKey(index);
+                    var reindexKey =  indexKey.Prepend(":reindex");
+                    var reindex = await database.LockTakeAsync(reindexKey, "1", TimeSpan.FromHours(5));
+
                     var keys = await Link.Resilience.AsyncRetryPolicy
                                          .ExecuteAsync(async () => await database.SortedSetRangeByRankAsync(indexKey, start, stop, Order.Descending).ConfigureAwait(false))
                                          .ConfigureAwait(false);
@@ -46,9 +49,10 @@ namespace Wikiled.Redis.Indexing
                         var dataKey = GetKey(key, index);
                         var generatedKey = Link.GetKey(GetKey(key, index));
                         
-                        if (!await database.KeyExistsAsync(generatedKey))
+                        if (reindex &&
+                            !await database.KeyExistsAsync(generatedKey))
                         {
-                            Logger.LogWarning("Key {0} does not exist - removing", generatedKey);
+                            Logger.LogWarning("Key {0} does not exist - removing on REINDEX", generatedKey);
                             await RemoveIndex(database, dataKey, index);
                         }
                         else
