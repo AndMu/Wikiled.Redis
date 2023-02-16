@@ -71,7 +71,7 @@ namespace Wikiled.Redis.UnitTests.Logic
             connectionMultiplexer.Setup(item => item.GetEndPoints(false)).Returns(new EndPoint[] { new DnsEndPoint("localhost", 6377) });
             server.Setup(item => item.ServerType).Returns(ServerType.Standalone);
             server.Setup(item => item.IsSlave).Returns(false);
-            await multiplexer.Open().ConfigureAwait(false);
+            await multiplexer.Open();
             Assert.AreEqual(database.Object, multiplexer.Database);
         }
 
@@ -111,7 +111,7 @@ namespace Wikiled.Redis.UnitTests.Logic
                           }
                       });
 
-            await multiplexer.Open().ConfigureAwait(false);
+            await multiplexer.Open();
             Assert.AreEqual(database.Object, multiplexer.Database);
             connectionMultiplexer.Verify(item => item.Close(true));
         }

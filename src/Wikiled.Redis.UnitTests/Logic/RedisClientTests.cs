@@ -59,7 +59,7 @@ namespace Wikiled.Redis.UnitTests.Logic
         {
             Assert.Throws<ArgumentNullException>(() => client.AddRecord(null, new Identity()));
             Assert.Throws<ArgumentNullException>(() => client.AddRecord<Identity>(key, null));
-            await client.AddRecord(key, data).ConfigureAwait(false);
+            await client.AddRecord(key, data);
             persistency.Verify(item => item.AddRecord(database.Object, key, data));
         }
 
@@ -68,7 +68,7 @@ namespace Wikiled.Redis.UnitTests.Logic
         {
             var local = new Mock<IDatabaseAsync>();
             client = new RedisClient(new NullLogger<RedisClient>(), link.Object, mainIndexManager.Object, local.Object);
-            await client.AddRecord(key, data).ConfigureAwait(false);
+            await client.AddRecord(key, data);
             persistency.Verify(item => item.AddRecord(local.Object, key, data));
         }
 
@@ -76,9 +76,9 @@ namespace Wikiled.Redis.UnitTests.Logic
         public async Task AddRecords()
         {
             var keys = new[] { key };
-            Assert.ThrowsAsync<ArgumentNullException>(async () => await client.AddRecords(null, new Identity()).ConfigureAwait(false));
-            Assert.ThrowsAsync<ArgumentNullException>(async () => await client.AddRecords<Identity>(keys, null).ConfigureAwait(false));
-            await client.AddRecords(keys, data).ConfigureAwait(false);
+            Assert.ThrowsAsync<ArgumentNullException>(async () => await client.AddRecords(null, new Identity()));
+            Assert.ThrowsAsync<ArgumentNullException>(async () => await client.AddRecords<Identity>(keys, null));
+            await client.AddRecords(keys, data);
             persistency.Verify(item => item.AddRecords(database.Object, keys, data));
         }
 

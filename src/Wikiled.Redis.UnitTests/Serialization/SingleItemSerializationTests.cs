@@ -63,7 +63,7 @@ namespace Wikiled.Redis.UnitTests.Serialization
         {
             Assert.Throws<ArgumentNullException>(() => instance.DeleteAll(null, key));
             Assert.Throws<ArgumentNullException>(() => instance.DeleteAll(database.Object, null));
-            await instance.DeleteAll(database.Object, key).ConfigureAwait(false);
+            await instance.DeleteAll(database.Object, key);
             database.Verify(item => item.KeyDeleteAsync(It.IsAny<RedisKey>(), CommandFlags.None));
         }
 
@@ -73,15 +73,15 @@ namespace Wikiled.Redis.UnitTests.Serialization
             Assert.Throws<ArgumentNullException>(() => instance.AddRecord(null, key, data));
             Assert.Throws<ArgumentNullException>(() => instance.AddRecord(database.Object, null, data));
             Assert.Throws<ArgumentNullException>(() => instance.AddRecord(database.Object, key, null));
-            await instance.AddRecord(database.Object, key, data).ConfigureAwait(false);
+            await instance.AddRecord(database.Object, key, data);
             database.Verify(item => item.HashSetAsync(It.IsAny<RedisKey>(), It.IsAny<HashEntry[]>(), CommandFlags.None));
         }
 
         [Test]
         public async Task ListIndex()
         {
-            key.AddIndex(new IndexKey("Test", false));
-            await instance.AddRecord(database.Object, key, data).ConfigureAwait(false);
+            key.AddIndex(new IndexKey("Test"));
+            await instance.AddRecord(database.Object, key, data);
             database.Verify(item => item.HashSetAsync(It.IsAny<RedisKey>(), It.IsAny<HashEntry[]>(), CommandFlags.None), Times.Exactly(1));
             mainIndexManager.Verify(item => item.Add(It.IsAny<IDatabaseAsync>(), It.IsAny<IDataKey>()));
         }
@@ -90,7 +90,7 @@ namespace Wikiled.Redis.UnitTests.Serialization
         public async Task HashIndex()
         {
             key.AddIndex(new HashIndexKey("Test", "Test2"));
-            await instance.AddRecord(database.Object, key, data).ConfigureAwait(false);
+            await instance.AddRecord(database.Object, key, data);
             mainIndexManager.Verify(item => item.Add(It.IsAny<IDatabaseAsync>(), It.IsAny<IDataKey>()));
             database.Verify(item => item.HashSetAsync(It.IsAny<RedisKey>(), It.IsAny<HashEntry[]>(), CommandFlags.None));
             database.Verify(item => item.ListLeftPushAsync(It.IsAny<RedisKey>(), It.IsAny<RedisValue>(), When.Always, CommandFlags.None), Times.Exactly(0));

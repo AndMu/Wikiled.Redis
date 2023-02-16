@@ -46,15 +46,15 @@ namespace Wikiled.Redis.UnitTests.Replication
         [Test]
         public void StartReplicationFromArguments()
         {
-            Assert.ThrowsAsync<ArgumentNullException>(async () => await instance.StartReplicationFrom(null, testManager.Slave.Object).ConfigureAwait(false));
-            Assert.ThrowsAsync<ArgumentNullException>(async () => await instance.StartReplicationFrom(testManager.Master.Object, null).ConfigureAwait(false));
+            Assert.ThrowsAsync<ArgumentNullException>(async () => await instance.StartReplicationFrom(null, testManager.Slave.Object));
+            Assert.ThrowsAsync<ArgumentNullException>(async () => await instance.StartReplicationFrom(testManager.Master.Object, null));
         }
 
         [Test]
         public async Task StartReplicationFrom()
         {
             testManager.SetupReplication();
-            var replication = await instance.StartReplicationFrom(testManager.Master.Object, testManager.Slave.Object).ConfigureAwait(false);
+            var replication = await instance.StartReplicationFrom(testManager.Master.Object, testManager.Slave.Object);
             var observer = scheduler.CreateObserver<ReplicationProgress>();
             replication.Progress.Subscribe(observer);
             var ticks = TimeSpan.FromSeconds(1).Ticks;

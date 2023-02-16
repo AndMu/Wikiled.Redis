@@ -34,7 +34,7 @@ namespace Wikiled.Redis.UnitTests.Replication
         [Test]
         public async Task Close()
         {
-            await manager.Open().ConfigureAwait(false);
+            await manager.Open();
             manager.Close();
             Assert.AreEqual(ChannelState.Closed, manager.State);
             testManager.Slave.Verify(item => item.SetupSlave(null));
@@ -52,7 +52,7 @@ namespace Wikiled.Redis.UnitTests.Replication
         [Test]
         public async Task Open()
         {
-            await manager.Open().ConfigureAwait(false);
+            await manager.Open();
             Assert.AreEqual(ChannelState.Open, manager.State);
             testManager.Slave.Verify(item => item.SetupSlave(It.IsAny<EndPoint>()));
         }
@@ -88,7 +88,7 @@ namespace Wikiled.Redis.UnitTests.Replication
                 {
                     arguments.Add(item);
                 });
-            await manager.Open().ConfigureAwait(false);
+            await manager.Open();
 
             Assert.AreEqual(0, arguments.Count);
             timer.OnNext(1);
@@ -118,7 +118,7 @@ namespace Wikiled.Redis.UnitTests.Replication
                 {
                     arguments.Add(item);
                 });
-            await manager.Open().ConfigureAwait(false);
+            await manager.Open();
 
             Assert.AreEqual(0, arguments.Count);
             Assert.Throws<InvalidOperationException>(() => timer.OnNext(1));

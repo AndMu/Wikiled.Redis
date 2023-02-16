@@ -47,7 +47,7 @@ namespace Wikiled.Redis.UnitTests.Logic
         public async Task CommitClosed(ChannelState state, int times)
         {
             link.Setup(item => item.State).Returns(state);
-            await instance.Commit().ConfigureAwait(false);
+            await instance.Commit();
             transaction.Verify(item => item.ExecuteAsync(CommandFlags.None), Times.Exactly(times));
         }
     }

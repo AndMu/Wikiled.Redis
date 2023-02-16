@@ -27,7 +27,7 @@ namespace Wikiled.Redis.IntegrationTests.Helpers
         {
             var identity = new Identity();
             identity.InstanceId = "One";
-            await inner.Save(identity, transaction).ConfigureAwait(false);
+            await inner.Save(identity, transaction);
         }
     }
 }

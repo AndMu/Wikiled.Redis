@@ -1,7 +1,6 @@
 using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
 using System;
-using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Wikiled.Redis.Keys;
 using Wikiled.Redis.Logic;
@@ -10,13 +9,13 @@ namespace Wikiled.Redis.Indexing
 {
     public abstract class IndexManagerBase : IIndexManager
     {
-        private readonly ILogger log;
-
         protected IndexManagerBase(ILogger log, IRedisLink link)
         {
             Link = link ?? throw new ArgumentNullException(nameof(link));
-            this.log = log ?? throw new ArgumentNullException(nameof(log));
+            Logger = log ?? throw new ArgumentNullException(nameof(log));
         }
+
+        protected ILogger Logger { get; }
 
         protected IRedisLink Link { get; }
 
@@ -52,21 +51,21 @@ namespace Wikiled.Redis.Indexing
 
         public abstract Task<long> Count(IDatabaseAsync database, IIndexKey index);
 
-        public IObservable<RedisValue> GetIds(IDatabaseAsync database, IIndexKey indexes, long start = 0, long stop = -1)
+        public IObservable<IDataKey> GetIds(IDatabaseAsync database, IIndexKey indexes, long start = 0, long stop = -1)
         {
             return GetIdsSingle(database, indexes, start, stop);
         }
 
         public IObservable<IDataKey> GetKeys(IDatabaseAsync database, IIndexKey indexes, long start = 0, long stop = -1)
         {
-            log.LogTrace("GetKeys");
+            Logger.LogTrace("GetKeys");
             var keys = GetIds(database, indexes, start, stop);
-            return keys.Select(item => GetKey(item, indexes));
+            return keys;
         }
 
         public Task Reset(IDatabaseAsync database, IIndexKey indexes)
         {
-            log.LogDebug("Reset");
+            Logger.LogDebug("Reset");
             return database.KeyDeleteAsync(Link.GetIndexKey(indexes));
         }
 
@@ -74,9 +73,9 @@ namespace Wikiled.Redis.Indexing
 
         protected abstract Task AddRawIndex(IDatabaseAsync database, IIndexKey index, string rawKey);
 
-        protected abstract IObservable<RedisValue> GetIdsSingle(IDatabaseAsync database, IIndexKey key, long start = 0, long stop = -1);
+        protected abstract IObservable<IDataKey> GetIdsSingle(IDatabaseAsync database, IIndexKey key, long start = 0, long stop = -1);
 
-        private IDataKey GetKey(string key, IIndexKey indexes)
+        protected IDataKey GetKey(string key, IIndexKey indexes)
         {
             var repository = indexes.RepositoryKey;
             if (!string.IsNullOrEmpty(repository))

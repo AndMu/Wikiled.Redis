@@ -12,14 +12,14 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
         {
             var transaction = Redis.StartTransaction();
             RepositoryKey.AddIndex(ListAll);
-            var result = await Redis.Client.ContainsRecord<string>(RepositoryKey).ConfigureAwait(false);
+            var result = await Redis.Client.ContainsRecord<string>(RepositoryKey);
             Assert.IsFalse(result);
             var task1 = transaction.Client.AddRecord(RepositoryKey, "Test1");
             var task2 = transaction.Client.AddRecord(RepositoryKey, "Test2");
             var task3 = transaction.Client.AddRecord(RepositoryKey, "Test3");
-            await transaction.Commit().ConfigureAwait(false);
-            await Task.WhenAll(task1, task2, task3).ConfigureAwait(false);
-            result = await Redis.Client.ContainsRecord<string>(RepositoryKey).ConfigureAwait(false);
+            await transaction.Commit();
+            await Task.WhenAll(task1, task2, task3);
+            result = await Redis.Client.ContainsRecord<string>(RepositoryKey);
             Assert.IsTrue(result);
             var value = await Redis.Client.GetRecords<string>(RepositoryKey).ToArray();
             Assert.AreEqual(2, value.Length);
@@ -35,8 +35,8 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
             var task1 = transaction.Client.AddRecord(Key, "Test");
             var rawResult = await Redis.Client.GetRecords<string>(Key).LastOrDefaultAsync();
             Assert.IsNull(rawResult);
-            await transaction.Commit().ConfigureAwait(false);
-            await task1.ConfigureAwait(false);
+            await transaction.Commit();
+            await task1;
             rawResult = await Redis.Client.GetRecords<string>(Key).LastOrDefaultAsync();
             Assert.AreEqual("Test", rawResult);
         }

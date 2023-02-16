@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using Microsoft.Extensions.Logging;
 using Wikiled.Redis.Keys;
 using Wikiled.Redis.Logic;
@@ -9,21 +10,18 @@ namespace Wikiled.Redis.Indexing
     public class IndexManagerFactory : IIndexManagerFactory
     {
         private const string setName = "set";
-        private const string listName = "list";
         private const string hashName = "hash";
 
         private readonly ILoggerFactory loggerFactory;
-
         private readonly IRedisLink link;
 
-        private Dictionary<string, IIndexManager> table = new Dictionary<string, IIndexManager>();
+        private readonly Dictionary<string, IIndexManager> table = new Dictionary<string, IIndexManager>();
 
         public IndexManagerFactory(ILoggerFactory loggerFactory, IRedisLink link)
         {
             this.link = link ?? throw new ArgumentNullException(nameof(link));
             this.loggerFactory = loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory));
             table[setName] = new SetIndexManager(loggerFactory.CreateLogger<SetIndexManager>(), link);
-            table[listName] = new ListIndexManager(loggerFactory.CreateLogger<ListIndexManager>(), link);
             table[hashName] = new HashIndexManager(loggerFactory.CreateLogger<HashIndexManager>(), link);
         }
 
@@ -36,9 +34,9 @@ namespace Wikiled.Redis.Indexing
 
             switch (index)
             {
-                case IndexKey indexKey:
-                    return indexKey.IsSet ? table[setName] : table[listName];
-                case HashIndexKey indexKey:
+                case IndexKey _:
+                    return table[setName];
+                case HashIndexKey _:
                     return table[hashName];
             }
 

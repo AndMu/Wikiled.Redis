@@ -31,18 +31,35 @@ namespace Wikiled.Redis.Indexing
             return database.SortedSetAddAsync(Link.GetIndexKey(index), rawKey, DateTime.UtcNow.ToUnixTime());
         }
 
-        protected override IObservable<RedisValue> GetIdsSingle(IDatabaseAsync database, IIndexKey index, long start = 0, long stop = -1)
+        protected override IObservable<IDataKey> GetIdsSingle(IDatabaseAsync database, IIndexKey index, long start = 0, long stop = -1)
         {
-            return Observable.Create<RedisValue>(
+            return Observable.Create<IDataKey>(
                 async observer =>
                 {
+                    var indexKey = Link.GetIndexKey(index);
+                    var reindexKey =  indexKey.Prepend(":reindex");
+                    var reindex = await database.LockTakeAsync(reindexKey, "1", TimeSpan.FromHours(5));
+
                     var keys = await Link.Resilience.AsyncRetryPolicy
-                                         .ExecuteAsync(async () => await database.SortedSetRangeByRankAsync(Link.GetIndexKey(index), start, stop, Order.Descending).ConfigureAwait(false))
+                                         .ExecuteAsync(async () => await database.SortedSetRangeByRankAsync(indexKey, start, stop, Order.Descending).ConfigureAwait(false))
                                          .ConfigureAwait(false);
 
                     foreach (var key in keys)
                     {
-                        observer.OnNext(key);
+                        var dataKey = GetKey(key, index);
+                        var generatedKey = Link.GetKey(GetKey(key, index));
+                        
+                        if (reindex &&
+                            !await database.KeyExistsAsync(generatedKey))
+                        {
+                            Logger.LogWarning("Key {0} does not exist - removing on REINDEX", generatedKey);
+                            await RemoveIndex(database, dataKey, index);
+                        }
+                        else
+                        {
+                            observer.OnNext(dataKey);
+                        }
+
                     }
 
                     observer.OnCompleted();

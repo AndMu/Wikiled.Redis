@@ -13,7 +13,7 @@ namespace Wikiled.Redis.Keys
         {
             EntityPrefix = entityPrefix;
             this.repository = repository ?? throw new ArgumentNullException(nameof(repository));
-            AllIndex = new IndexKey(repository, allEntitiesTag, true);
+            AllIndex = new IndexKey(repository, allEntitiesTag);
         }
 
         public string EntityPrefix { get; }
@@ -44,7 +44,7 @@ namespace Wikiled.Redis.Keys
                 throw new ArgumentNullException(nameof(name), "Index name can't be null'");
             }
 
-            return new IndexKey(repository, name, true);
+            return new IndexKey(repository, name);
         }
     }
 }

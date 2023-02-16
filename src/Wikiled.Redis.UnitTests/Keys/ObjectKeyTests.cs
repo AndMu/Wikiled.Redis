@@ -20,7 +20,7 @@ namespace Wikiled.Redis.UnitTests.Keys
         {
             var key = new ObjectKey("Test");
             Assert.Throws<ArgumentNullException>(() => key.AddIndex(null));
-            key.AddIndex(new IndexKey("Test", false));
+            key.AddIndex(new IndexKey("Test"));
             Assert.AreEqual(1, key.Indexes.Length);
         }
 

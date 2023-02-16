@@ -168,7 +168,9 @@ namespace Wikiled.Redis.Persistency
             }
 
             await Task.WhenAll(beforeTask, addTask).ConfigureAwait(false);
+            Log.LogTrace("AfterSaving");
             await AfterSaving(key, entity).ConfigureAwait(false);
+            Log.LogTrace("Saving Completed: {0}", id);
         }
 
         protected virtual IEnumerable<IIndexKey> GetKeys()
