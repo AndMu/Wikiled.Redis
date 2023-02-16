@@ -162,7 +162,7 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
             Assert.AreEqual("Test:object:Test3", result[0].FullKey);
 
             // remove key, index should automatically cleanup
-
+            // Reset reindex flag
             var indexKey = Redis.GetIndexKey(ListAll);
             var reindexKey = indexKey.Prepend(":reindex");
             await Redis.Database.LockReleaseAsync(reindexKey, "1");
