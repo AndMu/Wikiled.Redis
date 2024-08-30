@@ -3,6 +3,7 @@ using Wikiled.Redis.Keys;
 using Wikiled.Redis.Logic;
 using Moq;
 using NUnit.Framework;
+using NUnit.Framework.Legacy;
 
 namespace Wikiled.Redis.UnitTests.Logic
 {
@@ -24,10 +25,10 @@ namespace Wikiled.Redis.UnitTests.Logic
         [Test]
         public void GetKey()
         {
-            Assert.Throws<ArgumentNullException>(() => RedisExtensions.GetKey(null, key));
-            Assert.Throws<ArgumentNullException>(() => RedisExtensions.GetKey(link.Object, (IDataKey)null));
+            ClassicAssert.Throws<ArgumentNullException>(() => RedisExtensions.GetKey(null, key));
+            ClassicAssert.Throws<ArgumentNullException>(() => RedisExtensions.GetKey(link.Object, (IDataKey)null));
             var result = link.Object.GetKey(key);
-            Assert.AreEqual("Redis:object:Name", result.ToString());
+            ClassicAssert.AreEqual("Redis:object:Name", result.ToString());
         }
     }
 }

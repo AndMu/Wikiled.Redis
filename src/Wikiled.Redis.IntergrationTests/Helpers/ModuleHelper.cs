@@ -12,8 +12,8 @@ namespace Wikiled.Redis.IntegrationTests.Helpers
         {
             var service = new ServiceCollection();
             service.AddLogging(builder => builder.AddDebug());
-            service.RegisterModule(new RedisModule(config));
-            service.RegisterModule<CommonModule>();
+            service.AddRedis(config);
+            service.AddCommonServices();
             Provider = service.BuildServiceProvider();
         }
 

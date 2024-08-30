@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using NUnit.Framework;
+using NUnit.Framework.Legacy;
 using StackExchange.Redis;
 using Wikiled.Redis.Channels;
 using Wikiled.Redis.Keys;
@@ -55,16 +56,16 @@ namespace Wikiled.Redis.UnitTests.Persistency
         [Test]
         public void Construct()
         {
-            Assert.Throws<ArgumentNullException>(() => new IdentityRepository(null, mockRedisLink.Object));
-            Assert.Throws<ArgumentNullException>(() => new IdentityRepository(logger, null));
+            ClassicAssert.Throws<ArgumentNullException>(() => new IdentityRepository(null, mockRedisLink.Object));
+            ClassicAssert.Throws<ArgumentNullException>(() => new IdentityRepository(logger, null));
         }
 
         [Test]
         public void TestArguments()
         {
-            Assert.ThrowsAsync<ArgumentNullException>(async () => await instance.Save(null));
-            Assert.ThrowsAsync<ArgumentNullException>(async () => await instance.LoadSingle(null));
-            Assert.ThrowsAsync<ArgumentNullException>(async () => await instance.LoadPage(null));
+            ClassicAssert.ThrowsAsync<ArgumentNullException>(async () => await instance.Save(null));
+            ClassicAssert.ThrowsAsync<ArgumentNullException>(async () => await instance.LoadSingle(null));
+            ClassicAssert.ThrowsAsync<ArgumentNullException>(async () => await instance.LoadPage(null));
         }
 
         [Test]
@@ -87,7 +88,7 @@ namespace Wikiled.Redis.UnitTests.Persistency
         {
             mockClient.Setup(item => item.GetRecords<Identity>(It.IsAny<IDataKey>())).Returns(Observable.Empty<Identity>());
             var result = await instance.LoadSingle("Test");
-            Assert.IsNull(result);
+            ClassicAssert.IsNull(result);
             mockClient.Verify(item => item.GetRecords<Identity>(It.IsAny<IDataKey>()));
         }
 
@@ -96,7 +97,7 @@ namespace Wikiled.Redis.UnitTests.Persistency
         {
             mockClient.Setup(item => item.GetRecords<Identity>(It.IsAny<IDataKey>())).Returns(new[] { new Identity() }.ToObservable);
             var result = await instance.LoadSingle("Test");
-            Assert.IsNotNull(result);
+            ClassicAssert.IsNotNull(result);
             mockClient.Verify(item => item.GetRecords<Identity>(It.IsAny<IDataKey>()));
         }
 

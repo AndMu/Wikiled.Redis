@@ -1,0 +1,91 @@
+name: .NET CI
+on:
+  push:
+    paths:
+    - 'src/**'
+    - '.github/workflows/build.yml'
+env:
+  DOTNET_CORE_VERSION: '8.0.x'
+  MAJOR_VERSION: '3'
+  MINOR_VERSION: '7'
+  REVISION_VERSION: '0'
+  NUGET_SOURCE: 'https://api.nuget.org/v3/index.json'
+
+jobs:
+  build_test_pack_push:
+    runs-on: ubuntu-latest
+    
+    # Service containers to run with `container-job`
+    services:
+      # Label used to access the service container
+      redis:
+        # Docker Hub image
+        image: redis
+        # Set health checks to wait until redis has started
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6666:6379
+    
+    steps:
+    - name: Checkout source code
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+    
+    - name: Setup .NET SDK
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
+        
+    - name: Install packages
+      run: sudo apt-get install -y libsnappy1v5 libsnappy-dev
+
+    - name: Set version
+      id: set_version
+      run: |
+        if [ ${{ github.ref }} = 'refs/heads/master' ]; then
+          echo "VERSION=${{ env.MAJOR_VERSION }}.${{ env.MINOR_VERSION }}.${{ env.REVISION_VERSION }}.${{ github.run_number }}" >> $GITHUB_ENV
+        else
+          echo "VERSION=${{ env.MAJOR_VERSION }}.${{ env.MINOR_VERSION }}.${{ env.REVISION_VERSION }}.${{ github.run_number }}-dev" >> $GITHUB_ENV
+        fi        
+
+    - name: Create Git tag
+      run: |
+        git config user.name github-actions
+        git config user.email github-actions@github.com
+        git tag -a v${VERSION} -m "Version ${VERSION}"
+        git push origin v${VERSION}
+    
+    - name: Build
+      run: |
+        cd src
+        dotnet build -c Release --nologo     
+
+    - name: Test
+      run: |
+        cd src
+        dotnet test --no-restore --verbosity normal --nologo --collect:"XPlat Code Coverage" --results-directory ../TestResults/ --logger:trx
+      env:          
+          REDIS_HOST: redis          
+          REDIS_PORT: 6666
+
+    - name: Upload test results # This step will upload the test results as an artifact
+      uses: actions/upload-artifact@v3
+      if: always() 
+      with:
+        name: test-results
+        path: TestResults/        
+    
+    - name: Pack NuGet package
+      run: |        
+        cd src
+        dotnet pack -c Release -o out /p:Version=${VERSION}
+    
+    - name: Push NuGet package
+      run: |
+        cd src/out
+        dotnet nuget push *.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source ${{ env.NUGET_SOURCE }} --skip-duplicate

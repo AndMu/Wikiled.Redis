@@ -7,6 +7,7 @@ using Wikiled.Redis.Logic;
 using Wikiled.Redis.Serialization;
 using Moq;
 using NUnit.Framework;
+using NUnit.Framework.Legacy;
 using StackExchange.Redis;
 using Wikiled.Common.Testing.Utilities.Reflection;
 using Wikiled.Redis.Channels;
@@ -64,8 +65,8 @@ namespace Wikiled.Redis.UnitTests.Serialization
         [Test]
         public async Task DeleteAll()
         {
-            Assert.ThrowsAsync<ArgumentNullException>(async () => await instance.DeleteAll(null, key));
-            Assert.ThrowsAsync<ArgumentNullException>(async () => await instance.DeleteAll(database.Object, null));
+            ClassicAssert.ThrowsAsync<ArgumentNullException>(async () => await instance.DeleteAll(null, key));
+            ClassicAssert.ThrowsAsync<ArgumentNullException>(async () => await instance.DeleteAll(database.Object, null));
 
             redisSetList.Setup(
                 item =>
@@ -84,9 +85,9 @@ namespace Wikiled.Redis.UnitTests.Serialization
         [Test]
         public async Task AddRecord()
         {
-            Assert.Throws<ArgumentNullException>(() => instance.AddRecord(null, key, data));
-            Assert.Throws<ArgumentNullException>(() => instance.AddRecord(database.Object, null, data));
-            Assert.Throws<ArgumentNullException>(() => instance.AddRecord(database.Object, key, null));
+            ClassicAssert.Throws<ArgumentNullException>(() => instance.AddRecord(null, key, data));
+            ClassicAssert.Throws<ArgumentNullException>(() => instance.AddRecord(database.Object, null, data));
+            ClassicAssert.Throws<ArgumentNullException>(() => instance.AddRecord(database.Object, key, null));
             await instance.AddRecord(database.Object, key, data);
             database.Verify(item => item.HashSetAsync(It.IsAny<RedisKey>(), It.IsAny<HashEntry[]>(), CommandFlags.None));
             redisSetList.Verify(
@@ -114,8 +115,8 @@ namespace Wikiled.Redis.UnitTests.Serialization
         [Test]
         public async Task GetRecords()
         {
-            Assert.ThrowsAsync<ArgumentNullException>(async () => await instance.GetRecords(database.Object, null));
-            Assert.ThrowsAsync<ArgumentNullException>(async () => await instance.GetRecords(null, key));
+            ClassicAssert.ThrowsAsync<ArgumentNullException>(async () => await instance.GetRecords(database.Object, null));
+            ClassicAssert.ThrowsAsync<ArgumentNullException>(async () => await instance.GetRecords(null, key));
             objecMock.Setup(item => item.GetColumns()).Returns(new[] { "Test" });
             objecMock.Setup(item => item.GetInstances(It.IsAny<RedisValue[]>())).Returns(new[] { data });
 
@@ -134,14 +135,14 @@ namespace Wikiled.Redis.UnitTests.Serialization
                     CommandFlags.PreferMaster))
                     .Returns(Task.FromResult(new RedisValue[] { }));
             var record = await instance.GetRecords(database.Object, key).FirstAsync();
-            Assert.AreSame(data, record);
+            ClassicAssert.AreSame(data, record);
         }
 
         [Test]
         public async Task GetRecordsRange()
         {
-            Assert.ThrowsAsync<ArgumentNullException>(async () => await instance.GetRecords(database.Object, null, 0, 10));
-            Assert.ThrowsAsync<ArgumentNullException>(async () => await instance.GetRecords(null, key, 0, 10));
+            ClassicAssert.ThrowsAsync<ArgumentNullException>(async () => await instance.GetRecords(database.Object, null, 0, 10));
+            ClassicAssert.ThrowsAsync<ArgumentNullException>(async () => await instance.GetRecords(null, key, 0, 10));
 
             objecMock.Setup(item => item.GetColumns()).Returns(new[] { "Test" });
             objecMock.Setup(item => item.GetInstances(It.IsAny<RedisValue[]>())).Returns(new[] { data });
@@ -161,7 +162,7 @@ namespace Wikiled.Redis.UnitTests.Serialization
                     It.IsAny<RedisValue[]>(),
                     CommandFlags.PreferMaster)).Returns(Task.FromResult(new RedisValue[] { }));
             var record = await instance.GetRecords(database.Object, key, 1, 10).FirstAsync();
-            Assert.AreSame(data, record);
+            ClassicAssert.AreSame(data, record);
         }
     }
 }

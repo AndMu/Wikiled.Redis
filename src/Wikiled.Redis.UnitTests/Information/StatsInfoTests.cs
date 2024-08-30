@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Wikiled.Redis.Information;
 using NUnit.Framework;
+using NUnit.Framework.Legacy;
 
 namespace Wikiled.Redis.UnitTests.Information
 {
@@ -21,9 +22,9 @@ namespace Wikiled.Redis.UnitTests.Information
         public void Construct()
         {
             var server = InfoTestsHelper.Create("Stats", allValues);
-            Assert.Throws<ArgumentNullException>(() => new StatsInfo(null));
+            ClassicAssert.Throws<ArgumentNullException>(() => new StatsInfo(null));
             StatsInfo info = new StatsInfo(server);
-            Assert.AreEqual(100, info.TotalCommands);
+            ClassicAssert.AreEqual(100, info.TotalCommands);
         }
 
         [Test]
@@ -32,7 +33,7 @@ namespace Wikiled.Redis.UnitTests.Information
             allValues.Clear();
             var server = InfoTestsHelper.Create("Stats", allValues);
             StatsInfo info = new StatsInfo(server);
-            Assert.IsNull(info.TotalCommands);
+            ClassicAssert.IsNull(info.TotalCommands);
         }
     }
 }

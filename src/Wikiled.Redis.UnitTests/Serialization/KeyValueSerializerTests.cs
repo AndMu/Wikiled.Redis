@@ -2,6 +2,7 @@
 using System.Linq;
 using Microsoft.Extensions.Logging.Abstractions;
 using NUnit.Framework;
+using NUnit.Framework.Legacy;
 using Wikiled.Common.Extensions;
 using Wikiled.Redis.Serialization;
 
@@ -29,20 +30,20 @@ namespace Wikiled.Redis.UnitTests.Serialization
         [Test]
         public void Construct()
         {
-            Assert.AreEqual(5, serializer.Properties.Length);
+            ClassicAssert.AreEqual(5, serializer.Properties.Length);
         }
 
         [Test]
         public void Serialize()
         {
             var keys = serializer.Serialize(data).ToArray();
-            Assert.AreEqual(5, keys.Length);
+            ClassicAssert.AreEqual(5, keys.Length);
             var result = serializer.Deserialize(keys);
-            Assert.AreEqual(data.Status1, result.Status1);
-            Assert.AreEqual(data.Data, result.Data);
-            Assert.AreEqual(data.Value, result.Value);
-            Assert.AreEqual(data.Another, result.Another);
-            Assert.AreEqual(data.Date, result.Date);
+            ClassicAssert.AreEqual(data.Status1, result.Status1);
+            ClassicAssert.AreEqual(data.Data, result.Data);
+            ClassicAssert.AreEqual(data.Value, result.Value);
+            ClassicAssert.AreEqual(data.Another, result.Another);
+            ClassicAssert.AreEqual(data.Date, result.Date);
         }
     }
 }

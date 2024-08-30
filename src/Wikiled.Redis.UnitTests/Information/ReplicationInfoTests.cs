@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Wikiled.Redis.Information;
 using NUnit.Framework;
+using NUnit.Framework.Legacy;
 
 namespace Wikiled.Redis.UnitTests.Information
 {
@@ -25,14 +26,14 @@ namespace Wikiled.Redis.UnitTests.Information
         public void Construct()
         {
             var server = InfoTestsHelper.Create("Replication", allValues);
-            Assert.Throws<ArgumentNullException>(() => new ReplicationInfo(null));
+            ClassicAssert.Throws<ArgumentNullException>(() => new ReplicationInfo(null));
             ReplicationInfo info = new ReplicationInfo(server);
-            Assert.AreEqual(ReplicationRole.Slave, info.Role);
-            Assert.AreEqual(MasterLinkStatus.Up, info.MasterLinkStatus);
-            Assert.AreEqual(10, info.LastSync);
-            Assert.AreEqual(11, info.SlaveReplOffset);
-            Assert.AreEqual(1, info.IsMasterSyncInProgress);
-            Assert.AreEqual(server, info.Main);
+            ClassicAssert.AreEqual(ReplicationRole.Slave, info.Role);
+            ClassicAssert.AreEqual(MasterLinkStatus.Up, info.MasterLinkStatus);
+            ClassicAssert.AreEqual(10, info.LastSync);
+            ClassicAssert.AreEqual(11, info.SlaveReplOffset);
+            ClassicAssert.AreEqual(1, info.IsMasterSyncInProgress);
+            ClassicAssert.AreEqual(server, info.Main);
         }
 
         [Test]
@@ -41,11 +42,11 @@ namespace Wikiled.Redis.UnitTests.Information
             allValues.Clear();
             var server = InfoTestsHelper.Create("Replication", allValues);
             ReplicationInfo info = new ReplicationInfo(server);
-            Assert.IsNull(info.Role);
-            Assert.IsNull(info.LastSync);
-            Assert.IsNull(info.MasterLinkStatus);
-            Assert.IsNull(info.IsMasterSyncInProgress);
-            Assert.IsNull(info.SlaveReplOffset);
+            ClassicAssert.IsNull(info.Role);
+            ClassicAssert.IsNull(info.LastSync);
+            ClassicAssert.IsNull(info.MasterLinkStatus);
+            ClassicAssert.IsNull(info.IsMasterSyncInProgress);
+            ClassicAssert.IsNull(info.SlaveReplOffset);
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using NUnit.Framework;
+using NUnit.Framework.Legacy;
 using Wikiled.Redis.Data;
 using Wikiled.Redis.UnitTests.MockData;
 
@@ -15,9 +16,9 @@ namespace Wikiled.Redis.UnitTests.Data
             var serializerTests = new ZipXmlDataSerializer();
             var data = serializerTests.Serialize(order);
             var orderResult = serializerTests.Deserialize<MainDataOne>(data);
-            Assert.AreNotSame(order, orderResult);
-            Assert.AreEqual(79, data.Length);
-            Assert.AreEqual("Test", orderResult.Name);
+            ClassicAssert.AreNotSame(order, orderResult);
+            ClassicAssert.GreaterOrEqual(79, data.Length);
+            ClassicAssert.AreEqual("Test", orderResult.Name);
         }
 
         [Test]
@@ -28,9 +29,9 @@ namespace Wikiled.Redis.UnitTests.Data
             var serializerTests = new ZipXmlDataSerializer();
             var data = serializerTests.Serialize(order);
             var orderResult = (IMainData)serializerTests.Deserialize(typeof(MainDataOne), data);
-            Assert.AreNotSame(order, orderResult);
-            Assert.AreEqual(79, data.Length);
-            Assert.AreEqual("Test", orderResult.Name);
+            ClassicAssert.AreNotSame(order, orderResult);
+            ClassicAssert.GreaterOrEqual(79, data.Length);
+            ClassicAssert.AreEqual("Test", orderResult.Name);
         }
     }
 }

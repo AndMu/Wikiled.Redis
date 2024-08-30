@@ -14,10 +14,8 @@ namespace Wikiled.Redis.Helpers
                 return null;
             }
 
-            using (MemoryStream memoryStream = new MemoryStream(SnappyCodec.Uncompress(data)))
-            {
-                return Serializer.Deserialize<T>(memoryStream);
-            }
+            using MemoryStream memoryStream = new MemoryStream(SnappyCodec.Uncompress(data));
+            return Serializer.Deserialize<T>(memoryStream);
         }
 
         public static object ProtoDecompressDeserialize(this byte[] data, Type type) 
@@ -27,10 +25,8 @@ namespace Wikiled.Redis.Helpers
                 return null;
             }
 
-            using (MemoryStream memoryStream = new MemoryStream(SnappyCodec.Uncompress(data)))
-            {
-                return Serializer.NonGeneric.Deserialize(type, memoryStream);
-            }
+            using MemoryStream memoryStream = new MemoryStream(SnappyCodec.Uncompress(data));
+            return Serializer.NonGeneric.Deserialize(type, memoryStream);
         }
 
         public static T ProtoDeserialize<T>(this byte[] data) where T : class
@@ -40,10 +36,8 @@ namespace Wikiled.Redis.Helpers
                 return null;
             }
 
-            using (var memoryStream = new MemoryStream(data))
-            {
-                return Serializer.Deserialize<T>(memoryStream);
-            }
+            using var memoryStream = new MemoryStream(data);
+            return Serializer.Deserialize<T>(memoryStream);
         }
 
         public static object ProtoDeserialize(this byte[] data, Type type)
@@ -53,10 +47,8 @@ namespace Wikiled.Redis.Helpers
                 return null;
             }
 
-            using (MemoryStream memoryStream = new MemoryStream(data))
-            {
-                return Serializer.NonGeneric.Deserialize(type, memoryStream);
-            }
+            using MemoryStream memoryStream = new MemoryStream(data);
+            return Serializer.NonGeneric.Deserialize(type, memoryStream);
         }
 
         public static byte[] ProtoSerialize<T>(this T instance) where T : class

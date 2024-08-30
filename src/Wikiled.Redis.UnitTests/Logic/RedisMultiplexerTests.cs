@@ -7,6 +7,7 @@ using Moq;
 using Wikiled.Redis.Config;
 using Wikiled.Redis.Logic;
 using NUnit.Framework;
+using NUnit.Framework.Legacy;
 using StackExchange.Redis;
 
 namespace Wikiled.Redis.UnitTests.Logic
@@ -44,25 +45,25 @@ namespace Wikiled.Redis.UnitTests.Logic
         [Test]
         public void Construct()
         {
-            Assert.Throws<ArgumentNullException>(() => new RedisMultiplexer(new NullLogger<RedisMultiplexer>(), null, multiplexerFactory));
-            Assert.Throws<ArgumentNullException>(() => new RedisMultiplexer(null, option, multiplexerFactory));
-            Assert.Throws<ArgumentNullException>(() => new RedisMultiplexer(new NullLogger<RedisMultiplexer>(), option, null));
-            Assert.IsNotNull(multiplexer);
-            Assert.IsNull(multiplexer.Database);
-            Assert.IsFalse(multiplexer.UsingSentinel);
+            ClassicAssert.Throws<ArgumentNullException>(() => new RedisMultiplexer(new NullLogger<RedisMultiplexer>(), null, multiplexerFactory));
+            ClassicAssert.Throws<ArgumentNullException>(() => new RedisMultiplexer(null, option, multiplexerFactory));
+            ClassicAssert.Throws<ArgumentNullException>(() => new RedisMultiplexer(new NullLogger<RedisMultiplexer>(), option, null));
+            ClassicAssert.IsNotNull(multiplexer);
+            ClassicAssert.IsNull(multiplexer.Database);
+            ClassicAssert.IsFalse(multiplexer.UsingSentinel);
         }
 
         [Test]
         public void Configuration()
         {
-            Assert.IsNotNull(multiplexer.Configuration);
-            Assert.AreEqual("Unspecified/localhost:7000", multiplexer.Configuration.GetOptions().EndPoints[0].ToString());
+            ClassicAssert.IsNotNull(multiplexer.Configuration);
+            ClassicAssert.AreEqual("Unspecified/localhost:7000", multiplexer.Configuration.GetOptions().EndPoints[0].ToString());
         }
 
         [Test]
         public void OpenNoEndPoints()
         {
-            Assert.ThrowsAsync<RedisConnectionException>(multiplexer.Open);
+            ClassicAssert.ThrowsAsync<RedisConnectionException>(multiplexer.Open);
         }
 
         [Test]
@@ -72,7 +73,7 @@ namespace Wikiled.Redis.UnitTests.Logic
             server.Setup(item => item.ServerType).Returns(ServerType.Standalone);
             server.Setup(item => item.IsSlave).Returns(false);
             await multiplexer.Open();
-            Assert.AreEqual(database.Object, multiplexer.Database);
+            ClassicAssert.AreEqual(database.Object, multiplexer.Database);
         }
 
         [Test]
@@ -81,7 +82,7 @@ namespace Wikiled.Redis.UnitTests.Logic
             connectionMultiplexer.Setup(item => item.GetEndPoints(false)).Returns(new EndPoint[] { new DnsEndPoint("localhost", 6377) });
             server.Setup(item => item.ServerType).Returns(ServerType.Standalone);
             server.Setup(item => item.IsSlave).Returns(true);
-            Assert.ThrowsAsync<RedisConnectionException>(multiplexer.Open);
+            ClassicAssert.ThrowsAsync<RedisConnectionException>(multiplexer.Open);
         }
 
         [Test]
@@ -89,7 +90,7 @@ namespace Wikiled.Redis.UnitTests.Logic
         {
             connectionMultiplexer.Setup(item => item.GetEndPoints(false)).Returns(new EndPoint[] { new DnsEndPoint("localhost", 6377) });
             server.Setup(item => item.ServerType).Returns(ServerType.Sentinel);
-            Assert.ThrowsAsync<RedisConnectionException>(multiplexer.Open);
+            ClassicAssert.ThrowsAsync<RedisConnectionException>(multiplexer.Open);
         }
 
         [Test]
@@ -112,14 +113,14 @@ namespace Wikiled.Redis.UnitTests.Logic
                       });
 
             await multiplexer.Open();
-            Assert.AreEqual(database.Object, multiplexer.Database);
+            ClassicAssert.AreEqual(database.Object, multiplexer.Database);
             connectionMultiplexer.Verify(item => item.Close(true));
         }
 
         [Test]
         public void CheckConnection()
         {
-            Assert.Throws<InvalidOperationException>(multiplexer.CheckConnection);
+            ClassicAssert.Throws<InvalidOperationException>(multiplexer.CheckConnection);
         }
     }
 }

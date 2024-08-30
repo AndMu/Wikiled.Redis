@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Wikiled.Redis.Information;
 using NUnit.Framework;
+using NUnit.Framework.Legacy;
 
 namespace Wikiled.Redis.UnitTests.Information
 {
@@ -22,11 +23,11 @@ namespace Wikiled.Redis.UnitTests.Information
         public void Construct()
         {
             var server = InfoTestsHelper.Create("Memory", allValues);
-            Assert.Throws<ArgumentNullException>(() => new MemoryInfo(null));
+            ClassicAssert.Throws<ArgumentNullException>(() => new MemoryInfo(null));
             MemoryInfo info = new MemoryInfo(server);
-            Assert.AreEqual(100, info.UsedMemory);
-            Assert.AreEqual(0.7, info.MemoryFragmentation);
-            Assert.AreEqual(server, info.Main);
+            ClassicAssert.AreEqual(100, info.UsedMemory);
+            ClassicAssert.AreEqual(0.7, info.MemoryFragmentation);
+            ClassicAssert.AreEqual(server, info.Main);
         }
 
         [Test]
@@ -35,8 +36,8 @@ namespace Wikiled.Redis.UnitTests.Information
             allValues.Clear();
             var server = InfoTestsHelper.Create("Memory", allValues);
             MemoryInfo info = new MemoryInfo(server);
-            Assert.IsNull(info.UsedMemory);
-            Assert.IsNull(info.MemoryFragmentation);
+            ClassicAssert.IsNull(info.UsedMemory);
+            ClassicAssert.IsNull(info.MemoryFragmentation);
         }
     }
 }

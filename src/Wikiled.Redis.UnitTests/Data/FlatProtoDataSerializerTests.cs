@@ -1,6 +1,7 @@
 ﻿using Microsoft.IO;
 using Wikiled.Redis.Data;
 using NUnit.Framework;
+using NUnit.Framework.Legacy;
 using Wikiled.Redis.UnitTests.MockData;
 
 namespace Wikiled.Redis.UnitTests.Data
@@ -18,9 +19,9 @@ namespace Wikiled.Redis.UnitTests.Data
             FlatProtoDataSerializer serializerTests = new FlatProtoDataSerializer(false, stream);
             var data = serializerTests.Serialize<IMainData>(order);
             var orderResult = serializerTests.Deserialize<IMainData>(data);
-            Assert.AreNotSame(order, orderResult);
-            Assert.AreEqual(116, data.Length);
-            Assert.AreEqual("Test", orderResult.Name);
+            ClassicAssert.AreNotSame(order, orderResult);
+            ClassicAssert.AreEqual(116, data.Length);
+            ClassicAssert.AreEqual("Test", orderResult.Name);
         }
 
         [Test]
@@ -31,9 +32,9 @@ namespace Wikiled.Redis.UnitTests.Data
             var serializerTests = new FlatProtoDataSerializer(false, stream);
             var data = serializerTests.Serialize<IMainData>(order);
             var orderResult = (IMainData)serializerTests.Deserialize(typeof(IMainData), data);
-            Assert.AreNotSame(order, orderResult);
-            Assert.AreEqual(116, data.Length);
-            Assert.AreEqual("Test", orderResult.Name);
+            ClassicAssert.AreNotSame(order, orderResult);
+            ClassicAssert.AreEqual(116, data.Length);
+            ClassicAssert.AreEqual("Test", orderResult.Name);
         }
 
         [Test]
@@ -44,9 +45,9 @@ namespace Wikiled.Redis.UnitTests.Data
             FlatProtoDataSerializer serializer = new FlatProtoDataSerializer(true, stream);
             var data = serializer.Serialize(order);
             var orderResult = serializer.Deserialize<MainDataOne>(data);
-            Assert.AreNotSame(order, orderResult);
-            Assert.AreEqual(36, data.Length);
-            Assert.AreEqual("Test", orderResult.Name);
+            ClassicAssert.AreNotSame(order, orderResult);
+            ClassicAssert.AreEqual(36, data.Length);
+            ClassicAssert.AreEqual("Test", orderResult.Name);
         }
     }
 }

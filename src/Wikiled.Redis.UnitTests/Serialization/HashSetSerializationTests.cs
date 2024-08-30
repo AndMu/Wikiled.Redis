@@ -3,6 +3,7 @@ using Moq;
 using NUnit.Framework;
 using System;
 using System.Linq;
+using NUnit.Framework.Legacy;
 using Wikiled.Common.Testing.Utilities.Reflection;
 using Wikiled.Redis.Channels;
 using Wikiled.Redis.Logic;
@@ -36,23 +37,23 @@ namespace Wikiled.Redis.UnitTests.Serialization
         public void GetColumns()
         {
             var columns = instance.GetColumns();
-            Assert.AreEqual(4, columns.Length);
+            ClassicAssert.AreEqual(4, columns.Length);
         }
 
         [Test]
         public void GetEntries()
         {
-            Assert.Throws<ArgumentNullException>(() => instance.GetEntries(null).ToArray());
+            ClassicAssert.Throws<ArgumentNullException>(() => instance.GetEntries(null).ToArray());
             var entries = instance.GetEntries(new Identity()).ToArray();
-            Assert.AreEqual(4, entries.Length);
+            ClassicAssert.AreEqual(4, entries.Length);
         }
 
         [Test]
         public void GetInstances()
         {
-            Assert.Throws<ArgumentNullException>(() => instance.GetInstances(null).ToArray());
+            ClassicAssert.Throws<ArgumentNullException>(() => instance.GetInstances(null).ToArray());
             var data = instance.GetInstances(instance.GetEntries(new Identity()).Select(item => item.Value).ToArray());
-            Assert.IsNotNull(data);
+            ClassicAssert.IsNotNull(data);
         }
     }
 }

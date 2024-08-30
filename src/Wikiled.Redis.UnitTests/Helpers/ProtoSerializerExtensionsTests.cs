@@ -1,4 +1,5 @@
 ﻿using NUnit.Framework;
+using NUnit.Framework.Legacy;
 using Wikiled.Redis.Helpers;
 
 namespace Wikiled.Redis.UnitTests.Helpers
@@ -21,8 +22,8 @@ namespace Wikiled.Redis.UnitTests.Helpers
         {
             var data = instance.ProtoSerialize();
             var result = data.ProtoDeserialize<TestData>();
-            Assert.AreEqual("Test", result.Name);
-            Assert.AreEqual(5, result.Total);
+            ClassicAssert.AreEqual("Test", result.Name);
+            ClassicAssert.AreEqual(5, result.Total);
         }
 
         [Test]
@@ -30,24 +31,24 @@ namespace Wikiled.Redis.UnitTests.Helpers
         {
             var data = instance.ProtoSerializeCompress();
             var result = data.ProtoDecompressDeserialize<TestData>();
-            Assert.AreEqual("Test", result.Name);
-            Assert.AreEqual(5, result.Total);
+            ClassicAssert.AreEqual("Test", result.Name);
+            ClassicAssert.AreEqual(5, result.Total);
 
             result = (TestData)data.ProtoDecompressDeserialize(typeof(TestData));
-            Assert.AreEqual("Test", result.Name);
-            Assert.AreEqual(5, result.Total);
+            ClassicAssert.AreEqual("Test", result.Name);
+            ClassicAssert.AreEqual(5, result.Total);
         }
 
         [Test]
         public void SmartSerializeCompress()
         {
             var data = instance.SmartSerializeCompress(out bool compressed);
-            Assert.IsFalse(compressed);
-            Assert.AreEqual(8, data.Length);
+            ClassicAssert.IsFalse(compressed);
+            ClassicAssert.AreEqual(8, data.Length);
 
             data = instance.SmartSerializeCompress(out compressed, 1);
-            Assert.IsTrue(compressed);
-            Assert.AreEqual(10, data.Length);
+            ClassicAssert.IsTrue(compressed);
+            ClassicAssert.AreEqual(10, data.Length);
         }
 
         [Test]
@@ -55,8 +56,8 @@ namespace Wikiled.Redis.UnitTests.Helpers
         {
             var data = instance.ProtoSerialize();
             var result = (TestData)data.ProtoDeserialize(typeof(TestData));
-            Assert.AreEqual("Test", result.Name);
-            Assert.AreEqual(5, result.Total);
+            ClassicAssert.AreEqual("Test", result.Name);
+            ClassicAssert.AreEqual(5, result.Total);
         }
     }
 }
