@@ -2,6 +2,7 @@
 using Wikiled.Redis.Keys;
 using Moq;
 using NUnit.Framework;
+using NUnit.Framework.Legacy;
 using Wikiled.Redis.Persistency;
 
 namespace Wikiled.Redis.UnitTests.Keys
@@ -23,7 +24,7 @@ namespace Wikiled.Redis.UnitTests.Keys
         public void Construct()
         {
             var key = new RepositoryKey(repository, new ObjectKey("Test"));
-            Assert.AreEqual("Test1:object:Test", key.FullKey);
+            ClassicAssert.AreEqual("Test1:object:Test", key.FullKey);
         }
 
         [Test]
@@ -31,7 +32,7 @@ namespace Wikiled.Redis.UnitTests.Keys
         {
             var key1 = new RepositoryKey(repository, new ObjectKey("Test"));
             var key2 = new RepositoryKey(repository, new ObjectKey("Test"));
-            Assert.AreEqual(key1, key2);
+            ClassicAssert.AreEqual(key1, key2);
         }
     }
 }

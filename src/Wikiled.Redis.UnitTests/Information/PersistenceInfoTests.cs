@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Wikiled.Redis.Information;
 using NUnit.Framework;
+using NUnit.Framework.Legacy;
 
 namespace Wikiled.Redis.UnitTests.Information
 {
@@ -23,11 +24,11 @@ namespace Wikiled.Redis.UnitTests.Information
         public void Construct()
         {
             var server = InfoTestsHelper.Create("Persistence", allValues);
-            Assert.Throws<ArgumentNullException>(() => new PersistenceInfo(null));
+            ClassicAssert.Throws<ArgumentNullException>(() => new PersistenceInfo(null));
             PersistenceInfo info = new PersistenceInfo(server);
-            Assert.AreEqual(100, info.AofSize);
-            Assert.AreEqual(1, info.IsAofRewriting);
-            Assert.AreEqual(1, info.IsRdbSaving);
+            ClassicAssert.AreEqual(100, info.AofSize);
+            ClassicAssert.AreEqual(1, info.IsAofRewriting);
+            ClassicAssert.AreEqual(1, info.IsRdbSaving);
         }
 
         [Test]
@@ -36,9 +37,9 @@ namespace Wikiled.Redis.UnitTests.Information
             allValues.Clear();
             var server = InfoTestsHelper.Create("Persistence", allValues);
             PersistenceInfo info = new PersistenceInfo(server);
-            Assert.IsNull(info.AofSize);
-            Assert.IsNull(info.IsAofRewriting);
-            Assert.IsNull(info.IsRdbSaving);
+            ClassicAssert.IsNull(info.AofSize);
+            ClassicAssert.IsNull(info.IsAofRewriting);
+            ClassicAssert.IsNull(info.IsRdbSaving);
         }
     }
 }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
+using NUnit.Framework.Legacy;
 using Wikiled.Redis.Serialization;
 
 namespace Wikiled.Redis.UnitTests.Serialization
@@ -20,8 +21,8 @@ namespace Wikiled.Redis.UnitTests.Serialization
         [Test]
         public void Construct()
         {
-            Assert.Throws<ArgumentNullException>(() => new DictionarySerializer(null));
-            Assert.AreEqual(1, instance.Properties.Length);
+            ClassicAssert.Throws<ArgumentNullException>(() => new DictionarySerializer(null));
+            ClassicAssert.AreEqual(1, instance.Properties.Length);
         }
 
         [Test]
@@ -31,17 +32,17 @@ namespace Wikiled.Redis.UnitTests.Serialization
             table["Test"] = "1";
             table["Test2"] = "2";
             var data = instance.Serialize(table).ToArray();
-            Assert.AreEqual(2, data.Length);
+            ClassicAssert.AreEqual(2, data.Length);
             var result = instance.Deserialize(data);
-            Assert.AreEqual(2, result.Count);
-            Assert.AreEqual("1", result["Test"]);
-            Assert.AreEqual("2", result["Test2"]);
+            ClassicAssert.AreEqual(2, result.Count);
+            ClassicAssert.AreEqual("1", result["Test"]);
+            ClassicAssert.AreEqual("2", result["Test2"]);
 
             List<KeyValuePair<string, string>> list = new List<KeyValuePair<string, string>>();
             list.AddRange(data);
             list.AddRange(data);
             var stream = instance.DeserializeStream(list).ToArray();
-            Assert.AreEqual(2, stream.Length);
+            ClassicAssert.AreEqual(2, stream.Length);
         }
     }
 }

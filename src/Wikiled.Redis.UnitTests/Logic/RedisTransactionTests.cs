@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Wikiled.Redis.Logic;
 using Moq;
 using NUnit.Framework;
+using NUnit.Framework.Legacy;
 using StackExchange.Redis;
 using Wikiled.Redis.Channels;
 using Wikiled.Redis.Indexing;
@@ -35,11 +36,11 @@ namespace Wikiled.Redis.UnitTests.Logic
         [Test]
         public void Construct()
         {
-            Assert.Throws<ArgumentNullException>(() => new RedisTransaction(new NullLoggerFactory(), null, transaction.Object, mainIndexManager.Object));
-            Assert.Throws<ArgumentNullException>(() => new RedisTransaction(new NullLoggerFactory(), link.Object, null, mainIndexManager.Object));
-            Assert.Throws<ArgumentNullException>(() => new RedisTransaction(new NullLoggerFactory(), link.Object, transaction.Object, null));
-            Assert.Throws<ArgumentNullException>(() => new RedisTransaction(null, link.Object, transaction.Object, mainIndexManager.Object));
-            Assert.IsNotNull(instance.Client);
+            ClassicAssert.Throws<ArgumentNullException>(() => new RedisTransaction(new NullLoggerFactory(), null, transaction.Object, mainIndexManager.Object));
+            ClassicAssert.Throws<ArgumentNullException>(() => new RedisTransaction(new NullLoggerFactory(), link.Object, null, mainIndexManager.Object));
+            ClassicAssert.Throws<ArgumentNullException>(() => new RedisTransaction(new NullLoggerFactory(), link.Object, transaction.Object, null));
+            ClassicAssert.Throws<ArgumentNullException>(() => new RedisTransaction(null, link.Object, transaction.Object, mainIndexManager.Object));
+            ClassicAssert.IsNotNull(instance.Client);
         }
 
         [TestCase(ChannelState.Closed, 0)]

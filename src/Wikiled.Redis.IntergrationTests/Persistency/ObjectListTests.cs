@@ -2,6 +2,7 @@
 using System;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using NUnit.Framework.Legacy;
 using Wikiled.Common.Utilities.Helpers;
 using Wikiled.Redis.Channels;
 using Wikiled.Redis.Data;
@@ -30,7 +31,7 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
             var newKey = new ObjectKey("Complex");
             await Redis.Client.AddRecord(newKey, data);
             var result = await Redis.Client.GetRecords<ComplexData>(newKey).FirstAsync();
-            Assert.AreEqual(data.Date, result.Date);
+            ClassicAssert.AreEqual(data.Date, result.Date);
         }
 
         [TestCase(true)]
@@ -46,7 +47,7 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
             }
             
             var result = await Redis.Client.GetRecords<ComplexData>(newKey).ToArray();
-            Assert.AreEqual(10, result.Length);
+            ClassicAssert.AreEqual(10, result.Length);
         }
 
         [Test]
@@ -59,7 +60,7 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
             await Redis.Client.AddRecord(newKey, data);
 
             Redis.PersistencyRegistration.RegisterObjectHashSet<Identity>(new FlatProtoDataSerializer(false, MemoryStreamInstances.MemoryStream));
-            Assert.ThrowsAsync<ArgumentNullException>(async () => await Redis.Client.GetRecords<Identity>(newKey).FirstAsync());
+            ClassicAssert.ThrowsAsync<ArgumentNullException>(async () => await Redis.Client.GetRecords<Identity>(newKey).FirstAsync());
         }
     }
 }

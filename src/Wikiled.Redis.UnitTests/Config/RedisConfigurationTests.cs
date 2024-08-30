@@ -5,6 +5,7 @@ using System.Xml;
 using System.Xml.Serialization;
 using Wikiled.Redis.Config;
 using NUnit.Framework;
+using NUnit.Framework.Legacy;
 
 namespace Wikiled.Redis.UnitTests.Config
 {
@@ -22,22 +23,22 @@ namespace Wikiled.Redis.UnitTests.Config
         [Test]
         public void DefaultValues()
         {
-            Assert.IsTrue(configuration.AllowAdmin);
-            Assert.AreEqual(5000, configuration.ConnectTimeout);
-            Assert.AreEqual(60, configuration.KeepAlive);
-            Assert.AreEqual("Wikiled", configuration.ServiceName);
-            Assert.AreEqual(5000, configuration.SyncTimeout);
+            ClassicAssert.IsTrue(configuration.AllowAdmin);
+            ClassicAssert.AreEqual(5000, configuration.ConnectTimeout);
+            ClassicAssert.AreEqual(60, configuration.KeepAlive);
+            ClassicAssert.AreEqual("Wikiled", configuration.ServiceName);
+            ClassicAssert.AreEqual(5000, configuration.SyncTimeout);
         }
 
         [Test]
         public void Construct()
         {
-            Assert.Throws<ArgumentNullException>(() => new RedisConfiguration(null));
+            ClassicAssert.Throws<ArgumentNullException>(() => new RedisConfiguration(null));
             var instance = new RedisConfiguration("localhost", 100);
-            Assert.AreEqual("localhost", instance.Endpoints[0].Host);
+            ClassicAssert.AreEqual("localhost", instance.Endpoints[0].Host);
 
             instance = new RedisConfiguration("localhost");
-            Assert.AreEqual("localhost", instance.Endpoints[0].Host);
+            ClassicAssert.AreEqual("localhost", instance.Endpoints[0].Host);
         }
 
         [Test]
@@ -47,10 +48,10 @@ namespace Wikiled.Redis.UnitTests.Config
             configuration.Endpoints[0].Host = "localhost";
             configuration.Endpoints[0].Port = 1000;
             var options = configuration.GetOptions();
-            Assert.AreEqual(1, options.EndPoints.Count);
-            Assert.AreEqual(5000, options.ConnectTimeout);
-            Assert.AreEqual(60, options.KeepAlive);
-            Assert.AreEqual(5000, options.SyncTimeout);
+            ClassicAssert.AreEqual(1, options.EndPoints.Count);
+            ClassicAssert.AreEqual(5000, options.ConnectTimeout);
+            ClassicAssert.AreEqual(60, options.KeepAlive);
+            ClassicAssert.AreEqual(5000, options.SyncTimeout);
         }
 
         [Test]
@@ -60,7 +61,7 @@ namespace Wikiled.Redis.UnitTests.Config
             configuration.Endpoints[0].Host = "localhost";
             configuration.Endpoints[0].Port = 1000;
             configuration.ServiceName = "Test";
-            Assert.AreEqual("[Test] [localhost:1000]", configuration.ToString());
+            ClassicAssert.AreEqual("[Test] [localhost:1000]", configuration.ToString());
         }
 
         [Test]
@@ -81,14 +82,14 @@ namespace Wikiled.Redis.UnitTests.Config
 
             var options = redisSettings.GetOptions();
 
-            Assert.AreEqual(8000, options.ConnectTimeout);
-            Assert.AreEqual(9000, options.SyncTimeout);
+            ClassicAssert.AreEqual(8000, options.ConnectTimeout);
+            ClassicAssert.AreEqual(9000, options.SyncTimeout);
 
-            Assert.AreEqual("Host1", ((DnsEndPoint)options.EndPoints[0]).Host);
-            Assert.AreEqual(123, ((DnsEndPoint)options.EndPoints[0]).Port);
+            ClassicAssert.AreEqual("Host1", ((DnsEndPoint)options.EndPoints[0]).Host);
+            ClassicAssert.AreEqual(123, ((DnsEndPoint)options.EndPoints[0]).Port);
 
-            Assert.AreEqual("Host2", ((DnsEndPoint)options.EndPoints[1]).Host);
-            Assert.AreEqual(124, ((DnsEndPoint)options.EndPoints[1]).Port);
+            ClassicAssert.AreEqual("Host2", ((DnsEndPoint)options.EndPoints[1]).Host);
+            ClassicAssert.AreEqual(124, ((DnsEndPoint)options.EndPoints[1]).Port);
         }
     }
 }

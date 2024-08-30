@@ -1,5 +1,6 @@
 ﻿using Wikiled.Redis.Scripts;
 using NUnit.Framework;
+using NUnit.Framework.Legacy;
 
 namespace Wikiled.Redis.UnitTests.Scripts
 {
@@ -10,7 +11,7 @@ namespace Wikiled.Redis.UnitTests.Scripts
         public void Test()
         {
             ScriptGenerator generator = new ScriptGenerator();
-            Assert.AreEqual(generator.GenerateInsertScript(true, 1), generator.GenerateInsertScript(true, 1));
+            ClassicAssert.AreEqual(generator.GenerateInsertScript(true, 1), generator.GenerateInsertScript(true, 1));
         }
     }
 }

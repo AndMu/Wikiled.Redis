@@ -5,6 +5,7 @@ using System.Net;
 using Wikiled.Redis.Information;
 using Moq;
 using NUnit.Framework;
+using NUnit.Framework.Legacy;
 using StackExchange.Redis;
 
 namespace Wikiled.Redis.UnitTests.Information
@@ -29,14 +30,14 @@ namespace Wikiled.Redis.UnitTests.Information
         [Test]
         public void Construct()
         {
-            Assert.Throws<ArgumentNullException>(() => new ServerInformation(null, data));
-            Assert.Throws<ArgumentNullException>(() => new ServerInformation(server.Object, null));
+            ClassicAssert.Throws<ArgumentNullException>(() => new ServerInformation(null, data));
+            ClassicAssert.Throws<ArgumentNullException>(() => new ServerInformation(server.Object, null));
             ServerInformation information = new ServerInformation(server.Object, data);
-            Assert.IsNotNull(information.Memory);
-            Assert.IsNotNull(information.Persistence);
-            Assert.IsNotNull(information.Stats);
-            Assert.IsNotNull(information.Server);
-            Assert.AreEqual(1, information.RawData.Count);
+            ClassicAssert.IsNotNull(information.Memory);
+            ClassicAssert.IsNotNull(information.Persistence);
+            ClassicAssert.IsNotNull(information.Stats);
+            ClassicAssert.IsNotNull(information.Server);
+            ClassicAssert.AreEqual(1, information.RawData.Count);
         }
     }
 }

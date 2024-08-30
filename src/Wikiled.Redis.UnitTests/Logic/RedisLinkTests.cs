@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using NUnit.Framework;
+using NUnit.Framework.Legacy;
 using StackExchange.Redis;
 using Wikiled.Redis.Channels;
 using Wikiled.Redis.Config;
@@ -53,39 +54,39 @@ namespace Wikiled.Redis.UnitTests.Logic
         public void SubscribeKeyEvents()
         {
             var key = new ObjectKey("Test", "Id");
-            Assert.Throws<ArgumentNullException>(() => redisLink.SubscribeKeyEvents(null, @event => Console.WriteLine(@event.Key)));
-            Assert.Throws<ArgumentNullException>(() => redisLink.SubscribeKeyEvents(key, null));
+            ClassicAssert.Throws<ArgumentNullException>(() => redisLink.SubscribeKeyEvents(null, @event => Console.WriteLine(@event.Key)));
+            ClassicAssert.Throws<ArgumentNullException>(() => redisLink.SubscribeKeyEvents(key, null));
             var subscriber = new Mock<ISubscriber>();
             multiplexer.Setup(item => item.SubscribeKeyEvents("Redis:object:Test:Id", It.IsAny<Action<KeyspaceEvent>>()))
                        .Returns(subscriber.Object);
             var result = redisLink.SubscribeKeyEvents(key, @event => Console.WriteLine(@event.Key));
-            Assert.AreEqual(subscriber.Object, result);
+            ClassicAssert.AreEqual(subscriber.Object, result);
         }
 
         [Test]
         public void SubscribeTypeEvents()
         {
             redisLink.PersistencyRegistration.RegisterHashSet<Identity>();
-            Assert.Throws<ArgumentNullException>(() => redisLink.SubscribeTypeEvents<Identity>(null));
+            ClassicAssert.Throws<ArgumentNullException>(() => redisLink.SubscribeTypeEvents<Identity>(null));
             var subscriber = new Mock<ISubscriber>();
             multiplexer.Setup(item => item.SubscribeKeyEvents("Redis:object:Identity:*", It.IsAny<Action<KeyspaceEvent>>()))
                        .Returns(subscriber.Object);
             var result = redisLink.SubscribeTypeEvents<Identity>(@event => Console.WriteLine(@event.Key));
-            Assert.AreEqual(subscriber.Object, result);
+            ClassicAssert.AreEqual(subscriber.Object, result);
         }
 
         [Test]
         public void SubscribeTypeEventsNotSupported()
         {
             var result = redisLink.SubscribeTypeEvents<Identity>(@event => Console.WriteLine(@event.Key));
-            Assert.IsNull(result);
+            ClassicAssert.IsNull(result);
         }
 
         [Test]
         public void DefaultSerialization()
         {
             var specificClient = redisLink.GetSpecific<Identity>();
-            Assert.IsInstanceOf<ListSerialization<Identity>>(specificClient);
+            ClassicAssert.IsInstanceOf<ListSerialization<Identity>>(specificClient);
         }
 
         [Test]
@@ -93,7 +94,7 @@ namespace Wikiled.Redis.UnitTests.Logic
         {
             redisLink.PersistencyRegistration.RegisterHashSet<Identity>();
             var specificClient = redisLink.GetSpecific<Identity>();
-            Assert.IsInstanceOf<ObjectListSerialization<Identity>>(specificClient);
+            ClassicAssert.IsInstanceOf<ObjectListSerialization<Identity>>(specificClient);
         }
 
         [Test]
@@ -101,32 +102,32 @@ namespace Wikiled.Redis.UnitTests.Logic
         {
             redisLink.PersistencyRegistration.RegisterHashsetSingle<Identity>();
             var specificClient = redisLink.GetSpecific<Identity>();
-            Assert.IsInstanceOf<SingleItemSerialization<Identity>>(specificClient);
+            ClassicAssert.IsInstanceOf<SingleItemSerialization<Identity>>(specificClient);
         }
 
         [Test]
         public void RegisterObjectHashList()
         {
-            redisLink.PersistencyRegistration.RegisterObjectHashSet<Identity>(new BinaryDataSerializer());
+            redisLink.PersistencyRegistration.RegisterObjectHashSet<Identity>(new XmlDataSerializer());
             var specificClient = redisLink.GetSpecific<Identity>();
-            Assert.IsInstanceOf<ObjectListSerialization<Identity>>(specificClient);
+            ClassicAssert.IsInstanceOf<ObjectListSerialization<Identity>>(specificClient);
         }
 
         [Test]
         public void GetSpecificHashSingle()
         {
-            redisLink.PersistencyRegistration.RegisterObjectHashSingle<Identity>(new BinaryDataSerializer());
+            redisLink.PersistencyRegistration.RegisterObjectHashSingle<Identity>(new XmlDataSerializer());
             var specificClient = redisLink.GetSpecific<Identity>();
-            Assert.IsInstanceOf<SingleItemSerialization<Identity>>(specificClient);
+            ClassicAssert.IsInstanceOf<SingleItemSerialization<Identity>>(specificClient);
         }
 
         [Test]
         public void Create()
         {
-            Assert.Throws<ArgumentNullException>(() => new RedisLink(new NullLoggerFactory(), configuration, null, resilience.Object, entitySubscriber.Object, defaultSerialiser.Object));
-            Assert.AreEqual("Redis", redisLink.Name);
-            Assert.AreEqual(multiplexer.Object, redisLink.Multiplexer);
-            Assert.NotNull(redisLink.Generator);
+            ClassicAssert.Throws<ArgumentNullException>(() => new RedisLink(new NullLoggerFactory(), configuration, null, resilience.Object, entitySubscriber.Object, defaultSerialiser.Object));
+            ClassicAssert.AreEqual("Redis", redisLink.Name);
+            ClassicAssert.AreEqual(multiplexer.Object, redisLink.Multiplexer);
+            ClassicAssert.NotNull(redisLink.Generator);
         }
       
         [Test]
@@ -143,8 +144,8 @@ namespace Wikiled.Redis.UnitTests.Logic
             multiplexer = new Mock<IRedisMultiplexer>();
             multiplexer.Setup(item => item.Open()).Throws(new Exception());
             redisLink = new RedisLink(new NullLoggerFactory(), configuration, multiplexer.Object,  resilience.Object, entitySubscriber.Object, defaultSerialiser.Object);
-            Assert.ThrowsAsync<Exception>(redisLink.Open);
-            Assert.ThrowsAsync<Exception>(redisLink.Open);
+            ClassicAssert.ThrowsAsync<Exception>(redisLink.Open);
+            ClassicAssert.ThrowsAsync<Exception>(redisLink.Open);
             multiplexer.Verify(item => item.Open(), Times.Exactly(2));
             multiplexer.Verify(item => item.Close(), Times.Exactly(2));
         }
@@ -154,11 +155,11 @@ namespace Wikiled.Redis.UnitTests.Logic
         {
             redisLink = new RedisLink(new NullLoggerFactory(), configuration, multiplexer.Object, resilience.Object, entitySubscriber.Object, defaultSerialiser.Object);
             multiplexer.Setup(item => item.Open()).Throws(new Exception());
-            Assert.ThrowsAsync<Exception>(redisLink.Open);
-            Assert.AreEqual(ChannelState.Closed, redisLink.State);
+            ClassicAssert.ThrowsAsync<Exception>(redisLink.Open);
+            ClassicAssert.AreEqual(ChannelState.Closed, redisLink.State);
             multiplexer.Setup(item => item.Open());
             await redisLink.Open();
-            Assert.AreEqual(ChannelState.Open, redisLink.State);
+            ClassicAssert.AreEqual(ChannelState.Open, redisLink.State);
         }
 
         [Test]

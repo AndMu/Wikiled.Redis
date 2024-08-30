@@ -1,13 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using Microsoft.Extensions.DependencyInjection;
+using NUnit.Framework;
+using NUnit.Framework.Legacy;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using NUnit.Framework;
-using RedisInside;
-using StackExchange.Redis;
 using Wikiled.Common.Serialization;
 using Wikiled.Common.Utilities.Modules;
 using Wikiled.Redis.Channels;
@@ -22,8 +20,6 @@ namespace Wikiled.Redis.IntegrationTests.Subscription
     [TestFixture]
     public class SubscriptionTests
     {
-        private RedisInside.Redis redisInstance;
-
         private IRedisLink redis;
 
         private ObjectKey key;
@@ -31,7 +27,6 @@ namespace Wikiled.Redis.IntegrationTests.Subscription
         [SetUp]
         public async Task Setup()
         {
-            redisInstance = new RedisInside.Redis(i => i.Port(6666).LogTo(item => Global.Logger.LogDebug(item)));
             var config = XDocument.Load(Path.Combine(TestContext.CurrentContext.TestDirectory, @"Config\redis.config")).XmlDeserialize<RedisConfiguration>();
             config.ServiceName = "IT";
             redis = await new ModuleHelper(config).Provider.GetService<IAsyncServiceFactory<IRedisLink>>().GetService(true);
@@ -44,7 +39,6 @@ namespace Wikiled.Redis.IntegrationTests.Subscription
         public void TearDown()
         {
             redis.Dispose();
-            redisInstance.Dispose();
         }
 
         [Test]
@@ -54,9 +48,9 @@ namespace Wikiled.Redis.IntegrationTests.Subscription
             redis.SubscribeKeyEvents(key, @event => events.Add(@event));
             redis.Client.AddRecord(key, new Identity());
             Thread.Sleep(1000);
-            Assert.AreEqual(1, events.Count);
-            Assert.AreEqual("rpush", (string)events[0].Value);
-            Assert.AreEqual("IT:object:Test:Key", events[0].Key);
+            ClassicAssert.AreEqual(1, events.Count);
+            ClassicAssert.AreEqual("rpush", (string)events[0].Value);
+            ClassicAssert.AreEqual("IT:object:Test:Key", events[0].Key);
         }
 
         [Test]
@@ -67,8 +61,8 @@ namespace Wikiled.Redis.IntegrationTests.Subscription
             redis.SubscribeTypeEvents<Identity>(@event => events.Add(@event));
             redis.Client.AddRecord(key, new Identity { ApplicationId = "Test" });
             Thread.Sleep(1000);
-            Assert.AreEqual(1, events.Count);
-            Assert.AreEqual("hset", (string)events[0].Value);
+            ClassicAssert.AreEqual(1, events.Count);
+            ClassicAssert.AreEqual("hset", (string)events[0].Value);
         }
     }
 }

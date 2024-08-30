@@ -1,6 +1,7 @@
 ﻿using System;
 using Wikiled.Redis.Keys;
 using NUnit.Framework;
+using NUnit.Framework.Legacy;
 
 namespace Wikiled.Redis.UnitTests.Keys
 {
@@ -10,29 +11,29 @@ namespace Wikiled.Redis.UnitTests.Keys
         [Test]
         public void Construct()
         {
-            Assert.Throws<ArgumentException>(() => new ObjectKey((string)null));
+            ClassicAssert.Throws<ArgumentException>(() => new ObjectKey((string)null));
             var key = new ObjectKey("Test");
-            Assert.AreEqual("object:Test", key.FullKey);
+            ClassicAssert.AreEqual("object:Test", key.FullKey);
         }
 
          [Test]
         public void AddIndex()
         {
             var key = new ObjectKey("Test");
-            Assert.Throws<ArgumentNullException>(() => key.AddIndex(null));
+            ClassicAssert.Throws<ArgumentNullException>(() => key.AddIndex(null));
             key.AddIndex(new IndexKey("Test"));
-            Assert.AreEqual(1, key.Indexes.Length);
+            ClassicAssert.AreEqual(1, key.Indexes.Length);
         }
 
         [Test]
         public void ConstructArray()
         {
-            Assert.Throws<ArgumentNullException>(() => new ObjectKey((string[])null));
-            Assert.Throws<ArgumentException>(() => new ObjectKey());
+            ClassicAssert.Throws<ArgumentNullException>(() => new ObjectKey((string[])null));
+            ClassicAssert.Throws<ArgumentException>(() => new ObjectKey());
             var key = new ObjectKey(new[] { "Test" });
-            Assert.AreEqual("object:Test", key.FullKey);
+            ClassicAssert.AreEqual("object:Test", key.FullKey);
             key = new ObjectKey("Test", "Any");
-            Assert.AreEqual("object:Test:Any", key.FullKey);
+            ClassicAssert.AreEqual("object:Test:Any", key.FullKey);
         }
 
         [Test]
@@ -40,7 +41,7 @@ namespace Wikiled.Redis.UnitTests.Keys
         {
             var key1 = new ObjectKey("Test");
             var key2 = new ObjectKey("Test");
-            Assert.AreEqual(key1, key2);
+            ClassicAssert.AreEqual(key1, key2);
         }
     }
 }

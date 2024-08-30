@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using NUnit.Framework.Legacy;
 using Wikiled.Redis.Channels;
 using Wikiled.Redis.IntegrationTests.MockData;
 using Wikiled.Redis.Keys;
@@ -21,8 +22,8 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
             Key.AddIndex(new IndexKey("Data"));
             await Redis.Client.AddRecord(Key, Routing);
             var result = await Redis.Client.GetRecords<Identity>(Key).FirstAsync();
-            Assert.AreEqual("Test", result.ApplicationId);
-            Assert.AreEqual("DEV", result.Environment);
+            ClassicAssert.AreEqual("Test", result.ApplicationId);
+            ClassicAssert.AreEqual("DEV", result.Environment);
         }
 
         [Test]
@@ -34,7 +35,7 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
             var newKey = new ObjectKey("Complex");
             await Redis.Client.AddRecord(newKey, data);
             var result = await Redis.Client.GetRecords<ComplexData>(newKey).FirstAsync();
-            Assert.AreEqual(data.Date, result.Date);
+            ClassicAssert.AreEqual(data.Date, result.Date);
         }
 
         [Test]
@@ -49,10 +50,10 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
             var result2 = await Redis.Client.GetRecords<Identity>(new IndexKey(Repository.Object, "Data")).ToArray();
 
             await Redis.Client.DeleteAll<Identity>(RepositoryKey);
-            Assert.AreEqual(1, result.Length);
-            Assert.AreEqual(1, result2.Length);
-            Assert.IsTrue(string.IsNullOrEmpty(result[0].ApplicationId));
-            Assert.AreEqual("DEV", result[0].Environment);
+            ClassicAssert.AreEqual(1, result.Length);
+            ClassicAssert.AreEqual(1, result2.Length);
+            ClassicAssert.IsTrue(string.IsNullOrEmpty(result[0].ApplicationId));
+            ClassicAssert.AreEqual("DEV", result[0].Environment);
         }
 
         [Test]
@@ -75,7 +76,7 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
             key1.AddIndex(ListAll);
 
             var items = Redis.Client.GetRecords<Identity>(ListAll).ToEnumerable().ToArray();
-            Assert.AreEqual(0, items.Length);
+            ClassicAssert.AreEqual(0, items.Length);
 
             var identity = new Identity();
             identity.Environment = "Ev";
@@ -86,11 +87,11 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
             await Redis.Client.AddRecord(key2, identity);
 
             items = Redis.Client.GetRecords<Identity>(ListAll).ToEnumerable().ToArray();
-            Assert.AreEqual(2, items.Length);
-            Assert.AreEqual("Ev", items[0].Environment);
+            ClassicAssert.AreEqual(2, items.Length);
+            ClassicAssert.AreEqual("Ev", items[0].Environment);
 
             var count = await Redis.Client.Count(ListAll);
-            Assert.AreEqual(2, count);
+            ClassicAssert.AreEqual(2, count);
         }
 
         [Test]
@@ -101,8 +102,8 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
             table["Result"] = "one";
             await Redis.Client.AddRecord(Key, table);
             var records = await Redis.Client.GetRecords<Dictionary<string, string>>(Key).ToArray();
-            Assert.AreEqual(1, records.Length);
-            Assert.AreEqual("one", records[0]["Result"]);
+            ClassicAssert.AreEqual(1, records.Length);
+            ClassicAssert.AreEqual("one", records[0]["Result"]);
         }
     }
 }

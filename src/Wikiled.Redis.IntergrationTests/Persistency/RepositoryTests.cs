@@ -3,8 +3,10 @@ using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Reactive.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.IO;
+using NUnit.Framework.Legacy;
 using Wikiled.Common.Utilities.Serialization;
 using Wikiled.Redis.Channels;
 using Wikiled.Redis.IntegrationTests.Helpers;
@@ -33,13 +35,13 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
         [Test]
         public async Task TestRepositoryEx()
         {
-            var repository = new IdentityRepositoryEx(new NullLogger<IdentityRepository>(), Redis, new BasicJsonSerializer(new RecyclableMemoryStreamManager()));
+            var repository = new IdentityRepositoryEx(new NullLogger<IdentityRepository>(), Redis, new BasicJsonSerializer(new RecyclableMemoryStreamManager(), JsonSerializerOptions.Default));
 
             var result = await repository.LoadAll().ToArray();
-            Assert.AreEqual(0, result.Length);
+            ClassicAssert.AreEqual(0, result.Length);
 
             var total = await repository.Count();
-            Assert.AreEqual(0, total);
+            ClassicAssert.AreEqual(0, total);
             
             for (int i = 0; i < 2; i++)
             {
@@ -47,9 +49,9 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
             }
 
             total = await repository.Count();
-            Assert.AreEqual(2, total);
+            ClassicAssert.AreEqual(2, total);
             result = await repository.LoadAll().ToArray();
-            Assert.AreEqual(2, result.Length);
+            ClassicAssert.AreEqual(2, result.Length);
         }
 
         [Test]
@@ -69,7 +71,7 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
             await Task.WhenAll(tasks);
             var received = await result;
             
-            Assert.AreEqual(2, received.Length);
+            ClassicAssert.AreEqual(2, received.Length);
         }
 
         [Test]
@@ -90,7 +92,7 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
             await Task.WhenAll(tasks);
 
             var all = await repository.LoadAll(repository.Entity.AllIndex).ToArray();
-            Assert.AreEqual(2, all.Length);
+            ClassicAssert.AreEqual(2, all.Length);
 
             tasks.Clear();
             transaction = Redis.StartTransaction();
@@ -102,7 +104,7 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
             await transaction.Commit();
             await Task.WhenAll(tasks);
             all = await repository.LoadAll(repository.Entity.AllIndex).ToArray();
-            Assert.AreEqual(0, all.Length);
+            ClassicAssert.AreEqual(0, all.Length);
         }
 
         [Test]
@@ -133,25 +135,25 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
             await Task.WhenAll(tasks);
             
             var loaded = await repository.LoadAll().ToArray();
-            Assert.AreEqual(2, loaded.Length);
+            ClassicAssert.AreEqual(2, loaded.Length);
             
             loaded = await repository.LoadActive().ToArray();
-            Assert.AreEqual(2, loaded.Length);
+            ClassicAssert.AreEqual(2, loaded.Length);
 
             loaded = await repository.LoadInActive().ToArray();
-            Assert.AreEqual(0, loaded.Length);
+            ClassicAssert.AreEqual(0, loaded.Length);
 
 
             await repository.Deactivate("1");
 
             loaded = await repository.LoadAll().ToArray();
-            Assert.AreEqual(2, loaded.Length);
+            ClassicAssert.AreEqual(2, loaded.Length);
 
             loaded = await repository.LoadActive().ToArray();
-            Assert.AreEqual(1, loaded.Length);
+            ClassicAssert.AreEqual(1, loaded.Length);
 
             loaded = await repository.LoadInActive().ToArray();
-            Assert.AreEqual(1, loaded.Length);
+            ClassicAssert.AreEqual(1, loaded.Length);
         }
 
         [Test]
@@ -159,11 +161,11 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
         {
             var repo = new IdentityObjectSetRepository(new NullLogger<EntityRepository<Identity>>(),
                                                         Redis,
-                                                        new BasicJsonSerializer(new RecyclableMemoryStreamManager()));
+                                                        new BasicJsonSerializer(new RecyclableMemoryStreamManager(), JsonSerializerOptions.Default));
             await repo.Save(new Identity { InstanceId = "1" });
             await repo.Save(new Identity { InstanceId = "1" });
             var total = await repo.Count();
-            Assert.AreEqual(1, total);
+            ClassicAssert.AreEqual(1, total);
         }
 
         [Test]
@@ -171,17 +173,17 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
         {
             var repo = new IdentityListRepository(new NullLogger<EntityRepository<Identity>>(),
                                                        Redis,
-                                                       new BasicJsonSerializer(new RecyclableMemoryStreamManager()));
+                                                       new BasicJsonSerializer(new RecyclableMemoryStreamManager(), JsonSerializerOptions.Default));
             await repo.Save(new Identity { InstanceId = "1" });
             await repo.Save(new Identity { InstanceId = "1" });
             var total = await repo.Count();
-            Assert.AreEqual(1, total);
+            ClassicAssert.AreEqual(1, total);
 
             total = await repo.Count(repo.Entity.GetKey("1"));
-            Assert.AreEqual(2, total);
+            ClassicAssert.AreEqual(2, total);
 
             var data = await repo.LoadAll(repo.Entity.GetKey("1")).ToArray();
-            Assert.AreEqual(2, data.Length);
+            ClassicAssert.AreEqual(2, data.Length);
         }
     }
 }
