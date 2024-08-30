@@ -37,7 +37,7 @@ namespace Wikiled.Redis.IntegrationTests.Persistency
         [SetUp]
         public virtual async Task Setup()
         {
-            var config = XDocument.Load(Path.Combine(TestContext.CurrentContext.TestDirectory, Path.Combine("Config", "redis.config"))).XmlDeserialize<RedisConfiguration>();
+            var config = XDocument.Load(Path.Combine(TestContext.CurrentContext.TestDirectory, "Config", "redis.config")).XmlDeserialize<RedisConfiguration>();
             var provider = new ModuleHelper(config).Provider;
             Redis = await provider.GetService<IAsyncServiceFactory<IRedisLink>>().GetService(true);
             Redis.Multiplexer.Flush();
