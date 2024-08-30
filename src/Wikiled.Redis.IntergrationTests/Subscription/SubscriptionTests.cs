@@ -27,7 +27,7 @@ namespace Wikiled.Redis.IntegrationTests.Subscription
         [SetUp]
         public async Task Setup()
         {
-            var config = XDocument.Load(Path.Combine(TestContext.CurrentContext.TestDirectory, @"Config\redis.config")).XmlDeserialize<RedisConfiguration>();
+            var config = XDocument.Load(Path.Combine(TestContext.CurrentContext.TestDirectory, "Config", "redis.config")).XmlDeserialize<RedisConfiguration>();
             config.ServiceName = "IT";
             redis = await new ModuleHelper(config).Provider.GetService<IAsyncServiceFactory<IRedisLink>>().GetService(true);
             redis.Multiplexer.EnableNotifications();
