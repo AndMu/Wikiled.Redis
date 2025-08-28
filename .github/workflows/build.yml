@@ -8,8 +8,9 @@ on:
 env:
   DOTNET_CORE_VERSION: '9.0.x'
   MAJOR_VERSION: '3'
-  MINOR_VERSION: '8'  
-  NUGET_SOURCE: 'https://api.nuget.org/v4/index.json'
+  MINOR_VERSION: '7'
+  REVISION_VERSION: '0'
+  NUGET_SOURCE: 'https://api.nuget.org/v3/index.json'
 
 jobs:
   build_test_pack_push:
@@ -41,20 +42,17 @@ jobs:
       with:
         dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
         
-    - name: Install packages for testing      
+    - name: Install packages
       run: sudo apt-get install -y libsnappy1v5 libsnappy-dev
-        
-    - name: Calculate version
-      id: build_version
+
+    - name: Set version
+      id: set_version
       run: |
-        echo "Major version: ${{ env.MAJOR_VERSION }}"
-        echo "Minor version: ${{ env.MINOR_VERSION }}"
-        echo "Build number: $GITHUB_RUN_NUMBER"
-        
-        NEW_VERSION="${{ env.MAJOR_VERSION }}.${{ env.MINOR_VERSION }}.$GITHUB_RUN_NUMBER"
-        echo "Calculated Version: $NEW_VERSION"
-      
-        echo "VERSION=$NEW_VERSION" >> $GITHUB_ENV      
+        if [ ${{ github.ref }} = 'refs/heads/master' ]; then
+          echo "VERSION=${{ env.MAJOR_VERSION }}.${{ env.MINOR_VERSION }}.${{ env.REVISION_VERSION }}.${{ github.run_number }}" >> $GITHUB_ENV
+        else
+          echo "VERSION=${{ env.MAJOR_VERSION }}.${{ env.MINOR_VERSION }}.${{ env.REVISION_VERSION }}.${{ github.run_number }}-dev" >> $GITHUB_ENV
+        fi        
 
     - name: Create Git tag
       run: |
