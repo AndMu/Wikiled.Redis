@@ -1,5 +1,6 @@
 name: .NET CI
 on:
+  workflow_dispatch:
   push:
     paths:
     - 'src/**'
@@ -7,8 +8,7 @@ on:
 env:
   DOTNET_CORE_VERSION: '9.0.x'
   MAJOR_VERSION: '3'
-  MINOR_VERSION: '7'
-  REVISION_VERSION: '0'
+  MINOR_VERSION: '8'  
   NUGET_SOURCE: 'https://api.nuget.org/v4/index.json'
 
 jobs:
@@ -41,17 +41,17 @@ jobs:
       with:
         dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
         
-    - name: Install packages
-      run: sudo apt-get install -y libsnappy1v5 libsnappy-dev
-
-    - name: Set version
-      id: set_version
+    - name: Calculate version
+      id: build_version
       run: |
-        if [ ${{ github.ref }} = 'refs/heads/master' ]; then
-          echo "VERSION=${{ env.MAJOR_VERSION }}.${{ env.MINOR_VERSION }}.${{ env.REVISION_VERSION }}.${{ github.run_number }}" >> $GITHUB_ENV
-        else
-          echo "VERSION=${{ env.MAJOR_VERSION }}.${{ env.MINOR_VERSION }}.${{ env.REVISION_VERSION }}.${{ github.run_number }}-dev" >> $GITHUB_ENV
-        fi        
+        echo "Major version: ${{ env.MAJOR_VERSION }}"
+        echo "Minor version: ${{ env.MINOR_VERSION }}"
+        echo "Build number: $GITHUB_RUN_NUMBER"
+        
+        NEW_VERSION="${{ env.MAJOR_VERSION }}.${{ env.MINOR_VERSION }}.$GITHUB_RUN_NUMBER"
+        echo "Calculated Version: $NEW_VERSION"
+      
+        echo "VERSION=$NEW_VERSION" >> $GITHUB_ENV      
 
     - name: Create Git tag
       run: |
