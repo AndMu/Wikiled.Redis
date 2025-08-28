@@ -129,6 +129,7 @@ namespace Wikiled.Redis.Config
                              ConnectTimeout = ConnectTimeout, // 5 sec
                              SyncTimeout = SyncTimeout, // 5 sec
                              AllowAdmin = AllowAdmin,
+                             AsyncTimeout = ResponseTimeout, // 10 sec
                              AbortOnConnectFail = false,
                              ReconnectRetryPolicy = new ExponentialRetry(500, 10000)
                          };

@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-	  <TargetFramework>net8.0</TargetFramework>
+	  <TargetFramework>net9.0</TargetFramework>
 	  <LangVersion>Latest</LangVersion>
 	  <TieredCompilation>true</TieredCompilation>
 	  <ServerGarbageCollection>true</ServerGarbageCollection>
@@ -26,15 +26,15 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="3.0.1" />
-    <PackageReference Include="Polly" Version="8.4.1" />
-    <PackageReference Include="protobuf-net" version="3.2.30" />
+    <PackageReference Include="Polly" Version="8.6.3" />
+    <PackageReference Include="protobuf-net" version="3.2.56" />
     <PackageReference Include="Snappy.Standard" Version="0.2.0" />
-    <PackageReference Include="StackExchange.Redis" version="2.8.0" />
+    <PackageReference Include="StackExchange.Redis" version="2.9.11" />
     <PackageReference Include="System.Net.Http" Version="4.3.4" />
     <PackageReference Include="System.Reactive" Version="6.0.1" />
     <PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
     <PackageReference Include="Wikiled.Common" Version="1.6.0.8" />
-    <PackageReference Include="Wikiled.Common.Utilities" Version="1.6.0.19" />
+    <PackageReference Include="Wikiled.Common.Utilities" Version="1.6.0.23" />
   </ItemGroup>
 
   <ItemGroup>
