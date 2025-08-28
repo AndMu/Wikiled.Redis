@@ -41,6 +41,9 @@ jobs:
       with:
         dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
         
+    - name: Install packages for testing      
+      run: sudo apt-get install -y libsnappy1v5 libsnappy-dev
+        
     - name: Calculate version
       id: build_version
       run: |
