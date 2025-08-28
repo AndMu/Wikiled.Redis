@@ -8,7 +8,7 @@ namespace Wikiled.Redis.UnitTests.Data
     [TestFixture]
     public class XmlDataSerializerTests
     {
-        [TestCase(true, 66)]
+        [TestCase(true, 67)]
         [TestCase(false, 100)]
         public void Serialize(bool serialize, int size)
         {
@@ -22,7 +22,7 @@ namespace Wikiled.Redis.UnitTests.Data
             ClassicAssert.AreEqual("Test", orderResult.Name);
         }
 
-        [TestCase(true, 66)]
+        [TestCase(true, 67)]
         [TestCase(false, 100)]
         public void SerializeObject(bool serialize, int size)
         {
